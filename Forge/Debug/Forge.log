@@ -1,0 +1,9 @@
+﻿  Forge.cpp
+d:\users\tim\documents\visual studio projects\softwarerasterizer\common\resourcemanager.h(47): warning C4003: not enough actual parameters for macro 'max'
+d:\users\tim\documents\visual studio projects\softwarerasterizer\common\mathstructures.h(180): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\forge.cpp(23): warning C4018: '<': signed/unsigned mismatch
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\forge.cpp(118): warning C4018: '<': signed/unsigned mismatch
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\forge.cpp(750): warning C4018: '<': signed/unsigned mismatch
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\forge.cpp(746): warning C4101: 'viewportTx': unreferenced local variable
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\forge.cpp(435): warning C4715: 'LoadGUIFromFile': not all control paths return a value
+  Forge.vcxproj -> D:\Users\Tim\Documents\Visual Studio Projects\SoftwareRasterizer\Debug\Forge.exe

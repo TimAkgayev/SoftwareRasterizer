@@ -1,0 +1,2 @@
+﻿Common.lib(MathStructures.obj) : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/SAFESEH' specification
+  SoftwareRasterizer.vcxproj -> D:\Users\Tim\Documents\Visual Studio Projects\SoftwareRasterizer\Debug\SoftwareRasterizer.exe

@@ -1,0 +1,16 @@
+FORGE
+
+11/17/2016 5:20AM
+-Rewrite viewport implementation
+    -Make viewport a part of the draw pipeline
+
+
+
+--Alter the size of the GUI Window ^
+	-add new button to FILE ^
+		-add Window to UI ^
+			-prompt for dimensions ^
+			    -release raserizer ^
+				    -release window ^
+						-create window ^
+							-create rasterizer ^
