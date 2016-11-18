@@ -146,6 +146,12 @@ struct LinePrimitive
 	DWORD color1;
 };
 
+//pipeline manipulation
+////////////////////////////////////////////////////////////////////////////////
+MATRIX2D SetCameraTransform(MATRIX2D);
+MATRIX2D SetProjectionTransform(MATRIX2D);
+RECT2D   SetClipRectangle(RECT2D);
+
 
 //software rast initializing functions
 ////////////////////////////////////////////////////////////////////////////////
@@ -174,7 +180,7 @@ void GetRGBA32FromDWORD(int& r, int& g, int& b, int& a, DWORD color);
 
 // queue manipulation
 /////////////////////////////////////////////////////////////////////////////////////////////////
-void QueueLine(float x0, float y0, float x1, float y1, DWORD color0, DWORD color1);
+void QueueTransformClipLine(float x0, float y0, float x1, float y1, DWORD color0, DWORD color1);
 void ClearLineQueue();
 void DrawLineQueue(DWORD* buffer, int lpitch);
 

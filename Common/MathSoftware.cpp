@@ -171,7 +171,7 @@ void MatrixMatrixMultiply(MATRIX4D* out, MATRIX4D* op1, MATRIX4D* op2)
 	
 	(*out) = final;
 }
-void MatrixVectorMultiply(VECTOR3D* operand, MATRIX4x4_PTR transform)
+void MatrixVectorMultiply(VECTOR3D* operand, MATRIX4x4_PTR transform, VECTOR3D* result)
 {
 	MATRIX1x3 final;
 	
@@ -179,12 +179,37 @@ void MatrixVectorMultiply(VECTOR3D* operand, MATRIX4x4_PTR transform)
 	final._01 = ( operand->x * transform->_01 ) + ( operand->y * transform->_11 ) + (operand->z * transform->_21);
 	final._02 = ( operand->x * transform->_02 ) + ( operand->y * transform->_12 ) + (operand->z * transform->_22);
 	
-	operand->x = final._00 + transform->_03;
-	operand->y = final._01 + transform->_13;
-	operand->z = final._02 + transform->_23;
+	VECTOR3D out;
+	out.x = final._00 + transform->_03;
+	out.y = final._01 + transform->_13;
+	out.z = final._02 + transform->_23;
+
+
+	if (result)
+		*result = out;
+	else
+		*operand = out;
+}
+void MatrixVectorMultiply(VECTOR2D* operand, MATRIX2x2_PTR transform, VECTOR2D* result)
+{
+	//project vector into 3D space
+	MATRIX1x3 vect3D;
+	vect3D._00 = operand->x;
+	vect3D._01 = operand->y;
+	vect3D._02 = 1.0f;
+
+	//matrix multiplication
+	VECTOR2D out;
+	out.x = operand->x * transform->_00 + operand->y * transform->_10;
+	out.y = operand->x * transform->_01 + operand->y * transform->_11;
+
+	if (result)
+		*result = out;
+	else
+		*operand = out;
 }
 
-void MatrixVectorMultiply(VECTOR2D* operand, MATRIX3x3_PTR transform)
+void MatrixVectorMultiply(VECTOR2D* operand, MATRIX3x3_PTR transform, VECTOR2D* result)
 {
 	//project vector into 3D space
 	MATRIX1x3 vect3D;
@@ -197,7 +222,11 @@ void MatrixVectorMultiply(VECTOR2D* operand, MATRIX3x3_PTR transform)
 	out.x = vect3D._00 * transform->_00 + vect3D._01 * transform->_10 + vect3D._02 * transform->_20;
 	out.y = vect3D._00 * transform->_01 + vect3D._01 * transform->_11 + vect3D._02 * transform->_21;
 
-	*operand = out;
+
+	if (result)
+		*result = out;
+	else
+		*operand = out;
 }
 
 void MatrixMatrixMultiply(MATRIX3D* out, MATRIX3D* op1, MATRIX3D* op2)

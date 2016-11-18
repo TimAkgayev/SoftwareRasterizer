@@ -6,6 +6,11 @@ SOFTWARERASTERIZER_DX10_OBJECTS* SoftwareRasterizerSelfPointer;
 //queue primitives
 vector<LinePrimitive> lineQueue;
 
+//transforms and regions
+MATRIX2D cameraTransform;
+MATRIX2D projectionTransform;
+RECT2D   clipRectangle;
+
 UINT numVertexElements = 3;
 D3D10_INPUT_ELEMENT_DESC DX10VertexLayout[] =
 {
@@ -25,13 +30,58 @@ SOFTWARERASTERIZER_DX10_OBJECTS* GetSoftwareRasterizer()
 	return SoftwareRasterizerSelfPointer;
 }
 
-void QueueLine(float x0, float y0, float x1, float y1, DWORD color0, DWORD color1)
+
+MATRIX2D SetCameraTransform(MATRIX2D camTx)
 {
+	MATRIX2D old = cameraTransform;
+	cameraTransform = camTx;
+	return old;
+}
+
+MATRIX2D SetProjectionTransform(MATRIX2D perTx)
+{
+	MATRIX2D old = projectionTransform;
+	projectionTransform = perTx;
+	return old;
+}
+
+RECT2D SetClipRectangle(RECT2D clipRct)
+{
+	RECT2D old = clipRectangle;
+	clipRectangle = clipRct;
+	return old;
+}
+
+void QueueTransformClipLine(float x0, float y0, float x1, float y1, DWORD color0, DWORD color1)
+{
+
 	LinePrimitive l;
 	l.point0 = VECTOR2D(x0, y0);
 	l.point1 = VECTOR2D(x1, y1);
 	l.color0 = color0;
 	l.color1 = color1;
+
+	//transform by camera
+	MatrixVectorMultiply(&l.point0, &cameraTransform);
+	MatrixVectorMultiply(&l.point1, &cameraTransform);
+
+	//transform by projection
+	MatrixVectorMultiply(&l.point0, &projectionTransform);
+	MatrixVectorMultiply(&l.point1, &projectionTransform);
+
+	//final pixel coords must be integer values
+	int iP0x = int(l.point0.x + 0.5f);
+	int iP0y = int(l.point0.y + 0.5f);
+	int iP1x = int(l.point1.x + 0.5f);
+	int iP1y = int(l.point1.y + 0.5f);
+
+	//clip
+	CohenSutherlandLineClip(iP0x, iP0y, iP1x, iP1y, clipRectangle.GetWINRECT());
+
+	//assign back to line
+	l.point0 = VECTOR2D(iP0x, iP0y);
+	l.point1 = VECTOR2D(iP1x, iP1y);
+
 	lineQueue.push_back(l);
 }
 
@@ -40,12 +90,18 @@ void ClearLineQueue()
 	lineQueue.clear();
 }
 
-void DrawLineQueue(DWORD* mem, int lpitch32)
+void TransformClipDrawLineQueue(DWORD* mem, int lpitch32)
 {
+	
+
+
 	vector<LinePrimitive>::iterator vIter;
 	for (vIter = lineQueue.begin(); vIter < lineQueue.end(); vIter++)
 	{
-		DrawLine(mem, lpitch32, (*vIter).point0.x, (*vIter).point0.y, (*vIter).point1.x, (*vIter).point1.y, (*vIter).color0, (*vIter).color1);
+
+
+		//line is already transformed and clipped and all points are already cast to integers during clipping
+		DrawLine(mem, lpitch32, vIter->point0.x, vIter->point0.y, vIter->point1.x, vIter->point1.y, (*vIter).color0, (*vIter).color1);
 	}
 
 	lineQueue.clear();
@@ -1285,7 +1341,7 @@ void _DrawFlatTopTriangleGouraud(VERTEX2D sortVerts[], MATRIX3D& transform, DWOR
 		DWORD sampledColorL = _RGBA32BIT(int(LsampledColorR + 0.5f), int(LsampledColorG + 0.5f), int(LsampledColorB + 0.5f), int(LsampledColorA + 0.5f));
 		DWORD sampledColorR = _RGBA32BIT(int(RsampledColorR + 0.5f), int(RsampledColorG + 0.5f), int(RsampledColorB + 0.5f), int(RsampledColorA + 0.5f));
 		
-		QueueLine( rasterLineXLeft + xTranslation, y + yTranslation, rasterLineXRight + xTranslation, y + yTranslation, sampledColorL, sampledColorR);
+		QueueTransformClipLine( rasterLineXLeft + xTranslation, y + yTranslation, rasterLineXRight + xTranslation, y + yTranslation, sampledColorL, sampledColorR);
 			
 		// go up the slope
 		rasterLineXLeft  -=  L_change_x;
@@ -1377,7 +1433,7 @@ void _DrawFlatBottomTriangleGouraud(VERTEX2D sortVerts[], MATRIX3D& transform, D
 		DWORD sampledColorL = _RGBA32BIT(int(LsampledColorR + 0.5f), int(LsampledColorG + 0.5f), int(LsampledColorB + 0.5f), int(LsampledColorA + 0.5f));
 		DWORD sampledColorR = _RGBA32BIT(int(RsampledColorR + 0.5f), int(RsampledColorG + 0.5f), int(RsampledColorB + 0.5f), int(RsampledColorA + 0.5f));
 		
-		QueueLine( rasterLineXLeft + xTranslation, y + yTranslation, rasterLineXRight + xTranslation, y + yTranslation, sampledColorL, sampledColorR);
+		QueueTransformClipLine( rasterLineXLeft + xTranslation, y + yTranslation, rasterLineXRight + xTranslation, y + yTranslation, sampledColorL, sampledColorR);
 			
 		// go up the slope
 		rasterLineXLeft  +=  L_change_x;
@@ -1416,7 +1472,7 @@ void _DrawFlatTopTriangleConstant(VERTEX2D sortedVerts[], MATRIX3D& transform, D
 	for (int y = int(sortedVerts[0].pos.y + 0.5f); y >= int(sortedVerts[1].pos.y + 0.5f); y--)
 	{
 		
-		//QueueLine( rasterLineXLeft, y, rasterLineXRight, y, sortedVerts[0].color, sortedVerts[0].color);
+		//QueueTransformClipLine( rasterLineXLeft, y, rasterLineXRight, y, sortedVerts[0].color, sortedVerts[0].color);
 
 		//simply fill the triangle, much faster then parametric line
 		tempVideoMem = video_mem;
@@ -1448,7 +1504,7 @@ void _DrawFlatBottomTriangleConstant(VERTEX2D sortedVerts[], MATRIX3D& transform
 	{
 	
 	
-		QueueLine( rasterLineXLeft, y, rasterLineXRight, y, sortedVerts[0].color, sortedVerts[0].color);
+		QueueTransformClipLine( rasterLineXLeft, y, rasterLineXRight, y, sortedVerts[0].color, sortedVerts[0].color);
 
 		// go up the slope
 		rasterLineXLeft += L_change_x;
@@ -1562,7 +1618,7 @@ void DrawMeshObject(MESHOBJECT& m, int flags, DWORD* video_mem, int lpitch32)
 		int c = 0;
 		for (c; c < m.vertexBuffer.size() - 1; c++)
 		{
-			QueueLine( m.vertexBuffer[c].pos.x + tX, m.vertexBuffer[c].pos.y + tY, m.vertexBuffer[c + 1].pos.x + tX, m.vertexBuffer[c + 1].pos.y + tY, COLOR_RED, COLOR_RED);
+			QueueTransformClipLine( m.vertexBuffer[c].pos.x + tX, m.vertexBuffer[c].pos.y + tY, m.vertexBuffer[c + 1].pos.x + tX, m.vertexBuffer[c + 1].pos.y + tY, COLOR_RED, COLOR_RED);
 		}
 
 	} break;
@@ -1743,7 +1799,7 @@ void DrawTriangle(DWORD* video_mem, int lpitch32, VERTEX2D triangle[3], MATRIX3D
 		//draw a flipped polygon (-1 flips the y axis)
 		for (int i = 0; i < 3; i++)
 		{
-			QueueLine(
+			QueueTransformClipLine(
 				triangle[i].pos.x + xOffset,
 				triangle[i].pos.y + yOffset,
 				triangle[i + 1].pos.x + xOffset,
@@ -1756,7 +1812,7 @@ void DrawTriangle(DWORD* video_mem, int lpitch32, VERTEX2D triangle[3], MATRIX3D
 		}
 
 		//close polygon
-		QueueLine(
+		QueueTransformClipLine(
 			triangle[0].pos.x + xOffset,
 			triangle[0].pos.y + yOffset,
 			triangle[lastIndex + 1].pos.x + xOffset,

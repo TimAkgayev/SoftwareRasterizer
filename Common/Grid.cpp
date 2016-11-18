@@ -48,9 +48,9 @@ void Grid::DrawHorizontal(DWORD* mem, int lpitch32, int startX, int startY, int 
 
 		//draw main axis in different color
 		if (counter == indentAxis)
-			QueueLine( v1.x, v1.y, v2.x, v2.y, c1, c2);
+			QueueTransformClipLine( v1.x, v1.y, v2.x, v2.y, c1, c2);
 		else
-			QueueLine( v1.x, v1.y, v2.x, v2.y, colorStart, colorEnd);
+			QueueTransformClipLine( v1.x, v1.y, v2.x, v2.y, colorStart, colorEnd);
 		
 	}
 }
@@ -69,9 +69,9 @@ void Grid::DrawVertical(DWORD* mem, int lpitch32, int startX, int startY, int en
 
 		//draw main axis in different color
 		if (counter == indentAxis)
-			QueueLine( v1.x, v1.y, v2.x, v2.y, c1, c2);
+			QueueTransformClipLine( v1.x, v1.y, v2.x, v2.y, c1, c2);
 		else
-			QueueLine( v1.x, v1.y, v2.x, v2.y, colorStart, colorEnd);
+			QueueTransformClipLine( v1.x, v1.y, v2.x, v2.y, colorStart, colorEnd);
 
 
 	}

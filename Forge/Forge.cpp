@@ -642,10 +642,10 @@ POINT FindNearestSnapPoint(POINT mouse)
 
 void DrawViewportBorder(DWORD* mem, int lpitch32, Viewport& viewport)
 {
-	QueueLine( viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y - 1, viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y -1, COLOR_WHITE, COLOR_WHITE);
-	QueueLine( viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y - 1, viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, COLOR_WHITE, COLOR_WHITE);
-	QueueLine( viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, COLOR_WHITE, COLOR_WHITE);
-	QueueLine( viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y -1, COLOR_WHITE, COLOR_WHITE);
+	QueueTransformClipLine( viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y - 1, viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y -1, COLOR_WHITE, COLOR_WHITE);
+	QueueTransformClipLine( viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y - 1, viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, COLOR_WHITE, COLOR_WHITE);
+	QueueTransformClipLine( viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, COLOR_WHITE, COLOR_WHITE);
+	QueueTransformClipLine( viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y -1, COLOR_WHITE, COLOR_WHITE);
 }
 
 
@@ -753,7 +753,7 @@ void DrawParabola(DWORD* vid, int lpitch32)
 		MatrixVectorMultiply(&pv1, &cameraTx);
 		VECTOR3D pv2(parabolaVs[i + 1].pos.x, parabolaVs[i + 1].pos.y, 1);
 		MatrixVectorMultiply(&pv2, &cameraTx);
-		QueueLine( pv1.x, pv1.y, pv2.x, pv2.y, parabolaVs[i].color, parabolaVs[i + 1].color);
+		QueueTransformClipLine( pv1.x, pv1.y, pv2.x, pv2.y, parabolaVs[i].color, parabolaVs[i + 1].color);
 	}
 }
 
@@ -793,7 +793,7 @@ int ApplicationUpdate()
 	if (endx* endx + endy*endy >= 150*150)
 		c = 0;
 
-	QueueLine(lpx, lpy, endx, endy , _RGBA32BIT(255, 255, 255, 0), _RGBA32BIT(255, 0, 255, 255));
+	QueueTransformClipLine(lpx, lpy, endx, endy , _RGBA32BIT(255, 255, 255, 0), _RGBA32BIT(255, 0, 255, 255));
 	s->UnlockFrame(0);
 
 	myHotBox.Update();
@@ -809,10 +809,10 @@ int ApplicationUpdate()
 	
 void DrawRectangle(DWORD* mem, int lpitch32, VECTOR2D& p1, VECTOR2D& p2)
 {
-	QueueLine( p1.x, p1.y, p2.x, p1.y, COLOR_RED, COLOR_RED);
-	QueueLine( p2.x, p1.y, p2.x, p2.y, COLOR_RED, COLOR_RED);
-	QueueLine( p2.x, p2.y, p1.x, p2.y, COLOR_RED, COLOR_RED);
-	QueueLine( p1.x, p2.y, p1.x, p1.y, COLOR_RED, COLOR_RED);
+	QueueTransformClipLine( p1.x, p1.y, p2.x, p1.y, COLOR_RED, COLOR_RED);
+	QueueTransformClipLine( p2.x, p1.y, p2.x, p2.y, COLOR_RED, COLOR_RED);
+	QueueTransformClipLine( p2.x, p2.y, p1.x, p2.y, COLOR_RED, COLOR_RED);
+	QueueTransformClipLine( p1.x, p2.y, p1.x, p1.y, COLOR_RED, COLOR_RED);
 
 }
 

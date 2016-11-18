@@ -212,10 +212,10 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	else if (stateID == UISTATE_HOVER)
 		colorState = COLOR_RED;
 
-	QueueLine( 0, 0, region.getWidth() - 1, 0, colorState, colorState);
-	QueueLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
-	QueueLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
-	QueueLine( 0, region.getHeight() - 1, 0, 0, colorState, colorState);
+	QueueTransformClipLine( 0, 0, region.getWidth() - 1, 0, colorState, colorState);
+	QueueTransformClipLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
+	QueueTransformClipLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
+	QueueTransformClipLine( 0, region.getHeight() - 1, 0, 0, colorState, colorState);
 
 	//blit to screen
 	DWORD* tempMem = mFrameMem;
@@ -496,10 +496,10 @@ void UITextField::Draw(DWORD* mem, int lpitch32, float timeDelta)
 
 	//draw border
 
-	QueueLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-	QueueLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-	QueueLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-	QueueLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+	QueueTransformClipLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+	QueueTransformClipLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+	QueueTransformClipLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+	QueueTransformClipLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 
 
@@ -575,10 +575,10 @@ void UIRegion::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	ZeroMemory(mFrameMem, mFrameSize);
 
 	RECT r = region.GetWINRECT();
-	QueueLine( 0, 0, region.getWidth()-1, 0, mBorderColor, mBorderColor);
-	QueueLine( region.getWidth()-1, 0, region.getWidth()-1, region.getHeight() - 1, mBorderColor, mBorderColor);
-	QueueLine( region.getWidth()-1, region.getHeight()-1, 0, region.getHeight(), mBorderColor, mBorderColor);
-	QueueLine( 0, region.getHeight()-1, 0, 0, mBorderColor, mBorderColor);
+	QueueTransformClipLine( 0, 0, region.getWidth()-1, 0, mBorderColor, mBorderColor);
+	QueueTransformClipLine( region.getWidth()-1, 0, region.getWidth()-1, region.getHeight() - 1, mBorderColor, mBorderColor);
+	QueueTransformClipLine( region.getWidth()-1, region.getHeight()-1, 0, region.getHeight(), mBorderColor, mBorderColor);
+	QueueTransformClipLine( 0, region.getHeight()-1, 0, 0, mBorderColor, mBorderColor);
 
 
 	int xstart = 1;
@@ -586,7 +586,7 @@ void UIRegion::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	int y = 1;
 
 	for (y; y < region.getHeight() - 1; y++)
-		QueueLine( xstart, y, xend, y, mBckgColor, mBckgColor);
+		QueueTransformClipLine( xstart, y, xend, y, mBckgColor, mBckgColor);
 
 	//blit to screen
 	DWORD* tempMem = mFrameMem;
@@ -744,17 +744,17 @@ void UIList::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	}
 
 	//draw the main frame
-	QueueLine( 0, 0, region.getWidth()-1, 0, frameColor, frameColor);
-	QueueLine( 0, 1, region.getWidth()-1, 1, frameColor, frameColor); //1 pixel frame
+	QueueTransformClipLine( 0, 0, region.getWidth()-1, 0, frameColor, frameColor);
+	QueueTransformClipLine( 0, 1, region.getWidth()-1, 1, frameColor, frameColor); //1 pixel frame
 
-	QueueLine( region.getWidth()-1, 0, region.getWidth()-1, region.getHeight()-1, frameColor, frameColor);
-	QueueLine( region.getWidth()-2, 0, region.getWidth()-2, region.getHeight()-1, frameColor, frameColor);
+	QueueTransformClipLine( region.getWidth()-1, 0, region.getWidth()-1, region.getHeight()-1, frameColor, frameColor);
+	QueueTransformClipLine( region.getWidth()-2, 0, region.getWidth()-2, region.getHeight()-1, frameColor, frameColor);
 
-	QueueLine( region.getWidth()-1, region.getHeight()-1, 0, region.getHeight()-1, frameColor, frameColor);
-	QueueLine( region.getWidth()-1, region.getHeight()-2, 0, region.getHeight()-2, frameColor, frameColor);
+	QueueTransformClipLine( region.getWidth()-1, region.getHeight()-1, 0, region.getHeight()-1, frameColor, frameColor);
+	QueueTransformClipLine( region.getWidth()-1, region.getHeight()-2, 0, region.getHeight()-2, frameColor, frameColor);
 
-	QueueLine( 0, region.getHeight()-1, 0, 0, frameColor, frameColor);
-	QueueLine( 1, region.getHeight()-1, 1, 0, frameColor, frameColor);
+	QueueTransformClipLine( 0, region.getHeight()-1, 0, 0, frameColor, frameColor);
+	QueueTransformClipLine( 1, region.getHeight()-1, 1, 0, frameColor, frameColor);
 
 	
 
@@ -762,7 +762,7 @@ void UIList::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	for (int i = 0; i < mItemList.size(); i++)
 	{
 		int cellDivider = (mItemList[i].region.GetPosition().y - region.GetPosition().y) + mCellHeight;
-		QueueLine( 0, cellDivider, region.getWidth(), cellDivider, frameColor, frameColor);
+		QueueTransformClipLine( 0, cellDivider, region.getWidth(), cellDivider, frameColor, frameColor);
 	}
 
 
@@ -905,10 +905,10 @@ void UISelectionBox::Draw(DWORD* mem, int lpitch32, float timeDelta)
 		//draw the title by itself
 		renderTextToRegion(mFrameMem, (int)region.getWidth(), mSelectedTitle, region.GetWINRECT(), bgColor, COLOR_BLUE);
 
-		QueueLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-		QueueLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-		QueueLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-		QueueLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+		QueueTransformClipLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+		QueueTransformClipLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+		QueueTransformClipLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+		QueueTransformClipLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 
 	}
@@ -923,10 +923,10 @@ void UISelectionBox::Draw(DWORD* mem, int lpitch32, float timeDelta)
 		//draw title
 		renderTextToRegion(mFrameMem, (int)region.getWidth(), mSelectedTitle, region.GetWINRECT(), bgColor, COLOR_BLUE);
 
-		QueueLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-		QueueLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-		QueueLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-		QueueLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+		QueueTransformClipLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+		QueueTransformClipLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+		QueueTransformClipLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+		QueueTransformClipLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 		//draw the elements
 		DWORD* tempItemMem = mItemFrameMem;
@@ -939,10 +939,10 @@ void UISelectionBox::Draw(DWORD* mem, int lpitch32, float timeDelta)
 
 			renderTextToRegion(tempItemMem, (int)region.getWidth(), mItems[i], mItemRegions[i].GetWINRECT(), bgColor, COLOR_BLUE);
 
-			QueueLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-			QueueLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-			QueueLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-			QueueLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+			QueueTransformClipLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+			QueueTransformClipLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+			QueueTransformClipLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+			QueueTransformClipLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 			tempItemMem += int(region.getHeight())*int(region.getWidth());
 		}
@@ -1135,10 +1135,10 @@ void UIDropdownMenu::Draw(DWORD* mem, int lpitch32, float timeDelta)
 		renderTextToRegion(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT(), bgColor, COLOR_RED);
 		
 
-		QueueLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-		QueueLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-		QueueLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-		QueueLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+		QueueTransformClipLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+		QueueTransformClipLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+		QueueTransformClipLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+		QueueTransformClipLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 
 	}
@@ -1153,10 +1153,10 @@ void UIDropdownMenu::Draw(DWORD* mem, int lpitch32, float timeDelta)
 		//draw title
 		renderTextToRegion(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT(), bgColor, COLOR_RED);
 
-		QueueLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-		QueueLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-		QueueLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-		QueueLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+		QueueTransformClipLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+		QueueTransformClipLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+		QueueTransformClipLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+		QueueTransformClipLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 
 		//draw the elements
@@ -1170,10 +1170,10 @@ void UIDropdownMenu::Draw(DWORD* mem, int lpitch32, float timeDelta)
 
 			renderTextToRegion(tempItemMem, (int)region.getWidth(), mItems[i].title, mItemRegions[i].GetWINRECT(), bgColor, COLOR_RED);
 
-			QueueLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-			QueueLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-			QueueLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-			QueueLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+			QueueTransformClipLine( 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+			QueueTransformClipLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+			QueueTransformClipLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+			QueueTransformClipLine( 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 
 			tempItemMem += int(region.getHeight())*int(region.getWidth());
@@ -1515,10 +1515,10 @@ void UIDropContainer::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	else if (stateID == UISTATE_HOVER)
 		colorState = COLOR_RED;
 
-	QueueLine( 0, 0, region.getWidth() - 1, 0, colorState, colorState);
-	QueueLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
-	QueueLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
-	QueueLine( 0, region.getHeight() - 1, 0, 0, colorState, colorState);
+	QueueTransformClipLine( 0, 0, region.getWidth() - 1, 0, colorState, colorState);
+	QueueTransformClipLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
+	QueueTransformClipLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
+	QueueTransformClipLine( 0, region.getHeight() - 1, 0, 0, colorState, colorState);
 
 	//draw items
 	DWORD* tempFrameMem;
@@ -1693,9 +1693,9 @@ void UIWindow::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	for (int i = 0; i < region.getHeight(); i++)
 	{
 		if (i < titleBarWidth)
-			QueueLine( 0, i, region.getWidth()-1, i, mTitleBarColor, mTitleBarColor);
+			QueueTransformClipLine( 0, i, region.getWidth()-1, i, mTitleBarColor, mTitleBarColor);
 		else
-			QueueLine( 0, i, region.getWidth()-1, i, mBackgroundColor, mBackgroundColor);
+			QueueTransformClipLine( 0, i, region.getWidth()-1, i, mBackgroundColor, mBackgroundColor);
 
 	}
 	
@@ -2326,290 +2326,290 @@ void renderTextToRegion(DWORD* buffer, int lpitch32, string text, RECT region, D
 	{
 		if (*sIter == 'A')
 		{
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, pxBorderWidth, color, color);
-			QueueLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-			//	QueueLine( xOffset + (width / 2) - 2, yOffset + (height / 2), xOffset + (width / 2) + 2, yOffset + (height / 2), color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			//	QueueTransformClipLine( xOffset + (width / 2) - 2, yOffset + (height / 2), xOffset + (width / 2) + 2, yOffset + (height / 2), color, color);
 		}
 		else if (*sIter == 'B')
 		{
 			//vertical stem
-			QueueLine( cursorPos , pxBorderWidth, cursorPos , regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos , pxBorderWidth, cursorPos , regHeight + pxBorderWidth, color, color);
 			//top horiz line
-			QueueLine( cursorPos , pxBorderWidth, cursorPos  + pxThreeFourthChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos , pxBorderWidth, cursorPos  + pxThreeFourthChar, pxBorderWidth, color, color);
 			//mid horiz line
-			QueueLine( cursorPos , regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos , regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 			//lower horiz line
-			QueueLine( cursorPos , regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos , regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//top cell vertical
-			QueueLine( cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxThreeFourthChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxThreeFourthChar, regHalfHeight + pxBorderWidth, color, color);
 			//bottom cell vertical
-			QueueLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 
 		}
 		else if (*sIter == 'C')
 		{
 			//vertical stem
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//top cell vertical
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//bottom cell vertical
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'D')
 		{
 			//vertical stem
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//top horiz line
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxThreeFourthChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxThreeFourthChar, pxBorderWidth, color, color);
 			//bottom horiz line
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
 			//top chord
-			QueueLine( cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxPerChar, regQuarterHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxPerChar, regQuarterHeight + pxBorderWidth, color, color);
 			//right vertical
-			QueueLine( cursorPos + pxPerChar, pxBorderWidth + regQuarterHeight, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth + regQuarterHeight, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
 			//bottom chord
-			QueueLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+			QueueTransformClipLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
 
 		}
 		else if (*sIter == 'E')
 		{
 			//vertical stem
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//top horiz line
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//middle horiz line
-			QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 			//lower horiz line
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'F')
 		{
 			//vertical stem
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//top horiz line
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//middle horiz line
-			QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'G')
 		{
 			//vertical stem
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//top horiz line
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//lower horiz line
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//left vertical
-			QueueLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//middle horiz line
-			QueueLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'H')
 		{
 			//vertical left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//vertical right
-			QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//middle horiz line
-			QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'I')
 		{
 			//vertical stem 
-			QueueLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
 			//top horiz line
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//lower horiz line
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'J')
 		{
 			//vertical right
-			QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//lower horiz line
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//vertical left
-			QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'K')
 		{
 			//vertical left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//top diagonal
-			QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//bottom diagonal
-			QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'L')
 		{
 			//vertical left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//lower horiz line
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'M')
 		{
 			//vertical left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//vertical right
-			QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//diag left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
 			//diag right
-			QueueLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'N')
 		{
 			//vertical left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//vertical right
-			QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//diag left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'O')
 		{
 			//vertical left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//vertical right
-			QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//top horiz line
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//lower horiz line
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'P')
 		{
 			//vertical left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//top horiz line
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//vertical left
-			QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 			//middle horiz line
-			QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'Q')
 		{
 			//vertical stem
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//top horiz line
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//bottom horiz line
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
 			//right vertical
-			QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//bottom chord
-			QueueLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+			QueueTransformClipLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
 			
 		}
 		else if (*sIter == 'R')
 		{
 			//vertical left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//top horiz line
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//vertical left
-			QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 			//middle horiz line
-			QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 			//bottom diagonal
-			QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'S')
 		{
 			//top horiz line
-			QueueLine( cursorPos + pxQuarterChar, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxQuarterChar, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//1st chord
-			QueueLine( cursorPos, regQuarterHeight + pxBorderWidth, cursorPos + pxQuarterChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regQuarterHeight + pxBorderWidth, cursorPos + pxQuarterChar, pxBorderWidth, color, color);
 			//2nd vertical left
-			QueueLine( cursorPos, regQuarterHeight + pxBorderWidth, cursorPos, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regQuarterHeight + pxBorderWidth, cursorPos, regHalfHeight + pxBorderWidth, color, color);
 			//middle horiz line
-			QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 			//3rd vertical left
-			QueueLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regThreeFourthHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regThreeFourthHeight + pxBorderWidth, color, color);
 			//bottom horiz line
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
 			//bottom chord
-			QueueLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+			QueueTransformClipLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
 
 		}
 		else if (*sIter == 'T')
 		{
 			//top horiz line
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//vertical stem 
-			QueueLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'U')
 		{
 			//vertical left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//vertical right
-			QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//lower horiz line
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'V')
 		{
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
-			QueueLine( cursorPos + pxHalfChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxHalfChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'W')
 		{
 			//vertical left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 			//vertical right
-			QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//diag left
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
 			//diag right
-			QueueLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'X')
 		{
 		
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'Y')
 		{
 			//diag left
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
 			//diag right
-			QueueLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//vertical stem 
-			QueueLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == 'Z')
 		{
 			//top horiz line
-			QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 			//lower horiz line
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 			//diag 
-			QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 
 		}
 		else if (*sIter == ' ')
@@ -2657,290 +2657,290 @@ void renderTextToRegion(DWORD* buffer, int lpitch32, char letter, RECT region, D
 
 	if (letter == 'A')
 	{
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, pxBorderWidth, color, color);
-		QueueLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//	QueueLine( xOffset + (width / 2) - 2, yOffset + (height / 2), xOffset + (width / 2) + 2, yOffset + (height / 2), color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		//	QueueTransformClipLine( xOffset + (width / 2) - 2, yOffset + (height / 2), xOffset + (width / 2) + 2, yOffset + (height / 2), color, color);
 	}
 	else if (letter == 'B')
 	{
 		//vertical stem
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxThreeFourthChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxThreeFourthChar, pxBorderWidth, color, color);
 		//mid horiz line
-		QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 		//lower horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//top cell vertical
-		QueueLine( cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxThreeFourthChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxThreeFourthChar, regHalfHeight + pxBorderWidth, color, color);
 		//bottom cell vertical
-		QueueLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 
 	}
 	else if (letter == 'C')
 	{
 		//vertical stem
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//top cell vertical
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//bottom cell vertical
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'D')
 	{
 		//vertical stem
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxThreeFourthChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxThreeFourthChar, pxBorderWidth, color, color);
 		//bottom horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
 		//top chord
-		QueueLine( cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxPerChar, regQuarterHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxPerChar, regQuarterHeight + pxBorderWidth, color, color);
 		//right vertical
-		QueueLine( cursorPos + pxPerChar, pxBorderWidth + regQuarterHeight, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth + regQuarterHeight, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
 		//bottom chord
-		QueueLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+		QueueTransformClipLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
 
 	}
 	else if (letter == 'E')
 	{
 		//vertical stem
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//middle horiz line
-		QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 		//lower horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'F')
 	{
 		//vertical stem
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//middle horiz line
-		QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'G')
 	{
 		//vertical stem
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//lower horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//left vertical
-		QueueLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//middle horiz line
-		QueueLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'H')
 	{
 		//vertical left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//vertical right
-		QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//middle horiz line
-		QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'I')
 	{
 		//vertical stem 
-		QueueLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//lower horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'J')
 	{
 		//vertical right
-		QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//lower horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//vertical left
-		QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'K')
 	{
 		//vertical left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//top diagonal
-		QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//bottom diagonal
-		QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'L')
 	{
 		//vertical left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//lower horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'M')
 	{
 		//vertical left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//vertical right
-		QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//diag left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
 		//diag right
-		QueueLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'N')
 	{
 		//vertical left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//vertical right
-		QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//diag left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'O')
 	{
 		//vertical left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//vertical right
-		QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//lower horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'P')
 	{
 		//vertical left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//vertical left
-		QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 		//middle horiz line
-		QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'Q')
 	{
 		//vertical stem
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//bottom horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
 		//right vertical
-		QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//bottom chord
-		QueueLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+		QueueTransformClipLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
 
 	}
 	else if (letter == 'R')
 	{
 		//vertical left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//vertical left
-		QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 		//middle horiz line
-		QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 		//bottom diagonal
-		QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'S')
 	{
 		//top horiz line
-		QueueLine( cursorPos + pxQuarterChar, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxQuarterChar, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//1st chord
-		QueueLine( cursorPos, regQuarterHeight + pxBorderWidth, cursorPos + pxQuarterChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regQuarterHeight + pxBorderWidth, cursorPos + pxQuarterChar, pxBorderWidth, color, color);
 		//2nd vertical left
-		QueueLine( cursorPos, regQuarterHeight + pxBorderWidth, cursorPos, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regQuarterHeight + pxBorderWidth, cursorPos, regHalfHeight + pxBorderWidth, color, color);
 		//middle horiz line
-		QueueLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
 		//3rd vertical left
-		QueueLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regThreeFourthHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regThreeFourthHeight + pxBorderWidth, color, color);
 		//bottom horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
 		//bottom chord
-		QueueLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+		QueueTransformClipLine( cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
 
 	}
 	else if (letter == 'T')
 	{
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//vertical stem 
-		QueueLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'U')
 	{
 		//vertical left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//vertical right
-		QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//lower horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'V')
 	{
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
-		QueueLine( cursorPos + pxHalfChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxHalfChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'W')
 	{
 		//vertical left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
 		//vertical right
-		QueueLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//diag left
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
 		//diag right
-		QueueLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'X')
 	{
 
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'Y')
 	{
 		//diag left
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
 		//diag right
-		QueueLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//vertical stem 
-		QueueLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
 
 	}
 	else if (letter == 'Z')
 	{
 		//top horiz line
-		QueueLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 		//lower horiz line
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
 		//diag 
-		QueueLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+		QueueTransformClipLine( cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
 
 	}
 	else if (letter == ' ')
@@ -2966,290 +2966,290 @@ void renderLetterToBuffer(DWORD* buffer, int lpitch32, int pxWidth, char letter,
 
 	if (letter == 'A')
 	{
-		QueueLine( 0, pxWidth + 0, 0 + pxHalfWidth, 0, color, color);
-		QueueLine( 0 + pxHalfWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//	QueueLine( xOffset + (width / 2) - 2, yOffset + (height / 2), xOffset + (width / 2) + 2, yOffset + (height / 2), color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxHalfWidth, 0, color, color);
+		QueueTransformClipLine( 0 + pxHalfWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
+		//	QueueTransformClipLine( xOffset + (width / 2) - 2, yOffset + (height / 2), xOffset + (width / 2) + 2, yOffset + (height / 2), color, color);
 	}
 	else if (letter == 'B')
 	{
 		//vertical stem
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxThreeFourthWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxThreeFourthWidth, 0, color, color);
 		//mid horiz line
-		QueueLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
 		//lower horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//top cell vertical
-		QueueLine( 0 + pxThreeFourthWidth, 0, 0 + pxThreeFourthWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxThreeFourthWidth, 0, 0 + pxThreeFourthWidth, pxHalfWidth + 0, color, color);
 		//bottom cell vertical
-		QueueLine( 0 + pxWidth, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 
 
 	}
 	else if (letter == 'C')
 	{
 		//vertical stem
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//top cell vertical
-		QueueLine( 0, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, 0, color, color);
 		//bottom cell vertical
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'D')
 	{
 		//vertical stem
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxThreeFourthWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxThreeFourthWidth, 0, color, color);
 		//bottom horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxThreeFourthWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxThreeFourthWidth, pxWidth + 0, color, color);
 		//top chord
-		QueueLine( 0 + pxThreeFourthWidth, 0, 0 + pxWidth, pxQuarterWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxThreeFourthWidth, 0, 0 + pxWidth, pxQuarterWidth + 0, color, color);
 		//right vertical
-		QueueLine( 0 + pxWidth, 0 + pxQuarterWidth, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
+		QueueTransformClipLine( 0 + pxWidth, 0 + pxQuarterWidth, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
 		//bottom chord
-		QueueLine( 0 + pxThreeFourthWidth, pxWidth + 0, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
+		QueueTransformClipLine( 0 + pxThreeFourthWidth, pxWidth + 0, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
 
 	}
 	else if (letter == 'E')
 	{
 		//vertical stem
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, 0, color, color);
 		//middle horiz line
-		QueueLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
 		//lower horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'F')
 	{
 		//vertical stem
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, 0, color, color);
 		//middle horiz line
-		QueueLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
 
 	}
 	else if (letter == 'G')
 	{
 		//vertical stem
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, 0, color, color);
 		//lower horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//left vertical
-		QueueLine( 0 + pxWidth, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//middle horiz line
-		QueueLine( 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
 
 	}
 	else if (letter == 'H')
 	{
 		//vertical left
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//vertical right
-		QueueLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//middle horiz line
-		QueueLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
 
 	}
 	else if (letter == 'I')
 	{
 		//vertical stem 
-		QueueLine( 0 + pxHalfWidth, 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxHalfWidth, 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, 0, color, color);
 		//lower horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'J')
 	{
 		//vertical right
-		QueueLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//lower horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//vertical left
-		QueueLine( 0, pxHalfWidth + 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxHalfWidth + 0, 0, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'K')
 	{
 		//vertical left
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//top diagonal
-		QueueLine( 0, pxHalfWidth + 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, pxHalfWidth + 0, 0 + pxWidth, 0, color, color);
 		//bottom diagonal
-		QueueLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'L')
 	{
 		//vertical left
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//lower horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'M')
 	{
 		//vertical left
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//vertical right
-		QueueLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//diag left
-		QueueLine( 0, 0, 0 + pxHalfWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxHalfWidth, pxHalfWidth + 0, color, color);
 		//diag right
-		QueueLine( 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, 0, color, color);
 
 	}
 	else if (letter == 'N')
 	{
 		//vertical left
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//vertical right
-		QueueLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//diag left
-		QueueLine( 0, 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'O')
 	{
 		//vertical left
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//vertical right
-		QueueLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, 0, color, color);
 		//lower horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'P')
 	{
 		//vertical left
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, 0, color, color);
 		//vertical left
-		QueueLine( 0 + pxWidth, 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
 		//middle horiz line
-		QueueLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
 
 	}
 	else if (letter == 'Q')
 	{
 		//vertical stem
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, 0, color, color);
 		//bottom horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxThreeFourthWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxThreeFourthWidth, pxWidth + 0, color, color);
 		//right vertical
-		QueueLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//bottom chord
-		QueueLine( 0 + pxThreeFourthWidth, pxWidth + 0, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
+		QueueTransformClipLine( 0 + pxThreeFourthWidth, pxWidth + 0, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
 
 	}
 	else if (letter == 'R')
 	{
 		//vertical left
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, 0, color, color);
 		//vertical left
-		QueueLine( 0 + pxWidth, 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
 		//middle horiz line
-		QueueLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
 		//bottom diagonal
-		QueueLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'S')
 	{
 		//top horiz line
-		QueueLine( 0 + pxQuarterWidth, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0 + pxQuarterWidth, 0, 0 + pxWidth, 0, color, color);
 		//1st chord
-		QueueLine( 0, pxQuarterWidth + 0, 0 + pxQuarterWidth, 0, color, color);
+		QueueTransformClipLine( 0, pxQuarterWidth + 0, 0 + pxQuarterWidth, 0, color, color);
 		//2nd vertical left
-		QueueLine( 0, pxQuarterWidth + 0, 0, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxQuarterWidth + 0, 0, pxHalfWidth + 0, color, color);
 		//middle horiz line
-		QueueLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
 		//3rd vertical left
-		QueueLine( 0 + pxWidth, pxHalfWidth + 0, 0 + pxWidth, pxThreeFourthWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, pxHalfWidth + 0, 0 + pxWidth, pxThreeFourthWidth + 0, color, color);
 		//bottom horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxThreeFourthWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxThreeFourthWidth, pxWidth + 0, color, color);
 		//bottom chord
-		QueueLine( 0 + pxThreeFourthWidth, pxWidth + 0, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
+		QueueTransformClipLine( 0 + pxThreeFourthWidth, pxWidth + 0, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
 
 	}
 	else if (letter == 'T')
 	{
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, 0, color, color);
 		//vertical stem 
-		QueueLine( 0 + pxHalfWidth, 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxHalfWidth, 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'U')
 	{
 		//vertical left
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//vertical right
-		QueueLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//lower horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'V')
 	{
-		QueueLine( 0, 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
-		QueueLine( 0 + pxHalfWidth, pxWidth + 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxHalfWidth, pxWidth + 0, 0 + pxWidth, 0, color, color);
 
 	}
 	else if (letter == 'W')
 	{
 		//vertical left
-		QueueLine( 0, 0, 0, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0, pxWidth + 0, color, color);
 		//vertical right
-		QueueLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//diag left
-		QueueLine( 0, pxWidth + 0, 0 + pxHalfWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxHalfWidth, pxHalfWidth + 0, color, color);
 		//diag right
-		QueueLine( 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'X')
 	{
 
-		QueueLine( 0, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, 0, color, color);
 
 	}
 	else if (letter == 'Y')
 	{
 		//diag left
-		QueueLine( 0, 0, 0 + pxHalfWidth, pxHalfWidth + 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxHalfWidth, pxHalfWidth + 0, color, color);
 		//diag right
-		QueueLine( 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, 0, color, color);
 		//vertical stem 
-		QueueLine( 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
 
 	}
 	else if (letter == 'Z')
 	{
 		//top horiz line
-		QueueLine( 0, 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, 0, 0 + pxWidth, 0, color, color);
 		//lower horiz line
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
 		//diag 
-		QueueLine( 0, pxWidth + 0, 0 + pxWidth, 0, color, color);
+		QueueTransformClipLine( 0, pxWidth + 0, 0 + pxWidth, 0, color, color);
 
 	}
 	else if (letter == ' ')
@@ -3338,15 +3338,15 @@ void UICheckBox::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	else if (stateID == UISTATE_HOVER)
 		colorState = COLOR_RED;
 
-	QueueLine( 0, 0, region.getWidth() - 1, 0, colorState, colorState);
-	QueueLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
-	QueueLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
-	QueueLine( 0, region.getHeight() - 1, 0, 0, colorState, colorState);
+	QueueTransformClipLine( 0, 0, region.getWidth() - 1, 0, colorState, colorState);
+	QueueTransformClipLine( region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
+	QueueTransformClipLine( region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
+	QueueTransformClipLine( 0, region.getHeight() - 1, 0, 0, colorState, colorState);
 
 	if (mIsChecked)
 	{
-		QueueLine( 0, region.getHeight() / 2, region.getWidth() / 2, int(region.getHeight()), COLOR_RED, COLOR_RED);
-		QueueLine( region.getWidth() / 2 , region.getHeight(), region.getWidth(), 0, COLOR_RED, COLOR_RED);
+		QueueTransformClipLine( 0, region.getHeight() / 2, region.getWidth() / 2, int(region.getHeight()), COLOR_RED, COLOR_RED);
+		QueueTransformClipLine( region.getWidth() / 2 , region.getHeight(), region.getWidth(), 0, COLOR_RED, COLOR_RED);
 
 	}
 

@@ -16,8 +16,9 @@ void MatrixMatrixMultiply(MATRIX3D* out, MATRIX3D* op1, MATRIX3D* op2);
 int MatrixDeterminant(MATRIX2D& in);
 void MatrixInverse(MATRIX2D* out, MATRIX2D& in);
 
-void MatrixVectorMultiply(VECTOR2D* operand, MATRIX3x3_PTR transform);
-void MatrixVectorMultiply(VECTOR3D* operand, MATRIX4x4_PTR transform);
+void MatrixVectorMultiply(VECTOR2D* operand, MATRIX2x2_PTR transform, VECTOR2D* out = NULL);
+void MatrixVectorMultiply(VECTOR2D* operand, MATRIX3x3_PTR transform, VECTOR2D* out = NULL);
+void MatrixVectorMultiply(VECTOR3D* operand, MATRIX4x4_PTR transform, VECTOR3D* out = NULL);
 void Vector3CrossProduct(VECTOR3D* out, VECTOR3D in, VECTOR3D in2);
 
 
