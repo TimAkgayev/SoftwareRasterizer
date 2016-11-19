@@ -132,11 +132,7 @@ typedef struct SOFTWARERASTERIZER_DX12_OBJECTS_TYP
 
 SOFTWARERASTERIZER_DX10_OBJECTS* GetSoftwareRasterizer();
 
-struct Viewport
-{
-	DWORD* TranslateMemory(DWORD* mem, int lpitch32); 
-	RECT2D Rect;
-};
+
 
 struct LinePrimitive
 {

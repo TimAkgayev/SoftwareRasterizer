@@ -10,6 +10,16 @@ void MatrixZero(MATRIX4x4_PTR out)
 	memset(out, 0, sizeof(MATRIX4D));
 }
 
+void MatrixIdentity(MATRIX2D* mat)
+{
+	mat->_00 = 1.0f;
+	mat->_01 = 0.0f;
+
+	mat->_10 = 0.0f;
+	mat->_11 = 1.0f;
+
+}
+
 void MatrixIdentity(MATRIX3D* mat)
 {
 	mat->_00 = 1.0f;

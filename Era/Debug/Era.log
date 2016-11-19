@@ -1,13 +1,1 @@
-﻿  WindowsMain.cpp
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\resourcemanager.h(47): warning C4003: not enough actual parameters for macro 'max'
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\mathstructures.h(180): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\windowsmain.cpp(230): warning C4101: 'hdc': unreferenced local variable
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\windowsmain.cpp(228): warning C4101: 'hwnd': unreferenced local variable
-  Generating Code...
-  Compiling...
-  Era.cpp
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\resourcemanager.h(47): warning C4003: not enough actual parameters for macro 'max'
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\mathstructures.h(180): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-  Generating Code...
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\mathstructures.h(529): warning C4715: 'RECT2D::isRectInRect': not all control paths return a value
-  Era.vcxproj -> D:\Users\Tim\Documents\Visual Studio Projects\SoftwareRasterizer\Debug\Era.exe
+﻿  Era.vcxproj -> D:\Users\Tim\Documents\Visual Studio Projects\SoftwareRasterizer\Debug\Era.exe

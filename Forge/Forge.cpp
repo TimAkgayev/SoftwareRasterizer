@@ -158,7 +158,6 @@ RECT gClientRect;
 Camera2D* cam2d;
 SRTimer timer;
 SRTimer timerHardware;
-Viewport worldViewport;
 HardwareSurface* s;
 AnimatedBitmap RegionBtnImage;
 HCURSOR CURRENT_CURSOR, ARROW_CURSOR, REGION_CURSOR;
@@ -609,10 +608,8 @@ void ApplicationInitialization(RECT clientRect)
 
 	modeGUICB();
 
-	worldViewport.Rect.SetRECT({ viewport_left_offset, viewport_top_offset, GetSoftwareRasterizer()->clientRect.right - viewport_right_offset, GetSoftwareRasterizer()->clientRect.bottom - viewport_bottom_offset });
 
 	cam2d->SetMoveSpeed(cam2d->GetMoveSpeed() + 3);
-	backgroundGrid.SetViewport(&worldViewport);
 	newGUIWindow = NULL;
 	currentTool = TOOL_ARROW;
 
@@ -623,9 +620,9 @@ void ApplicationInitialization(RECT clientRect)
 	LocalWindowsSettings.clientOffset = { viewport_left_offset + viewport_right_offset, viewport_top_offset + viewport_bottom_offset };
 	LocalWindowsSettings.windowTitle = TEXT("Reset Window");
 
-	int widht = worldViewport.Rect.getWidth();
-	int height = worldViewport.Rect.getHeight();
-	int x = 0;
+	gClientRect.right = GetSoftwareRasterizer()->clientRect.right;
+	gClientRect.bottom = GetSoftwareRasterizer()->clientRect.bottom;
+	
 };
 
 
@@ -640,13 +637,7 @@ POINT FindNearestSnapPoint(POINT mouse)
 }
 
 
-void DrawViewportBorder(DWORD* mem, int lpitch32, Viewport& viewport)
-{
-	QueueTransformClipLine( viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y - 1, viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y -1, COLOR_WHITE, COLOR_WHITE);
-	QueueTransformClipLine( viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y - 1, viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, COLOR_WHITE, COLOR_WHITE);
-	QueueTransformClipLine( viewport.Rect.GetPosition().x + viewport.Rect.getWidth() + 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, COLOR_WHITE, COLOR_WHITE);
-	QueueTransformClipLine( viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y + viewport.Rect.getHeight() + 1, viewport.Rect.GetPosition().x - 1, viewport.Rect.GetPosition().y -1, COLOR_WHITE, COLOR_WHITE);
-}
+
 
 
 void CreateCameraToViewportTransform(MATRIX4x4& m)
@@ -825,22 +816,22 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch32)
 {
 
 	myHotBox.Draw(video_mem, lpitch32);
-	backgroundGrid.Draw(video_mem, lpitch32);
-	DrawParabola(worldViewport.TranslateMemory(video_mem, lpitch32), lpitch32);
-	MyUserInterface->displayString(dt, GetSoftwareRasterizer()->clientRect.right- 230, 10, video_mem, lpitch32 );
+	MyUserInterface->displayString(dt, GetSoftwareRasterizer()->clientRect.right - 230, 10, video_mem, lpitch32);
+	string clientDim = std::to_string((int)GetSoftwareRasterizer()->clientRect.right) + 'X' + std::to_string((int)GetSoftwareRasterizer()->clientRect.bottom);
+	MyUserInterface->displayString(clientDim, GetSoftwareRasterizer()->clientRect.right / 2.0f, 10, video_mem, lpitch32);
 
+	RECT2D oldClip = SetClipRectangle(RECT2D(10, 10, gClientRect.right - 20, gClientRect.bottom - 20));
+	backgroundGrid.Draw(video_mem, lpitch32);
+	DrawParabola(video_mem, lpitch32);
+	
 	if (currentTool == TOOL_REGION && MyUserInterface->isLMD())
 	{
-		DrawRectangle(worldViewport.TranslateMemory(video_mem, lpitch32), lpitch32, selectionBoxPoints[0], selectionBoxPoints[1]);
+		DrawRectangle(video_mem, lpitch32, selectionBoxPoints[0], selectionBoxPoints[1]);
 	} 
 	
+	SetClipRectangle(oldClip);
+
 	DrawLineQueue(video_mem, lpitch32);
-
-	DrawViewportBorder(video_mem, lpitch32, worldViewport);
-
-	string clientDim = std::to_string((int)worldViewport.Rect.getWidth()) + 'X' + std::to_string((int)worldViewport.Rect.getHeight());
-	MyUserInterface->displayString(clientDim, GetSoftwareRasterizer()->clientRect.right / 2.0f, 10, video_mem, lpitch32);
-	
 }
 
 void ApplicationHardwareRender()

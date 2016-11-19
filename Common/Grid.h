@@ -15,11 +15,10 @@ public:
 	void SetCenterCoordinate(float x, float y);
 	void SetSpacing(int spacing);
 	void SetLineThickness(int thickness);
-	void SetViewport(Viewport* viewport);
 
 	int GetSpacing() const;
 private:
-	Viewport* viewport;
+
 	VECTOR2D CenterCoordinate;
 	int grid_spacing;
 	int line_thickness;

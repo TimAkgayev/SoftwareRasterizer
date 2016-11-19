@@ -19,10 +19,6 @@ D3D10_INPUT_ELEMENT_DESC DX10VertexLayout[] =
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 28, D3D10_INPUT_PER_VERTEX_DATA, 0 }
 };
 
-DWORD* Viewport::TranslateMemory(DWORD* mem, int lpitch32)
-{
-	return mem + int(Rect.GetPosition().x) + lpitch32*int(Rect.GetPosition().y); 
-}
 
 
 SOFTWARERASTERIZER_DX10_OBJECTS* GetSoftwareRasterizer()
@@ -90,7 +86,7 @@ void ClearLineQueue()
 	lineQueue.clear();
 }
 
-void TransformClipDrawLineQueue(DWORD* mem, int lpitch32)
+void DrawLineQueue(DWORD* mem, int lpitch32)
 {
 	
 
@@ -427,11 +423,23 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr)
 	softObjPtr->pD3D10Device->OMSetBlendState(pBlendState, 0, 0xffffffff);
 
 
-	//	softObjPtr->pD3D10Device->PSSetShaderResources(0, 1, &softObjPtr->textureSRV);
+	//Local pipeline intializations
+	MATRIX2D iden;
+	MatrixIdentity(&iden);
+
+	cameraTransform = iden;
+	projectionTransform = iden;
+
+	//default clip region set to whole window
+	clipRectangle.setPos(0, 0);
+	clipRectangle.setWidth(softObjPtr->clientRect.right);
+	clipRectangle.setHeight(softObjPtr->clientRect.bottom);
+
 
 	softObjPtr->drawOffsetX = softObjPtr->drawOffsetY = 0.0f;
 
 	SoftwareRasterizerSelfPointer = softObjPtr;
+
 
 
 }

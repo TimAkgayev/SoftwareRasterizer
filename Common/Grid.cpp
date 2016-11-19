@@ -6,7 +6,6 @@ Grid::Grid()
 	line_thickness = 1;
 	grid_spacing = 30;
 	CenterCoordinate.x = CenterCoordinate.y = 0;
-	viewport = NULL;
 }
 
 Grid::~Grid()
@@ -30,10 +29,7 @@ void Grid::SetLineThickness(int thickness)
 	line_thickness = thickness;
 }
 
-void Grid::SetViewport(Viewport* viewport)
-{
-	this->viewport = viewport;
-}
+
 
 void Grid::DrawHorizontal(DWORD* mem, int lpitch32, int startX, int startY, int endX, int endY, float pxSpacing, DWORD colorStart, DWORD colorEnd, int indentAxis, DWORD c1, DWORD c2)
 {
@@ -86,17 +82,10 @@ int Grid::GetSpacing() const
 void Grid::Draw(DWORD* mem, int lpitch32)
 {
 	int viewWidth, viewHeight;
-	if (viewport)
-	{
-		viewWidth = viewport->Rect.getWidth();
-		viewHeight = viewport->Rect.getHeight();
-		mem = viewport->TranslateMemory(mem, lpitch32);
-	}
-	else
-	{
-		viewWidth = GetSoftwareRasterizer()->clientRect.right;
-		viewHeight = GetSoftwareRasterizer()->clientRect.bottom;
-	}
+
+	viewWidth = GetSoftwareRasterizer()->clientRect.right;
+	viewHeight = GetSoftwareRasterizer()->clientRect.bottom;
+	
 
 	int gridStartX;
 	int	gridStartY;

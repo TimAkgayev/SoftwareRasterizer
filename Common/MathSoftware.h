@@ -1,6 +1,7 @@
 #pragma once
 #include "MathStructures.h"
 
+void MatrixIdentity(MATRIX2D* mat);
 void MatrixIdentity(MATRIX3D* mat);
 void MatrixIdentity(MATRIX4D* mat);
 void MatrixScale(MATRIX4D* mat, float x, float y, float z);
