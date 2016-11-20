@@ -1,8 +1,12 @@
 FORGE
 
+11/20/2016
+Seperate shape drawing into a file
+Add something like 
+
 11/17/2016 5:20AM
--Rewrite viewport implementation
-    -Make viewport a part of the draw pipeline
+-Rewrite viewport implementation ^
+    -Make viewport a part of the draw pipeline ^
 
 
 

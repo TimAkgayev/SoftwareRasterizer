@@ -18,7 +18,7 @@
     <ClCompile Include="Forge.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Common\WindowsMain.cpp">
+    <ClCompile Include="WindowsMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

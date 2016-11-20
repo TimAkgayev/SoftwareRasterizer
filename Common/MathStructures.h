@@ -539,7 +539,7 @@ public:
 		return r;
 	}
 
-private:
+public:
 	float left;
 	float top;
 	float right;

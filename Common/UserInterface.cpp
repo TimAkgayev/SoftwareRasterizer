@@ -577,7 +577,7 @@ void UIRegion::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	RECT r = region.GetWINRECT();
 	DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth()-1, 0, mBorderColor, mBorderColor);
 	DrawLine(mFrameMem, region.getWidth(), region.getWidth()-1, 0, region.getWidth()-1, region.getHeight() - 1, mBorderColor, mBorderColor);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth()-1, region.getHeight()-1, 0, region.getHeight(), mBorderColor, mBorderColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getWidth()-1, region.getHeight()-1, 0, region.getHeight()-1, mBorderColor, mBorderColor);
 	DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight()-1, 0, 0, mBorderColor, mBorderColor);
 
 

@@ -168,6 +168,8 @@ WINDOWS_SETTINGS LocalWindowsSettings;
 UIWindow* newGUIWindow;
 bool isResetRequested;
 string GameDirectoryPath = "D:\\Users\\Tim\\Documents\\era\\";
+RECT2D gMarginRect; //invsere area of a clip rect, contains margin offsets
+DebugView* debugger;
 
 enum {GUI_MODE, WORLD_MODE};
 enum { TOOL_ARROW, TOOL_REGION };
@@ -193,6 +195,11 @@ struct gui_element_header
 	int header;
 	int uitype;
 };
+
+void AttachDebugger(DebugView* dbg)
+{
+	debugger = dbg;
+}
 
 int SaveGUIToFile(UserInterface* ui)
 {
@@ -546,6 +553,13 @@ void fileNewGUICB()
 
 void ApplicationInitialization(RECT clientRect)
 {
+
+
+	debugger->AddVariableView((void*)&gMarginRect.left);
+	debugger->AddVariableView((void*)&gMarginRect.top);
+	debugger->AddVariableView((void*)&gMarginRect.right);
+	debugger->AddVariableView((void*)&gMarginRect.bottom);
+
 	localRasterizerObject = GetSoftwareRasterizer();
 
 	ARROW_CURSOR = LoadCursor(localRasterizerObject->hInstance, MAKEINTRESOURCE(FORGE_CURSOR_ARROW));
@@ -622,11 +636,23 @@ void ApplicationInitialization(RECT clientRect)
 
 	gClientRect.right = GetSoftwareRasterizer()->clientRect.right;
 	gClientRect.bottom = GetSoftwareRasterizer()->clientRect.bottom;
+
+	gMarginRect = { 10, 30, 10, 60 };
 	
 };
 
 
+void DrawClipRectBorder()
+{
+	RECT cRect = gMarginRect.GetWINRECT();
+	cRect.left -= 1;
+	cRect.top -= 1;
+	cRect.right = gClientRect.right - gMarginRect.right + 1;
+	cRect.bottom = gClientRect.bottom - gMarginRect.bottom + 1;
 
+	QueueRectangle(cRect, COLOR_WHITE);
+
+}
 
 POINT FindNearestSnapPoint(POINT mouse)
 {
@@ -819,14 +845,26 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch32)
 	MyUserInterface->displayString(dt, GetSoftwareRasterizer()->clientRect.right - 230, 10, video_mem, lpitch32);
 	string clientDim = std::to_string((int)GetSoftwareRasterizer()->clientRect.right) + 'X' + std::to_string((int)GetSoftwareRasterizer()->clientRect.bottom);
 	MyUserInterface->displayString(clientDim, GetSoftwareRasterizer()->clientRect.right / 2.0f, 10, video_mem, lpitch32);
+	DrawClipRectBorder();
 
-	RECT2D oldClip = SetClipRectangle(RECT2D(10, 10, gClientRect.right - 20, gClientRect.bottom - 20));
+
+	//generate clip from margin rectangle
+	RECT cRect = gMarginRect.GetWINRECT();
+	cRect.right = gClientRect.right - gMarginRect.right;
+	cRect.bottom = gClientRect.bottom - gMarginRect.bottom;
+	RECT2D oldClip = SetClipRectangle(cRect);
 	backgroundGrid.Draw(video_mem, lpitch32);
 	DrawParabola(video_mem, lpitch32);
 	
 	if (currentTool == TOOL_REGION && MyUserInterface->isLMD())
 	{
-		DrawRectangle(video_mem, lpitch32, selectionBoxPoints[0], selectionBoxPoints[1]);
+		RECT r;
+		r.left = selectionBoxPoints[0].x - 1;
+		r.top = selectionBoxPoints[0].y - 1;
+		r.right = selectionBoxPoints[1].x + 1;
+		r.bottom = selectionBoxPoints[1].y + 1;
+
+		QueueRectangle(r, COLOR_WHITE);
 	} 
 	
 	SetClipRectangle(oldClip);
@@ -906,6 +944,40 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 	case WM_MOVE:
 	{
 						
+
+	}break;
+
+	case WM_COMMAND:
+	{
+		int ButtonID = LOWORD(wParam);
+		int offset;
+		int inc;
+
+		if (ButtonID == 0)
+			break;
+		if (ButtonID / 2 > debugger->ListSize())
+			break;
+		//odd
+		if (ButtonID % 2 != 0)
+		{
+			offset = (ButtonID - 1) / 2 ;
+			inc = -1;
+
+		}
+
+		else if (ButtonID % 2 == 0)//even
+		{
+			offset = ButtonID / 2 - 1;
+			inc = 1;
+		}
+
+	
+		if (debugger)
+		{
+			debugger->IncrementVariable(offset, inc);
+			//update text
+			SetWindowText(debugger->GetEditControl(offset), std::to_wstring(debugger->GetVariable(offset)).c_str());
+		}
 
 	}break;
 

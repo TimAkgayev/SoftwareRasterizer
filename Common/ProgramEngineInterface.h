@@ -1,5 +1,6 @@
 #pragma once
 #include "GameEngine.h"
+#include "DebugView.h"
 
 struct WINDOWS_SETTINGS
 {
@@ -19,4 +20,4 @@ int  ApplicationUpdate();
 void GetSettings(WINDOWS_SETTINGS& settings);
 LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-
+void AttachDebugger(DebugView*);

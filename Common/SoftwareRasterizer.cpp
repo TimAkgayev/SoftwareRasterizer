@@ -71,8 +71,9 @@ void QueueTransformClipLine(float x0, float y0, float x1, float y1, DWORD color0
 	int iP1x = int(l.point1.x + 0.5f);
 	int iP1y = int(l.point1.y + 0.5f);
 
-	//clip
-	CohenSutherlandLineClip(iP0x, iP0y, iP1x, iP1y, clipRectangle.GetWINRECT());
+	//clip lines, or reject completely
+	if (CohenSutherlandLineClip(iP0x, iP0y, iP1x, iP1y, clipRectangle.GetWINRECT()) == 0)
+		return;
 
 	//assign back to line
 	l.point0 = VECTOR2D(iP0x, iP0y);

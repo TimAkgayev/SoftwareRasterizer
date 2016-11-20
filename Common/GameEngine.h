@@ -1,12 +1,14 @@
 #pragma once
 
 #include "SoftwareRasterizer.h"
+#include "Shapes.h"
 #include "UserInterface.h"
 #include "AnimatedBitmap.h"
 #include "Camera.h"
 #include "Timer.h"
 #include "HardwareSurface.h"
 #include "Grid.h"
+
 
 class Player
 {
