@@ -2,6 +2,24 @@
 #include "Bitmap.h"
 #include "SoftwareRasterizer.h"
 
+class SpriteLoader
+{
+public:
+	~SpriteLoader();
+
+	void LoadSprite(string filename, int cell_width, int cell_height, int num_cells_x, int num_cells_y, int border_width);
+	BITMAP_FILE GetCell(int row, int col);
+
+private:
+	BITMAP_FILE sprite;
+	int numXCells;
+	int numYCells;
+	int borderWidth;
+	int cellWidth;
+	int cellHeight;
+};
+
+
 class AnimatedBitmap
 {
 public:

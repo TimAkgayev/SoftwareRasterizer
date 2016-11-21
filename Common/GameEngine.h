@@ -8,6 +8,17 @@
 #include "Timer.h"
 #include "HardwareSurface.h"
 #include "Grid.h"
+#include "DebugView.h"
+#include "ProgramEngineInterface.h"
+
+
+extern SOFTWARERASTERIZER_DX10_OBJECTS SoftwareRasterizer;
+
+
+int Initialization();
+int Update();
+int Shutdown();
+
 
 
 class Player
@@ -39,7 +50,6 @@ private:
 	bool isPositionUpdated;
 
 };
-
 class World
 {
 public:
@@ -52,3 +62,12 @@ public:
 	void SoftwareDraw(DWORD*, int);
 	void HardwareDraw(double);
 };
+
+
+
+
+//unused for now
+extern SOFTWARERASTERIZER_DX7_OBJECTS softrest7_obj;
+extern SOFTWARERASTERIZER_DX12_OBJECTS softrest12_obj;
+int Game_Main_DX7();
+int Game_Main_DX12();

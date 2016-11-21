@@ -1,5 +1,62 @@
 #include "AnimatedBitmap.h"
 
+SpriteLoader::~SpriteLoader()
+{
+	if (sprite.data)
+		delete sprite.data;
+}
+
+void SpriteLoader::LoadSprite(string filename, int cell_width, int cell_height, int num_cells_x, int num_cells_y, int border_width)
+{
+	if (!LoadBitmapFromDisk(filename, &sprite))
+		return;
+
+	FlipBitmap(&sprite);
+
+	numXCells = num_cells_x;
+	numYCells = num_cells_y;
+	borderWidth = border_width;
+	cellWidth = cell_width;
+	cellHeight = cell_height;
+}
+
+BITMAP_FILE SpriteLoader::GetCell(int row, int col)
+{
+	if (row > numXCells || col > numYCells || row <= 0 || col <= 0)
+		return sprite;
+
+	//calculate the starting memory
+	int xoffset = col*borderWidth + (col - 1)*cellWidth;
+	int yoffset = row*borderWidth + (row - 1)*cellHeight;
+
+	DWORD* spriteMem = (DWORD*)sprite.data;
+	spriteMem += xoffset + (yoffset * sprite.infoHeader.biWidth);
+
+	//copy the region from main sprite into new bitmap
+	BITMAP_FILE singleSprite;
+	singleSprite.infoHeader.biBitCount = 32;
+	singleSprite.infoHeader.biHeight = cellHeight;
+	singleSprite.infoHeader.biWidth = cellWidth;
+	singleSprite.infoHeader.biSizeImage = cellHeight * cellWidth * sizeof(DWORD);
+	singleSprite.infoHeader.biSize = sizeof(BITMAPINFOHEADER);
+	singleSprite.data = (UCHAR*)new DWORD[cellHeight * cellWidth];
+
+	DWORD* destSpriteMem = (DWORD*)singleSprite.data;
+
+
+	//blit one to the other
+	for (int i = 0; i < cellHeight; i++)
+	{
+		memcpy(destSpriteMem, spriteMem, cellWidth*sizeof(DWORD));
+		spriteMem += sprite.infoHeader.biWidth;
+		destSpriteMem += cellWidth;
+	}
+
+
+	return singleSprite;
+
+}
+
 
 
 AnimatedBitmap::AnimatedBitmap()

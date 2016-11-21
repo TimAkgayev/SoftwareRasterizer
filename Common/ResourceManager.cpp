@@ -48,6 +48,9 @@ void ResourceManager::MemoryAllocated(void* p, size_t size)
 
 void ResourceManager::MemoryDeleted(void* p)
 {
+	if (m_allocatedPointers.size() == 0)
+		return;
+
 	vector_malloc::iterator vIter;
 	for (vIter = m_allocatedPointers.begin(); vIter < m_allocatedPointers.end(); vIter++)
 	{

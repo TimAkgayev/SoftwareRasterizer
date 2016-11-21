@@ -1,29 +1,4 @@
-﻿  UserInterface.cpp
+﻿  GameEngine.cpp
 d:\users\tim\documents\visual studio projects\softwarerasterizer\common\resourcemanager.h(47): warning C4003: not enough actual parameters for macro 'max'
 d:\users\tim\documents\visual studio projects\softwarerasterizer\common\mathstructures.h(180): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(362): warning C4018: '>=': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(384): warning C4018: '>': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(644): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(667): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(700): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(726): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(762): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(849): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(933): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(974): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(1082): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(1164): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(1206): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(1356): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(1379): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(1551): warning C4018: '>': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(1583): warning C4101: 'clRct': unreferenced local variable
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(2154): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(2280): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(3739): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(3757): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(881): warning C4715: 'UISelectionBox::OnLDown': not all control paths return a value
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(1112): warning C4715: 'UIDropdownMenu::OnLDown': not all control paths return a value
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(2121): warning C4715: 'UserInterface::ProcessMouseClick': not all control paths return a value
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.cpp(2264): warning C4715: 'UserInterface::GetElementByName': not all control paths return a value
   Common.vcxproj -> D:\Users\Tim\Documents\Visual Studio Projects\SoftwareRasterizer\Common\Debug\Common.lib

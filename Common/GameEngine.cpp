@@ -1,5 +1,84 @@
 #include "GameEngine.h"
 
+SOFTWARERASTERIZER_DX10_OBJECTS SoftwareRasterizer;
+
+int Initialization()
+{
+
+	//start rasterizer
+	InitializeSoftwareRasterizer(&SoftwareRasterizer);
+
+	//initialize the program
+	ApplicationInitialization(SoftwareRasterizer.clientRect);
+
+	return 0;
+}
+
+
+int Update()
+{
+
+	//Game update
+	if (ApplicationUpdate() == APPUPDATE_RESET)
+	{
+		//shutdown rasterizer
+		ShutdownSoftwareRasterizer(&SoftwareRasterizer);
+
+		//release window
+		DestroyWindow(SoftwareRasterizer.mainWindow);
+
+		return APPUPDATE_RESET;
+	}
+	//clear render target
+	SoftwareRasterizer.pD3D10Device->ClearRenderTargetView(SoftwareRasterizer.pD3D10RenderTargetView, D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f));
+
+	//Lock the texture and draw
+	D3D10_MAPPED_TEXTURE2D mappedTex;
+	SoftwareRasterizer.texture->Map(D3D10CalcSubresource(0, 0, 1), D3D10_MAP_WRITE_DISCARD, 0, &mappedTex);
+
+	//clear texture and assign to temporary variable
+	UINT lpitch32 = mappedTex.RowPitch >> 2; //in bytes, div by 4 to get num dwords
+	DWORD* texture_buffer = (DWORD*)mappedTex.pData;
+	int pitch = mappedTex.RowPitch;
+	ZeroMemory(texture_buffer, SoftwareRasterizer.clientRect.bottom*mappedTex.RowPitch);
+
+	//Draw to texture
+	ApplicationSoftwareRender(texture_buffer, lpitch32);
+
+	//Release the texture
+	SoftwareRasterizer.texture->Unmap(D3D10CalcSubresource(0, 0, 1));
+
+
+	//apply pass and draw the main texture
+	SoftwareRasterizer.pD3D10EffectTechnique->GetPassByIndex(0)->Apply(0);
+	SoftwareRasterizer.pD3D10Device->DrawIndexed(SoftwareRasterizer.numIndices, 0, 0);
+
+	//allow the program to do optional hardware drawing now
+	ApplicationHardwareRender();
+
+	//end of frame
+	SoftwareRasterizer.pD3D10SwapChain->Present(0, 0);
+
+
+	return APPUPDATE_NORMAL;
+}
+
+
+
+int Shutdown()
+{
+	//close the rasterizer
+	ShutdownSoftwareRasterizer(&SoftwareRasterizer);
+
+	//close the program
+	ApplicationShutdown();
+
+	return 1;
+}
+
+
+
+
 Player::Player()
 {
 	position = VECTOR2D(0, 0);
@@ -150,4 +229,119 @@ void World::HardwareDraw(double deltaTime)
 {
 	if(userInterface)
 		userInterface->DrawUI(deltaTime);
+}
+
+
+
+
+
+
+
+
+
+
+
+//unused for now
+SOFTWARERASTERIZER_DX7_OBJECTS softrest7_obj;
+SOFTWARERASTERIZER_DX12_OBJECTS softrest12_obj;
+
+int Game_Main_DX7()
+{
+
+	//clear surface, REWRITE THIS!!!!!!!!!!!!!!!!! 
+	//Fill_Surface32(softrest7_obj.lpDDSurfBack, COLOR_BLACK);
+
+	DDRAW_INIT_STRUCT(softrest7_obj.ddSurfDesc);
+	softrest7_obj.lpDDSurfBack->Lock(NULL, &softrest7_obj.ddSurfDesc, DDLOCK_SURFACEMEMORYPTR | DDLOCK_WAIT, NULL);
+
+	/***************************************all software blitting goes here*******************************************/
+	int lpitch32 = (int)(softrest7_obj.ddSurfDesc.lPitch >> 2); //divide by 4 to get number of DWORDS
+	DWORD *video_buffer = (DWORD *)softrest7_obj.ddSurfDesc.lpSurface;
+
+
+	//DrawMandelbrotSet(video_buffer, lpitch32, g_mndBrotCamX, g_mndBrotCamY, g_mndBrotZoom);
+
+	//	SnowGameMain(video_buffer, lpitch32, Time.deltaTime);
+	//	OceanMain(video_buffer, lpitch32, Time.deltaTime);
+	/***************************************all software blitting goes here*******************************************/
+
+	softrest7_obj.lpDDSurfBack->Unlock(NULL);
+	//	softrest7_obj.lpDDSurfPrimary->Blt(&GetCamera()->GetWindowPortRect(softrest7_obj.mainWindow), softrest7_obj.lpDDSurfBack, NULL, DDBLT_WAIT, NULL);
+
+	//	QueryPerformanceCounter(&lastTime);
+
+	return 1;
+
+}
+int Game_Main_DX12()
+{
+	/*
+	float deltaTime = 0;
+	if (isClockStarted)
+	{
+	QueryPerformanceCounter(&endTime);
+	double finalTime = endTime.QuadPart - startTime.QuadPart;
+	deltaTime = finalTime / perfFreq.QuadPart / 1000;
+	}
+
+	Update(deltaTime);
+	QueryPerformanceCounter(&startTime);
+	isClockStarted = true;
+
+	//populate command list
+
+	// Command list allocators can only be reset when the associated
+	// command lists have finished execution on the GPU; apps should use
+	// fences to determine GPU execution progress.
+	softrest12_obj.pD3D12CommandAllocator->Reset();
+
+
+
+	// However, when ExecuteCommandList() is called on a particular command
+	// list, that command list can then be reset at any time and must be before
+	// re-recording.
+	softrest12_obj.pD3D12CommandList->Reset(softrest12_obj.pD3D12CommandAllocator.Get(), softrest12_obj.pD3D12PipelineState.Get());
+
+	softrest12_obj.pD3D12CommandList->SetGraphicSoftwareRasterizerootSignature(softrest12_obj.pD3D12RootSignature.Get());
+	softrest12_obj.pD3D12CommandList->RSSetViewports(1, &softrest12_obj.d3d12Viewport);
+	softrest12_obj.pD3D12CommandList->RSSetScissorRects(1, &softrest12_obj.d3d12ScissorRect);
+
+	//Indicate that the back buffer will be used as a render target
+	D3D12_RESOURCE_BARRIER resBarrier = {};
+	resBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	resBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	resBarrier.Transition.pResource = softrest12_obj.pD3D12RenderTargets[softrest12_obj.frameIndex].Get();
+	resBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	resBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	resBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+
+	softrest12_obj.pD3D12CommandList->ResourceBarrier(1, &resBarrier);
+
+	softrest12_obj.pD3D12CommandList->Close();
+
+
+	//Execute the command list
+	ID3D12CommandList* ppCommandLists[] = { softrest12_obj.pD3D12CommandList.Get() };
+	softrest12_obj.pD3D12CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+	softrest12_obj.pD3D12SwapChain->Present(1, 0);
+
+	//wait for previous frame
+	// WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
+	// This is code implemented as such for simplicity. More advanced samples
+	// illustrate how to use fences for efficient resource usage.
+
+	const UINT64 fence = softrest12_obj.fenceValue;
+	softrest12_obj.pD3D12CommandQueue->Signal(softrest12_obj.pD3D12Fence.Get(), fence);
+	softrest12_obj.fenceValue++;
+
+	if (softrest12_obj.pD3D12Fence->GetCompletedValue() < fence)
+	{
+	softrest12_obj.pD3D12Fence->SetEventOnCompletion(fence, softrest12_obj.hFenceEvent);
+	WaitForSingleObject(softrest12_obj.hFenceEvent, INFINITE);
+	}
+	*/
+
+	return 0;
 }

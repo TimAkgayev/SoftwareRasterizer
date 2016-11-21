@@ -36,7 +36,6 @@ PS_INPUT VS_MAIN(float4 Pos : POSITION, float4 Color : COLOR, float2 TexCoord : 
 float4 PS_MAIN(PS_INPUT psInput) : SV_Target
 {
 	float4 c = tex2D.Sample(linearSampler, psInput.TexCoord);
-	c.a = 1.0f;
 	return c;
 }
 
@@ -69,7 +68,7 @@ PS_INPUT VS_UI(float4 Pos: POSITION, float4 Color : COLOR, float2 TexCoord : TEX
 {
 	PS_INPUT psIn;
 	psIn.Pos = Pos;
-	psIn.Pos.z = 0.4f;
+	
 	psIn.Color = Color;
 	psIn.TexCoord = TexCoord;
 

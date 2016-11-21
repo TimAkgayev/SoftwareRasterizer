@@ -1,14 +1,13 @@
 #pragma once
-#include "GameEngine.h"
-#include "DebugView.h"
 
-struct WINDOWS_SETTINGS
+
+extern struct WINDOWS_SETTINGS
 {
 	int clientDimX;
 	int clientDimY;
 	POINT clientOffset;
 	wchar_t * windowTitle;
-};
+} Windows_Settings;
 
 enum {APPUPDATE_NORMAL, APPUPDATE_RESET};
 
@@ -17,7 +16,9 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch);
 void ApplicationHardwareRender();
 void ApplicationShutdown();
 int  ApplicationUpdate();
-void GetSettings(WINDOWS_SETTINGS& settings);
-LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+//allows program to set intial settings, this is called even before the main initialization
+void UpdateSettings(); 
+
+LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void AttachDebugger(DebugView*);

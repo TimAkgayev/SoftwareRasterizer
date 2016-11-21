@@ -1,15 +1,16 @@
-#include "../Common/ProgramEngineInterface.h"
+#include "../Common/GameEngine.h"
 
+WINDOWS_SETTINGS Windows_Settings;
 
 UserInterface* DefaultUserInterface;
-const SOFTWARERASTERIZER_DX10_OBJECTS* localRasterizerObject;
-WINDOWS_SETTINGS LocalWindowsSettings;
 
 AnimatedBitmap backAnim, frontAnim, leftAnim, rightAnim;
 AnimatedBitmap brickWall, brickWallRotated;
 AnimatedBitmap wigwam;
 AnimatedBitmap WigwamLarge;
 string playerMove = "none";
+SpriteLoader sloader;
+string rootImageDir = "D:\\Users\\Tim\\Documents\\era\\Source Images\\";
 
 UIButton* baseBtn;
 
@@ -22,6 +23,7 @@ LARGE_INTEGER endTime;
 LARGE_INTEGER perfFreq;
 bool isClockStarted = false;
 float deltaTime2 = 0;
+RECT gClientRect;
 
 bool isWDown = false, isDDown = false, isSDown = false, isADown = false;
 
@@ -83,7 +85,7 @@ void CreateInGameWorld()
 
 	for (int i = 0; i < 6; i++)
 	{
-		brickWall.SetPosition(localRasterizerObject->clientRect.right - wh.x, i * wh.y);
+		brickWall.SetPosition(SoftwareRasterizer.clientRect.right - wh.x, i * wh.y);
 		inGame.collisionObjects.push_back(brickWall);
 
 	}
@@ -91,41 +93,36 @@ void CreateInGameWorld()
 
 void LoadData()
 {
-	brickWall.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\BrickWall.bmp", 0.1f);
-	brickWallRotated.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\BrickWall.bmp", 0.1f);
+	brickWall.AddFrame(rootImageDir + "BrickWall.bmp", 0.1f);
+	brickWallRotated.AddFrame(rootImageDir + "BrickWall.bmp", 0.1f);
 	brickWallRotated.RotateLeft();
+	sloader.LoadSprite(rootImageDir + "characterSprite.bmp", 92, 92, 4, 4, 1);
 
-	WigwamLarge.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\WigwamLarge.bmp", 0.04f);
+	WigwamLarge.AddFrame(rootImageDir + "WigwamLarge.bmp", 0.04f);
 
-	backAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\EraCharacter1.bmp", 0.1f);
-	backAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\EraCharacter2.bmp", 0.1f);
-	backAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\EraCharacter3.bmp", 0.1f);
-	backAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\EraCharacter4.bmp", 0.1f);
-	backAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\EraCharacter5.bmp", 0.1f);
+	backAnim.AddFrame(sloader.GetCell(3, 1));
+	backAnim.AddFrame(sloader.GetCell(3, 2));	
+	backAnim.AddFrame(sloader.GetCell(3, 3));
 	backAnim.SetFramerate(7);
 
-	frontAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\FrontSide1.bmp", 0.1f);
-	frontAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\FrontSide2.bmp", 0.1f);
-	frontAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\FrontSide3.bmp", 0.1f);
-	frontAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\FrontSide4.bmp", 0.1f);
-	frontAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\FrontSide5.bmp", 0.1f);
+	frontAnim.AddFrame(sloader.GetCell(2, 1));
+	frontAnim.AddFrame(sloader.GetCell(2, 2));
+	frontAnim.AddFrame(sloader.GetCell(2, 3));
 	frontAnim.SetFramerate(7);
 
-	leftAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\LeftSide1.bmp", 0.1f);
-	leftAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\LeftSide2.bmp", 0.1f);
-	leftAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\LeftSide3.bmp", 0.1f);
-	leftAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\LeftSide4.bmp", 0.1f);
-	leftAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\LeftSide5.bmp", 0.1f);
+	leftAnim.AddFrame(sloader.GetCell(4, 1));
+	leftAnim.AddFrame(sloader.GetCell(4, 2));
+	leftAnim.AddFrame(sloader.GetCell(4, 3));
+	leftAnim.AddFrame(sloader.GetCell(4, 4));
 	leftAnim.SetFramerate(7);
 
-	rightAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\RightSide1.bmp", 0.1f);
-	rightAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\RightSide2.bmp", 0.1f);
-	rightAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\RightSide3.bmp", 0.1f);
-	rightAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\RightSide4.bmp", 0.1f);
-	rightAnim.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\RightSide5.bmp", 0.1f);
+	rightAnim.AddFrame(sloader.GetCell(1, 1));
+	rightAnim.AddFrame(sloader.GetCell(1, 2));
+	rightAnim.AddFrame(sloader.GetCell(1, 3));
+	rightAnim.AddFrame(sloader.GetCell(1, 4));
 	rightAnim.SetFramerate(7);
 
-	wigwam.AddFrame("D:\\Users\\Tim\\Documents\\era\\Source Images\\wigwam.bmp");
+	wigwam.AddFrame(rootImageDir + "Wigwam.bmp");
 
 	inGamePlayer.AddFrontAnimation(frontAnim);
 	inGamePlayer.AddBackAnimation(backAnim);
@@ -138,8 +135,10 @@ void ApplicationInitialization(RECT)
 	QueryPerformanceFrequency(&perfFreq);
 
 	//get the rasterizer
-	localRasterizerObject = GetSoftwareRasterizer();
-	DefaultUserInterface = new UserInterface(localRasterizerObject);
+	DefaultUserInterface = new UserInterface(&SoftwareRasterizer);
+
+	//save client dimensions
+	gClientRect = SoftwareRasterizer.clientRect;
 
 	//load sprites
 	LoadData();
@@ -148,8 +147,8 @@ void ApplicationInitialization(RECT)
 	inGamePlayer.SetPosition(300, 100);
 
 	//set up camera
-	float centerX = float(localRasterizerObject->clientRect.right) / 2.0f;
-	float centerY = float(localRasterizerObject->clientRect.bottom) / 2.0f;
+	float centerX = float(SoftwareRasterizer.clientRect.right) / 2.0f;
+	float centerY = float(SoftwareRasterizer.clientRect.bottom) / 2.0f;
 
 	POINT fDim;
 	frontAnim.GetFrameDimensions(fDim);
@@ -162,25 +161,22 @@ void ApplicationInitialization(RECT)
 	IncrementDrawOffset(deltaX, deltaY);
 
 	//set up the worlds
-	mainMenuUI = new UserInterface(localRasterizerObject);
+	mainMenuUI = new UserInterface(&SoftwareRasterizer);
 	mainMenuUI->createButton(mmNewGameCb, 100, 100, "NEW");
 	mainMenuUI->createButton(mmLoadGameCb, 100, 200, "LOAD");
 	mainMenuUI->createButton(mmQuitGameCb, 100, 300, "QUIT");
 	mainMenu.userInterface = mainMenuUI;
 
-	ingameUI = new UserInterface(localRasterizerObject);
-	ingameUI->createRegion(5, localRasterizerObject->clientRect.bottom - 165, localRasterizerObject->clientRect.right - 10, 160);
-	baseBtn = ingameUI->createButton(NULL, 15, 560, "BASE");
+	ingameUI = new UserInterface(&SoftwareRasterizer);
+	ingameUI->createRegion(5, SoftwareRasterizer.clientRect.bottom - 50, SoftwareRasterizer.clientRect.right - 10, 45);
+	baseBtn = ingameUI->createButton(NULL, 15, gClientRect.bottom - 40, "BASE");
 	baseBtn->SetImage(&wigwam);
 	baseBtn->SetOnLClickCallback(mmCreateWigwamBtn);
 
 	inGame.userInterface = ingameUI;
 	inGame.player = &inGamePlayer;
 
-	LocalWindowsSettings.clientDimX = GetSoftwareRasterizer()->clientRect.right;
-	LocalWindowsSettings.clientDimY = GetSoftwareRasterizer()->clientRect.bottom;
-	LocalWindowsSettings.clientOffset = { 0, 0 };
-	LocalWindowsSettings.windowTitle = TEXT("Era");
+
 
 	CreateInGameWorld();
 
@@ -196,6 +192,7 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch32)
 }
 void ApplicationHardwareRender()
 {
+
 		
 	currentWorld->HardwareDraw(deltaTime2);
 }
@@ -305,9 +302,12 @@ int ApplicationUpdate()
 }
 
 
-void GetSettings(WINDOWS_SETTINGS& set)
+void UpdateSettings()
 {
-	set = LocalWindowsSettings;
+	Windows_Settings.clientDimX = 960;
+	Windows_Settings.clientDimY = 720;
+	Windows_Settings.clientOffset = { 0, 0 };
+	Windows_Settings.windowTitle = TEXT("Era");
 }
 
 LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -464,6 +464,7 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 	{
 		PostQuitMessage(0);
 		return(0);
+
 	} break;
 
 

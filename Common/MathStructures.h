@@ -526,6 +526,8 @@ public:
 			else
 				return false;
 		}
+
+		return false;
 	}
 
 	RECT GetWINRECT()
