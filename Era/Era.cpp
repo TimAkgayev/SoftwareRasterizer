@@ -1,6 +1,5 @@
 #include "../Common/GameEngine.h"
-
-WINDOWS_SETTINGS Windows_Settings;
+#include "../Common/ProgramEngineInterface.h"
 
 UserInterface* DefaultUserInterface;
 
@@ -11,6 +10,7 @@ AnimatedBitmap WigwamLarge;
 string playerMove = "none";
 SpriteLoader sloader;
 string rootImageDir = "D:\\Users\\Tim\\Documents\\era\\Source Images\\";
+WINDOWS_SETTINGS LocalWindowsSettings = { 960, 720, {0, 0}, TEXT("Era") };
 
 UIButton* baseBtn;
 
@@ -132,6 +132,7 @@ void LoadData()
 
 void ApplicationInitialization(RECT)
 {
+	
 	QueryPerformanceFrequency(&perfFreq);
 
 	//get the rasterizer
@@ -302,12 +303,9 @@ int ApplicationUpdate()
 }
 
 
-void UpdateSettings()
+WINDOWS_SETTINGS& UpdateSettings()
 {
-	Windows_Settings.clientDimX = 960;
-	Windows_Settings.clientDimY = 720;
-	Windows_Settings.clientOffset = { 0, 0 };
-	Windows_Settings.windowTitle = TEXT("Era");
+	return LocalWindowsSettings;
 }
 
 LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)

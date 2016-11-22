@@ -153,11 +153,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Forge.cpp" />
+    <ClCompile Include="SaveLoad.cpp" />
     <ClCompile Include="WindowsMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Forge.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SaveLoad.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Forge.rc" />

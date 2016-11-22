@@ -101,7 +101,7 @@ UIButton::UIButton()
 	screen_h = 0;
 	screen_w = 0;
 	bgColor = COLOR_BLACK;
-	mImage = NULL;
+	
 }
 
 UIButton::UIButton(int width, int height) {
@@ -114,7 +114,7 @@ UIButton::UIButton(int width, int height) {
 	memset(mFrameMem, 0, mFrameSize);
 	mText = "None";
 	bgColor = COLOR_BLACK;
-	mImage = NULL;
+
 }
 
 UIButton::~UIButton()
@@ -172,22 +172,22 @@ void UIButton::SetOnLClickCallback(void(*cb)())
 	mCallbackLClick = cb;
 }
 
-void UIButton::SetImage(AnimatedBitmap* img)
+void UIButton::LoadImage(string filename)
 {
-	mImage = img;
+	mImage.AddFrame(filename);
 
 	//position must allways be zero because we're drawing in a local ui frame
-	mImage->SetPosition(0, 0);
+	mImage.SetPosition(0, 0);
 
 	//scale the image to button size
 	BITMAP_FILE transformed;
-	ResizeBitmap(&transformed, mImage->GetFrame(0), region.GetWINRECT());
+	ResizeBitmap(&transformed, mImage.GetFrame(0), region.GetWINRECT());
 
 	//remove the old bitmap
-	delete	mImage->GetFrame(0)->data;
-	mImage->RemoveFrame(0);
+	delete	mImage.GetFrame(0)->data;
+	mImage.RemoveFrame(0);
 
-	mImage->AddFrame(transformed);
+	mImage.AddFrame(transformed);
 }
 
 
@@ -197,21 +197,24 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 
 	ZeroMemory(mFrameMem, mFrameSize);
 
-	if (mImage)
+	if (mImage.GetFrame(0)->data)
 	{
-		mImage->Draw(mFrameMem, region.getWidth());
+		mImage.Draw(mFrameMem, region.getWidth());
 	}
 	else
 		renderTextToRegion(mFrameMem, region.getWidth(), mText, region.GetWINRECT(), bgColor, COLOR_RED);
 
 	DWORD colorState = 0;
 	if (stateID == UISTATE_PRESSED)
-		colorState = COLOR_YELLOW;
+		colorState = COLOR_GREEN;
 	else if (stateID == UISTATE_NORMAL)
-		colorState = COLOR_BLUE;
+		colorState = COLOR_WHITE;
 	else if (stateID == UISTATE_HOVER)
 		colorState = COLOR_RED;
 
+	
+	
+		
 	DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth() - 1, 0, colorState, colorState);
 	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
 	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
@@ -525,7 +528,7 @@ void UITextField::Draw(DWORD* mem, int lpitch32, float timeDelta)
 }
 
 
-UIRegion::UIRegion(int xpos, int ypos, int width, int height)
+UIRegion::UIRegion(int xpos, int ypos, int width, int height, DWORD color)
 {
 	region.setPos(xpos, ypos);
 	region.setWidth(width);
@@ -538,7 +541,7 @@ UIRegion::UIRegion(int xpos, int ypos, int width, int height)
 	depthIndex = DEPTHINDEX_BACKGROUND;
 	
 	mBorderColor = _RGBA32BIT(255, 255, 255, 255);
-	mBckgColor = _RGBA32BIT(80, 15, 190, 255);
+	mBckgColor = color;
 
 	mFrameMem = new DWORD[region.getWidth() * region.getHeight()];
 	mFrameSize = region.getWidth() * region.getHeight() * sizeof(DWORD);
@@ -1942,9 +1945,9 @@ UIList* UserInterface::createList(int xPos, int yPos, int width)
 	return list;
 }
 
-UIRegion* UserInterface::createRegion(int xPos, int yPos, int width, int height)
+UIRegion* UserInterface::createRegion(int xPos, int yPos, int width, int height, DWORD color)
 {
-	UIRegion * reg = new UIRegion(xPos, yPos, width, height);
+	UIRegion * reg = new UIRegion(xPos, yPos, width, height, color);
 	mUIElements.push_back((UIElement*)reg);
 
 	return reg;
@@ -2189,7 +2192,7 @@ void UserInterface::DrawUI(float deltaTime)
 	backgroundTexture->Map(D3D10CalcSubresource(0, 0, 1), D3D10_MAP_WRITE_DISCARD, 0, &mappedTex);
 
 	texture_buffer = (DWORD*)mappedTex.pData;
-	ZeroMemory(texture_buffer, GetSoftwareRasterizer()->clientRect.bottom * mappedTex.RowPitch);
+	ZeroMemory(texture_buffer, SoftwareRasterizer.clientRect.bottom * mappedTex.RowPitch);
 
 	int lpitch32 = mappedTex.RowPitch >> 2;;
 
@@ -2215,7 +2218,7 @@ void UserInterface::DrawUI(float deltaTime)
 	foregroundTexture->Map(D3D10CalcSubresource(0, 0, 1), D3D10_MAP_WRITE_DISCARD, 0, &mappedTex);
 
 	texture_buffer = (DWORD*)mappedTex.pData;
-	ZeroMemory(texture_buffer,GetSoftwareRasterizer()->clientRect.bottom * mappedTex.RowPitch);
+	ZeroMemory(texture_buffer,SoftwareRasterizer.clientRect.bottom * mappedTex.RowPitch);
 
 	lpitch32 = mappedTex.RowPitch >> 2;;
 
@@ -3453,7 +3456,7 @@ UserInterface::UserInterface(const SOFTWARERASTERIZER_DX10_OBJECTS* localRasteri
 	mIsLButtonDown = false;
 
 
-	float aspectRatio = float(GetSoftwareRasterizer()->clientRect.right) / float(GetSoftwareRasterizer()->clientRect.bottom);
+	float aspectRatio = float(SoftwareRasterizer.clientRect.right) / float(SoftwareRasterizer.clientRect.bottom);
 	float planeXOrig = -1.0f, planeYOrig = -1.0f;
 	float planeWidth = 2.0f;
 	float planeHeight = 2.0f;
@@ -3514,8 +3517,8 @@ UserInterface::UserInterface(const SOFTWARERASTERIZER_DX10_OBJECTS* localRasteri
 	//create our texture (or load it) ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 	D3D10_TEXTURE2D_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
-	desc.Width = GetSoftwareRasterizer()->clientRect.right;
-	desc.Height = GetSoftwareRasterizer()->clientRect.bottom;
+	desc.Width = SoftwareRasterizer.clientRect.right;
+	desc.Height = SoftwareRasterizer.clientRect.bottom;
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;

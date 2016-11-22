@@ -1,5 +1,4 @@
 #pragma once
-#include "Bitmap.h"
 #include "SoftwareRasterizer.h"
 
 class SpriteLoader
@@ -25,6 +24,7 @@ class AnimatedBitmap
 public:
 	AnimatedBitmap();
 	AnimatedBitmap(const AnimatedBitmap& rhv);
+	AnimatedBitmap(string filename, float scaleFactor = 1.0f);
 	~AnimatedBitmap();
 
 	AnimatedBitmap operator=(const AnimatedBitmap& rhv);

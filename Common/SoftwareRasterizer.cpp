@@ -1,7 +1,7 @@
 ﻿#include "SoftwareRasterizer.h"
 
 //private pointer to the main drawing engine
-SOFTWARERASTERIZER_DX10_OBJECTS* SoftwareRasterizerSelfPointer;
+SOFTWARERASTERIZER_DX10_OBJECTS SoftwareRasterizer;
 
 //queue primitives
 vector<LinePrimitive> lineQueue;
@@ -18,13 +18,6 @@ D3D10_INPUT_ELEMENT_DESC DX10VertexLayout[] =
 	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D10_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 28, D3D10_INPUT_PER_VERTEX_DATA, 0 }
 };
-
-
-
-SOFTWARERASTERIZER_DX10_OBJECTS* GetSoftwareRasterizer()
-{
-	return SoftwareRasterizerSelfPointer;
-}
 
 
 MATRIX2D SetCameraTransform(MATRIX2D camTx)
@@ -119,7 +112,7 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX7_OBJECTS* softObjPtr)
 
 
 	// set cooperation level with windows, Windows7 & 8 require DDSCL_NORMAL, don't work at all in DDSCL_ESCLUSIVE
-	if (FAILED(softObjPtr->lpDDraw7Interface->SetCooperativeLevel(softObjPtr->mainWindow, DDSCL_NORMAL)))
+	if (FAILED(softObjPtr->lpDDraw7Interface->SetCooperativeLevel(SoftwareRasterizer.mainWindow, DDSCL_NORMAL)))
 	{
 		//report
 		return;
@@ -170,75 +163,75 @@ void ShutdownSoftwareRasterizer(SOFTWARERASTERIZER_DX7_OBJECTS* softObjPtr)
 	}
 }
 
-void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr)
+void InitializeSoftwareRasterizer()
 {
 
 
 	//setup swap chain ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-	ZeroMemory(&softObjPtr->D3D10SwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
+	ZeroMemory(&SoftwareRasterizer.D3D10SwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
 
 	//set buffer dimensions and format
-	softObjPtr->D3D10SwapChainDesc.BufferCount = 2;
-	softObjPtr->D3D10SwapChainDesc.BufferDesc.Width = softObjPtr->clientRect.right;
-	softObjPtr->D3D10SwapChainDesc.BufferDesc.Height = softObjPtr->clientRect.bottom;
-	softObjPtr->D3D10SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	softObjPtr->D3D10SwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	SoftwareRasterizer.D3D10SwapChainDesc.BufferCount = 2;
+	SoftwareRasterizer.D3D10SwapChainDesc.BufferDesc.Width = SoftwareRasterizer.clientRect.right;
+	SoftwareRasterizer.D3D10SwapChainDesc.BufferDesc.Height = SoftwareRasterizer.clientRect.bottom;
+	SoftwareRasterizer.D3D10SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	SoftwareRasterizer.D3D10SwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	//set refresh rate
-	softObjPtr->D3D10SwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
-	softObjPtr->D3D10SwapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+	SoftwareRasterizer.D3D10SwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
+	SoftwareRasterizer.D3D10SwapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 
 	//sampling settings
-	softObjPtr->D3D10SwapChainDesc.SampleDesc.Quality = 0;
-	softObjPtr->D3D10SwapChainDesc.SampleDesc.Count = 1;
+	SoftwareRasterizer.D3D10SwapChainDesc.SampleDesc.Quality = 0;
+	SoftwareRasterizer.D3D10SwapChainDesc.SampleDesc.Count = 1;
 
 	//output window handle
-	softObjPtr->D3D10SwapChainDesc.OutputWindow = softObjPtr->mainWindow;
-	softObjPtr->D3D10SwapChainDesc.Windowed = true;
+	SoftwareRasterizer.D3D10SwapChainDesc.OutputWindow = SoftwareRasterizer.mainWindow;
+	SoftwareRasterizer.D3D10SwapChainDesc.Windowed = true;
 
 	//create device ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 
 	HRESULT hr1;
-	if (FAILED(hr1 = D3D10CreateDeviceAndSwapChain(NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, D3D10_CREATE_DEVICE_DEBUG , D3D10_SDK_VERSION, &softObjPtr->D3D10SwapChainDesc, &softObjPtr->pD3D10SwapChain, &softObjPtr->pD3D10Device)))
+	if (FAILED(hr1 = D3D10CreateDeviceAndSwapChain(NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, D3D10_CREATE_DEVICE_DEBUG , D3D10_SDK_VERSION, &SoftwareRasterizer.D3D10SwapChainDesc, &SoftwareRasterizer.pD3D10SwapChain, &SoftwareRasterizer.pD3D10Device)))
 	{
-		ZeroMemory(&softObjPtr->D3D10SwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
+		ZeroMemory(&SoftwareRasterizer.D3D10SwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
 		return;
 	}
 
 	//get the info interface
-	softObjPtr->pD3D10Device->QueryInterface(__uuidof(ID3D10InfoQueue), (void**)&softObjPtr->pD3D10InfoQueue);
+	SoftwareRasterizer.pD3D10Device->QueryInterface(__uuidof(ID3D10InfoQueue), (void**)&SoftwareRasterizer.pD3D10InfoQueue);
 
 	// create render target for merger state ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 
 	ID3D10Texture2D* pBackBuffer;
-	if (FAILED(softObjPtr->pD3D10SwapChain->GetBuffer(0, __uuidof(ID3D10Texture2D), (LPVOID*)&pBackBuffer))) return;
+	if (FAILED(SoftwareRasterizer.pD3D10SwapChain->GetBuffer(0, __uuidof(ID3D10Texture2D), (LPVOID*)&pBackBuffer))) return;
 
 	//try to create render target view
-	if (FAILED(softObjPtr->pD3D10Device->CreateRenderTargetView(pBackBuffer, NULL, &softObjPtr->pD3D10RenderTargetView))) return;
+	if (FAILED(SoftwareRasterizer.pD3D10Device->CreateRenderTargetView(pBackBuffer, NULL, &SoftwareRasterizer.pD3D10RenderTargetView))) return;
 
 	//release the back buffer
 	pBackBuffer->Release();
 
 	//set the render target
-	softObjPtr->pD3D10Device->OMSetRenderTargets(1, &softObjPtr->pD3D10RenderTargetView, NULL);
+	SoftwareRasterizer.pD3D10Device->OMSetRenderTargets(1, &SoftwareRasterizer.pD3D10RenderTargetView, NULL);
 
 
 	//set view port aka region of render target ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-	softObjPtr->D3D10Viewport.Width = softObjPtr->D3D10SwapChainDesc.BufferDesc.Width;
-	softObjPtr->D3D10Viewport.Height = softObjPtr->D3D10SwapChainDesc.BufferDesc.Height;
-	softObjPtr->D3D10Viewport.MinDepth = 0.0f;
-	softObjPtr->D3D10Viewport.MaxDepth = 1.0f;
-	softObjPtr->D3D10Viewport.TopLeftX = 0;
-	softObjPtr->D3D10Viewport.TopLeftY = 0;
+	SoftwareRasterizer.D3D10Viewport.Width = SoftwareRasterizer.D3D10SwapChainDesc.BufferDesc.Width;
+	SoftwareRasterizer.D3D10Viewport.Height = SoftwareRasterizer.D3D10SwapChainDesc.BufferDesc.Height;
+	SoftwareRasterizer.D3D10Viewport.MinDepth = 0.0f;
+	SoftwareRasterizer.D3D10Viewport.MaxDepth = 1.0f;
+	SoftwareRasterizer.D3D10Viewport.TopLeftX = 0;
+	SoftwareRasterizer.D3D10Viewport.TopLeftY = 0;
 
-	softObjPtr->pD3D10Device->RSSetViewports(1, &softObjPtr->D3D10Viewport);
+	SoftwareRasterizer.pD3D10Device->RSSetViewports(1, &SoftwareRasterizer.D3D10Viewport);
 
 	//set up matrices ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 
 
 	//compute the ratio of screen dimensions
 
-	float aspectRatio = float(softObjPtr->clientRect.left) / float(softObjPtr->clientRect.bottom);
+	float aspectRatio = float(SoftwareRasterizer.clientRect.left) / float(SoftwareRasterizer.clientRect.bottom);
 	float planeXOrig = -1.0f, planeYOrig = -1.0f;
 	float planeWidth = 2.0f;
 	float planeHeight = 2.0f;
@@ -246,83 +239,83 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr)
 
 	//orthographic
 	XMMATRIX xmatT = XMMatrixIdentity();
-	XMStoreFloat4x4(&softObjPtr->matView, xmatT);
+	XMStoreFloat4x4(&SoftwareRasterizer.matView, xmatT);
 
 
 	//load the effects file to be used ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 
 	HRESULT hrFx;
-	if (FAILED(hrFx = D3DX10CreateEffectFromFile(TEXT("D:\\Users\\Tim\\Documents\\Visual Studio Projects\\SoftwareRasterizer\\Common\\DX10RendererEffect.fx"), NULL, NULL, "fx_4_0", D3D10_SHADER_DEBUG, 0, softObjPtr->pD3D10Device, NULL, NULL, &softObjPtr->pD3D10Effect, NULL, NULL)))
+	if (FAILED(hrFx = D3DX10CreateEffectFromFile(TEXT("D:\\Users\\Tim\\Documents\\Visual Studio Projects\\SoftwareRasterizer\\Common\\DX10RendererEffect.fx"), NULL, NULL, "fx_4_0", D3D10_SHADER_DEBUG, 0, SoftwareRasterizer.pD3D10Device, NULL, NULL, &SoftwareRasterizer.pD3D10Effect, NULL, NULL)))
 	{
 		return;
 	}
 
 
 	//create matrix effect pointers
-	softObjPtr->pViewMatrixEffectVariable = softObjPtr->pD3D10Effect->GetVariableByName("View")->AsMatrix();
-	softObjPtr->pProjectionMatrixEffectVariable = softObjPtr->pD3D10Effect->GetVariableByName("Projection")->AsMatrix();
-	softObjPtr->pWorldMatrixEffectVariable = softObjPtr->pD3D10Effect->GetVariableByName("World")->AsMatrix();
+	SoftwareRasterizer.pViewMatrixEffectVariable = SoftwareRasterizer.pD3D10Effect->GetVariableByName("View")->AsMatrix();
+	SoftwareRasterizer.pProjectionMatrixEffectVariable = SoftwareRasterizer.pD3D10Effect->GetVariableByName("Projection")->AsMatrix();
+	SoftwareRasterizer.pWorldMatrixEffectVariable = SoftwareRasterizer.pD3D10Effect->GetVariableByName("World")->AsMatrix();
 
 
 	//create input layout ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 	D3D10_PASS_DESC PassDesc;
-	softObjPtr->pD3D10EffectTechnique = softObjPtr->pD3D10Effect->GetTechniqueByName("Render");
-	softObjPtr->pD3D10EffectTechnique->GetPassByIndex(0)->GetDesc(&PassDesc);
+	SoftwareRasterizer.pD3D10EffectTechnique = SoftwareRasterizer.pD3D10Effect->GetTechniqueByName("Render");
+	SoftwareRasterizer.pD3D10EffectTechnique->GetPassByIndex(0)->GetDesc(&PassDesc);
 
 	ID3D10InputLayout* pInputLayout;
-	if (FAILED(softObjPtr->pD3D10Device->CreateInputLayout(DX10VertexLayout, numVertexElements, PassDesc.pIAInputSignature, PassDesc.IAInputSignatureSize, &pInputLayout))) return;
+	if (FAILED(SoftwareRasterizer.pD3D10Device->CreateInputLayout(DX10VertexLayout, numVertexElements, PassDesc.pIAInputSignature, PassDesc.IAInputSignatureSize, &pInputLayout))) return;
 
-	softObjPtr->pD3D10Device->IASetInputLayout(pInputLayout);
+	SoftwareRasterizer.pD3D10Device->IASetInputLayout(pInputLayout);
 
 	//create the VERTEX BUFFER for the plane that we'll be drawing on ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-	softObjPtr->numVertices = 4;
+	SoftwareRasterizer.numVertices = 4;
 
 	D3D10_BUFFER_DESC vbDesc;
 	vbDesc.Usage = D3D10_USAGE_DYNAMIC;
-	vbDesc.ByteWidth = sizeof(DX10VERTEX)* softObjPtr->numVertices; //total size of buffer in bytes
+	vbDesc.ByteWidth = sizeof(DX10VERTEX)* SoftwareRasterizer.numVertices; //total size of buffer in bytes
 	vbDesc.BindFlags = D3D10_BIND_VERTEX_BUFFER;
 	vbDesc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
 	vbDesc.MiscFlags = 0;
 
-	if (FAILED(softObjPtr->pD3D10Device->CreateBuffer(&vbDesc, NULL, &softObjPtr->pD3D10VertexBuffer))) return;
+	if (FAILED(SoftwareRasterizer.pD3D10Device->CreateBuffer(&vbDesc, NULL, &SoftwareRasterizer.pD3D10VertexBuffer))) return;
 
 	// Set vertex buffer
 	UINT stride = sizeof(DX10VERTEX);
 	UINT offset = 0;
-	softObjPtr->pD3D10Device->IASetVertexBuffers(0, 1, &softObjPtr->pD3D10VertexBuffer, &stride, &offset);
+	SoftwareRasterizer.pD3D10Device->IASetVertexBuffers(0, 1, &SoftwareRasterizer.pD3D10VertexBuffer, &stride, &offset);
 
 	//create the INDEX BUFFER for the plane ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-	softObjPtr->numIndices = 6; //2 triangles (3 verts each) for a plane
+	SoftwareRasterizer.numIndices = 6; //2 triangles (3 verts each) for a plane
 
 
 	D3D10_BUFFER_DESC ibDesc;
 	ibDesc.Usage = D3D10_USAGE_DYNAMIC;
-	ibDesc.ByteWidth = sizeof(unsigned int)*softObjPtr->numIndices;
+	ibDesc.ByteWidth = sizeof(unsigned int)*SoftwareRasterizer.numIndices;
 	ibDesc.BindFlags = D3D10_BIND_INDEX_BUFFER;
 	ibDesc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
 	ibDesc.MiscFlags = 0;
 
-	if (FAILED(softObjPtr->pD3D10Device->CreateBuffer(&ibDesc, NULL, &softObjPtr->pD3D10IndexBuffer))) return;
+	if (FAILED(SoftwareRasterizer.pD3D10Device->CreateBuffer(&ibDesc, NULL, &SoftwareRasterizer.pD3D10IndexBuffer))) return;
 
-	softObjPtr->pD3D10Device->IASetIndexBuffer(softObjPtr->pD3D10IndexBuffer, DXGI_FORMAT_R32_UINT, offset);
+	SoftwareRasterizer.pD3D10Device->IASetIndexBuffer(SoftwareRasterizer.pD3D10IndexBuffer, DXGI_FORMAT_R32_UINT, offset);
 
 	//initialize the VERTEX BUFFER ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 	UINT numVertices = 4;
 	DX10VERTEX* v = NULL;
 
 	//lock vertex buffer for CPU use
-	softObjPtr->pD3D10VertexBuffer->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&v);
+	SoftwareRasterizer.pD3D10VertexBuffer->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&v);
 
 	v[0] = DX10VERTEX(XMFLOAT3(planeXOrig, planeYOrig, 0), XMFLOAT4(1, 1, 1, 1), XMFLOAT2(0.0f, 1.0f));
 	v[1] = DX10VERTEX(XMFLOAT3(planeXOrig + planeWidth, planeYOrig, 0), XMFLOAT4(1, 1, 1, 1), XMFLOAT2(1.0f, 1.0f));
 	v[2] = DX10VERTEX(XMFLOAT3(planeXOrig + planeWidth, planeYOrig + planeHeight, 0), XMFLOAT4(1, 1, 1, 1), XMFLOAT2(1.0f, 0.0f));
 	v[3] = DX10VERTEX(XMFLOAT3(planeXOrig, planeYOrig + planeHeight, 0), XMFLOAT4(1, 1, 1, 1), XMFLOAT2(0.0f, 0.0f));
 
-	softObjPtr->pD3D10VertexBuffer->Unmap();
+	SoftwareRasterizer.pD3D10VertexBuffer->Unmap();
 
 	//initialize the INDEX BUFFER ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 	int* i = NULL;
-	softObjPtr->pD3D10IndexBuffer->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&i);
+	SoftwareRasterizer.pD3D10IndexBuffer->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**)&i);
 
 	i[0] = 0;
 	i[1] = 1;
@@ -331,7 +324,7 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr)
 	i[4] = 2;
 	i[5] = 3;
 
-	softObjPtr->pD3D10IndexBuffer->Unmap();
+	SoftwareRasterizer.pD3D10IndexBuffer->Unmap();
 
 	//set up rasterizer flags ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 	D3D10_RASTERIZER_DESC rasterizerState;
@@ -347,29 +340,29 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr)
 	rasterizerState.AntialiasedLineEnable = true;
 
 	ID3D10RasterizerState* pRS;
-	softObjPtr->pD3D10Device->CreateRasterizerState(&rasterizerState, &pRS);
-	softObjPtr->pD3D10Device->RSSetState(pRS);
+	SoftwareRasterizer.pD3D10Device->CreateRasterizerState(&rasterizerState, &pRS);
+	SoftwareRasterizer.pD3D10Device->RSSetState(pRS);
 
-	softObjPtr->pD3D10Device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	SoftwareRasterizer.pD3D10Device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	//set the matrices in the effect
 	//set effect matrices
 	XMMATRIX xmatTWorld = XMMatrixIdentity();
-	XMStoreFloat4x4(&softObjPtr->matWorld, xmatTWorld);
-	//D3DXMatrixIdentity(&softObjPtr->matWorld);
+	XMStoreFloat4x4(&SoftwareRasterizer.matWorld, xmatTWorld);
+	//D3DXMatrixIdentity(&SoftwareRasterizer.matWorld);
 
-	softObjPtr->pWorldMatrixEffectVariable->SetMatrix((float*)&softObjPtr->matWorld);
-	softObjPtr->pViewMatrixEffectVariable->SetMatrix((float*)&softObjPtr->matView);
-	softObjPtr->pProjectionMatrixEffectVariable->SetMatrix((float*)&softObjPtr->matProjection);
+	SoftwareRasterizer.pWorldMatrixEffectVariable->SetMatrix((float*)&SoftwareRasterizer.matWorld);
+	SoftwareRasterizer.pViewMatrixEffectVariable->SetMatrix((float*)&SoftwareRasterizer.matView);
+	SoftwareRasterizer.pProjectionMatrixEffectVariable->SetMatrix((float*)&SoftwareRasterizer.matProjection);
 
 	//create our texture (or load it) ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 	D3D10_TEXTURE2D_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
-	desc.Width = softObjPtr->D3D10SwapChainDesc.BufferDesc.Width;
-	desc.Height = softObjPtr->D3D10SwapChainDesc.BufferDesc.Height;
+	desc.Width = SoftwareRasterizer.D3D10SwapChainDesc.BufferDesc.Width;
+	desc.Height = SoftwareRasterizer.D3D10SwapChainDesc.BufferDesc.Height;
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
-	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;//softObjPtr->D3D10SwapChainDesc.BufferDesc.Format;
+	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;//SoftwareRasterizer.D3D10SwapChainDesc.BufferDesc.Format;
 	desc.SampleDesc.Count = 1;
 	desc.Usage = D3D10_USAGE_DYNAMIC;
 	desc.BindFlags = D3D10_BIND_SHADER_RESOURCE;
@@ -377,7 +370,7 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr)
 
 
 	HRESULT hr;
-	if (FAILED(hr = softObjPtr->pD3D10Device->CreateTexture2D(&desc, 0, &softObjPtr->texture)))
+	if (FAILED(hr = SoftwareRasterizer.pD3D10Device->CreateTexture2D(&desc, 0, &SoftwareRasterizer.texture)))
 	{
 		return;
 	}
@@ -396,13 +389,13 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr)
 	samplerDesc.AddressU = D3D10_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D10_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.Filter = D3D10_FILTER_MIN_MAG_MIP_LINEAR;
-	softObjPtr->pD3D10Device->CreateSamplerState(&samplerDesc, &softObjPtr->pD3D10TextureSampler);
-	softObjPtr->pD3D10Device->PSSetSamplers(0, 1, &softObjPtr->pD3D10TextureSampler);
+	SoftwareRasterizer.pD3D10Device->CreateSamplerState(&samplerDesc, &SoftwareRasterizer.pD3D10TextureSampler);
+	SoftwareRasterizer.pD3D10Device->PSSetSamplers(0, 1, &SoftwareRasterizer.pD3D10TextureSampler);
 	*/
 
-	softObjPtr->pD3D10Device->CreateShaderResourceView(softObjPtr->texture, NULL, &softObjPtr->textureSRV);
-	softObjPtr->textureSV = softObjPtr->pD3D10Effect->GetVariableByName("tex2D")->AsShaderResource();
-	softObjPtr->textureSV->SetResource(softObjPtr->textureSRV);
+	SoftwareRasterizer.pD3D10Device->CreateShaderResourceView(SoftwareRasterizer.texture, NULL, &SoftwareRasterizer.textureSRV);
+	SoftwareRasterizer.textureSV = SoftwareRasterizer.pD3D10Effect->GetVariableByName("tex2D")->AsShaderResource();
+	SoftwareRasterizer.textureSV->SetResource(SoftwareRasterizer.textureSRV);
 
 
 	//set up alpha blending for transparent textures ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
@@ -420,8 +413,8 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr)
 	BlendState.BlendOpAlpha = D3D10_BLEND_OP_ADD;
 	BlendState.RenderTargetWriteMask[0] = D3D10_COLOR_WRITE_ENABLE_ALL;
 
-	softObjPtr->pD3D10Device->CreateBlendState(&BlendState, &pBlendState);
-	softObjPtr->pD3D10Device->OMSetBlendState(pBlendState, 0, 0xffffffff);
+	SoftwareRasterizer.pD3D10Device->CreateBlendState(&BlendState, &pBlendState);
+	SoftwareRasterizer.pD3D10Device->OMSetBlendState(pBlendState, 0, 0xffffffff);
 
 
 	//Local pipeline intializations
@@ -433,32 +426,31 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr)
 
 	//default clip region set to whole window
 	clipRectangle.setPos(0, 0);
-	clipRectangle.setWidth(softObjPtr->clientRect.right);
-	clipRectangle.setHeight(softObjPtr->clientRect.bottom);
+	clipRectangle.setWidth(SoftwareRasterizer.clientRect.right);
+	clipRectangle.setHeight(SoftwareRasterizer.clientRect.bottom);
 
 
-	softObjPtr->drawOffsetX = softObjPtr->drawOffsetY = 0.0f;
+	SoftwareRasterizer.drawOffsetX = SoftwareRasterizer.drawOffsetY = 0.0f;
 
-	SoftwareRasterizerSelfPointer = softObjPtr;
 
 
 
 }
-void ShutdownSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr)
+void ShutdownSoftwareRasterizer()
 {
-	if (softObjPtr->pD3D10Effect) softObjPtr->pD3D10Effect->Release();
-	if (softObjPtr->pD3D10IndexBuffer) softObjPtr->pD3D10IndexBuffer->Release();
-	if (softObjPtr->pD3D10VertexBuffer) softObjPtr->pD3D10VertexBuffer->Release();
-	if (softObjPtr->pD3D10RenderTargetView) softObjPtr->pD3D10RenderTargetView->Release();
-	if (softObjPtr->pD3D10SwapChain) softObjPtr->pD3D10SwapChain->Release();
-	if (softObjPtr->pD3D10Device) softObjPtr->pD3D10Device->Release();
+	if (SoftwareRasterizer.pD3D10Effect) SoftwareRasterizer.pD3D10Effect->Release();
+	if (SoftwareRasterizer.pD3D10IndexBuffer) SoftwareRasterizer.pD3D10IndexBuffer->Release();
+	if (SoftwareRasterizer.pD3D10VertexBuffer) SoftwareRasterizer.pD3D10VertexBuffer->Release();
+	if (SoftwareRasterizer.pD3D10RenderTargetView) SoftwareRasterizer.pD3D10RenderTargetView->Release();
+	if (SoftwareRasterizer.pD3D10SwapChain) SoftwareRasterizer.pD3D10SwapChain->Release();
+	if (SoftwareRasterizer.pD3D10Device) SoftwareRasterizer.pD3D10Device->Release();
 
-	softObjPtr->pD3D10Effect = NULL;
-	softObjPtr->pD3D10IndexBuffer = NULL;
-	softObjPtr->pD3D10VertexBuffer = NULL;
-	softObjPtr->pD3D10RenderTargetView = NULL;
-	softObjPtr->pD3D10SwapChain = NULL;
-	softObjPtr->pD3D10Device = NULL;
+	SoftwareRasterizer.pD3D10Effect = NULL;
+	SoftwareRasterizer.pD3D10IndexBuffer = NULL;
+	SoftwareRasterizer.pD3D10VertexBuffer = NULL;
+	SoftwareRasterizer.pD3D10RenderTargetView = NULL;
+	SoftwareRasterizer.pD3D10SwapChain = NULL;
+	SoftwareRasterizer.pD3D10Device = NULL;
 }
 
 
@@ -491,7 +483,7 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr)
 		}
 
 		//check if there is Direct3D 12 support, then create
-		if (SUCCEEDED(D3D12CreateDevice(hardwareAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&softObjPtr->pD3D12Device))))
+		if (SUCCEEDED(D3D12CreateDevice(hardwareAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&SoftwareRasterizer.pD3D12Device))))
 		{
 			break;
 		}
@@ -503,48 +495,48 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr)
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-	softObjPtr->pD3D12Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&softObjPtr->pD3D12CommandQueue));
+	SoftwareRasterizer.pD3D12Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&SoftwareRasterizer.pD3D12CommandQueue));
 
 	//describe and create the swap chain
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
 	swapChainDesc.BufferCount = 2;
-	swapChainDesc.BufferDesc.Width = softObjPtr->clientRect.right - softObjPtr->clientRect.left;
-	swapChainDesc.BufferDesc.Height = softObjPtr->clientRect.bottom - softObjPtr->clientRect.top;
+	swapChainDesc.BufferDesc.Width = SoftwareRasterizer.clientRect.right - SoftwareRasterizer.clientRect.left;
+	swapChainDesc.BufferDesc.Height = SoftwareRasterizer.clientRect.bottom - SoftwareRasterizer.clientRect.top;
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	swapChainDesc.OutputWindow = softObjPtr->mainWindow;
+	swapChainDesc.OutputWindow = SoftwareRasterizer.mainWindow;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.Windowed = TRUE;
 
 
 	ComPtr<IDXGISwapChain> swapChain;
-	factory->CreateSwapChain(softObjPtr->pD3D12CommandQueue.Get(), &swapChainDesc, &swapChain);
-	factory->MakeWindowAssociation(softObjPtr->mainWindow, DXGI_MWA_NO_ALT_ENTER);
-	swapChain.As(&softObjPtr->pD3D12SwapChain);
-	softObjPtr->frameIndex = softObjPtr->pD3D12SwapChain->GetCurrentBackBufferIndex();
+	factory->CreateSwapChain(SoftwareRasterizer.pD3D12CommandQueue.Get(), &swapChainDesc, &swapChain);
+	factory->MakeWindowAssociation(SoftwareRasterizer.mainWindow, DXGI_MWA_NO_ALT_ENTER);
+	swapChain.As(&SoftwareRasterizer.pD3D12SwapChain);
+	SoftwareRasterizer.frameIndex = SoftwareRasterizer.pD3D12SwapChain->GetCurrentBackBufferIndex();
 
 	//create descriptor heaps
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
 	rtvHeapDesc.NumDescriptors = 2;
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	softObjPtr->pD3D12Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&softObjPtr->pD3D12RTVHeap));
+	SoftwareRasterizer.pD3D12Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&SoftwareRasterizer.pD3D12RTVHeap));
 
-	softObjPtr->rtvDescriptorSize = softObjPtr->pD3D12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	SoftwareRasterizer.rtvDescriptorSize = SoftwareRasterizer.pD3D12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 
 	//create frame resources
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = softObjPtr->pD3D12RTVHeap->GetCPUDescriptorHandleForHeapStart();
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = SoftwareRasterizer.pD3D12RTVHeap->GetCPUDescriptorHandleForHeapStart();
 	//create a rtv for each frame
 	for (UINT n = 0; n < 2; n++)
 	{
-		softObjPtr->pD3D12SwapChain->GetBuffer(n, IID_PPV_ARGS(&softObjPtr->pD3D12RenderTargets[n]));
-		softObjPtr->pD3D12Device->CreateRenderTargetView(softObjPtr->pD3D12RenderTargets[n].Get(), nullptr, rtvHandle);
-		rtvHandle.ptr += softObjPtr->rtvDescriptorSize;
+		SoftwareRasterizer.pD3D12SwapChain->GetBuffer(n, IID_PPV_ARGS(&SoftwareRasterizer.pD3D12RenderTargets[n]));
+		SoftwareRasterizer.pD3D12Device->CreateRenderTargetView(SoftwareRasterizer.pD3D12RenderTargets[n].Get(), nullptr, rtvHandle);
+		rtvHandle.ptr += SoftwareRasterizer.rtvDescriptorSize;
 	}
 
-	softObjPtr->pD3D12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&softObjPtr->pD3D12CommandAllocator));
+	SoftwareRasterizer.pD3D12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&SoftwareRasterizer.pD3D12CommandAllocator));
 
 	//create empty root signature
 	D3D12_ROOT_SIGNATURE_DESC rootSigDesc;
@@ -557,7 +549,7 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr)
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
 	D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-	softObjPtr->pD3D12Device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&softObjPtr->pD3D12RootSignature));
+	SoftwareRasterizer.pD3D12Device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&SoftwareRasterizer.pD3D12RootSignature));
 
 	//Create a pipiline stage which includes loading and compiling shaders
 	ComPtr<ID3DBlob> vertexShader;
@@ -611,7 +603,7 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr)
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-	psoDesc.pRootSignature = softObjPtr->pD3D12RootSignature.Get();
+	psoDesc.pRootSignature = SoftwareRasterizer.pD3D12RootSignature.Get();
 	psoDesc.VS = { reinterpret_cast<UINT8*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
 	psoDesc.PS = { reinterpret_cast<UINT8*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
 	psoDesc.RasterizerState = rasterDesc;
@@ -623,13 +615,13 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr)
 	psoDesc.NumRenderTargets = 1;
 	psoDesc.SampleDesc.Count = 1;
 
-	softObjPtr->pD3D12Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&softObjPtr->pD3D12PipelineState));
+	SoftwareRasterizer.pD3D12Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&SoftwareRasterizer.pD3D12PipelineState));
 
 
 
 	//create the command list
-	softObjPtr->pD3D12Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, softObjPtr->pD3D12CommandAllocator.Get(), softObjPtr->pD3D12PipelineState.Get(), IID_PPV_ARGS(&softObjPtr->pD3D12CommandList));
-	softObjPtr->pD3D12CommandList->Close();
+	SoftwareRasterizer.pD3D12Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, SoftwareRasterizer.pD3D12CommandAllocator.Get(), SoftwareRasterizer.pD3D12PipelineState.Get(), IID_PPV_ARGS(&SoftwareRasterizer.pD3D12CommandList));
+	SoftwareRasterizer.pD3D12CommandList->Close();
 
 	//create the vertex buffer
 	float aspectRatio = 1.9f;
@@ -665,32 +657,32 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr)
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	softObjPtr->pD3D12Device->CreateCommittedResource(
+	SoftwareRasterizer.pD3D12Device->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&resourceDesc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(&softObjPtr->pD3D12VertexBuffer));
+		IID_PPV_ARGS(&SoftwareRasterizer.pD3D12VertexBuffer));
 
 	//load the vb
 	unsigned char* pVertexDataBegin;
-	softObjPtr->pD3D12VertexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&pVertexDataBegin));
+	SoftwareRasterizer.pD3D12VertexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&pVertexDataBegin));
 	memcpy(pVertexDataBegin, triVertices, vertexBufferSize);
-	softObjPtr->pD3D12VertexBuffer->Unmap(0, nullptr);
+	SoftwareRasterizer.pD3D12VertexBuffer->Unmap(0, nullptr);
 
 	//initial vb view
-	softObjPtr->d3d12VertexBufferView.BufferLocation = softObjPtr->pD3D12VertexBuffer->GetGPUVirtualAddress();
-	softObjPtr->d3d12VertexBufferView.StrideInBytes = sizeof(DX12VERTEX);
-	softObjPtr->d3d12VertexBufferView.SizeInBytes = vertexBufferSize;
+	SoftwareRasterizer.d3d12VertexBufferView.BufferLocation = SoftwareRasterizer.pD3D12VertexBuffer->GetGPUVirtualAddress();
+	SoftwareRasterizer.d3d12VertexBufferView.StrideInBytes = sizeof(DX12VERTEX);
+	SoftwareRasterizer.d3d12VertexBufferView.SizeInBytes = vertexBufferSize;
 
 	//create synchronization objects and wait until assets have been uploaded to the GPU
-	softObjPtr->pD3D12Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&softObjPtr->pD3D12Fence));
-	softObjPtr->fenceValue = 1;
+	SoftwareRasterizer.pD3D12Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&SoftwareRasterizer.pD3D12Fence));
+	SoftwareRasterizer.fenceValue = 1;
 
 	//Create an event handle to use for frame synchronization
-	softObjPtr->hFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-	if (softObjPtr->hFenceEvent == nullptr)
+	SoftwareRasterizer.hFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+	if (SoftwareRasterizer.hFenceEvent == nullptr)
 	{
 		//fail
 		return;
@@ -702,18 +694,18 @@ void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr)
 	// WAITING FOR THE FRAME TO COMPLETE BEFORE CONTINUING IS NOT BEST PRACTICE.
 	// This is code implemented as such for simplicity.
 
-	const UINT64 fence = softObjPtr->fenceValue;
-	softObjPtr->pD3D12CommandQueue->Signal(softObjPtr->pD3D12Fence.Get(), fence);
-	softObjPtr->fenceValue++;
+	const UINT64 fence = SoftwareRasterizer.fenceValue;
+	SoftwareRasterizer.pD3D12CommandQueue->Signal(SoftwareRasterizer.pD3D12Fence.Get(), fence);
+	SoftwareRasterizer.fenceValue++;
 
 	//Wait until the previous frame is finished
-	if (softObjPtr->pD3D12Fence->GetCompletedValue() < fence)
+	if (SoftwareRasterizer.pD3D12Fence->GetCompletedValue() < fence)
 	{
-		softObjPtr->pD3D12Fence->SetEventOnCompletion(fence, softObjPtr->hFenceEvent);
-		WaitForSingleObject(softObjPtr->hFenceEvent, INFINITE);
+		SoftwareRasterizer.pD3D12Fence->SetEventOnCompletion(fence, SoftwareRasterizer.hFenceEvent);
+		WaitForSingleObject(SoftwareRasterizer.hFenceEvent, INFINITE);
 	}
 
-	softObjPtr->frameIndex = softObjPtr->pD3D12SwapChain->GetCurrentBackBufferIndex();
+	SoftwareRasterizer.frameIndex = SoftwareRasterizer.pD3D12SwapChain->GetCurrentBackBufferIndex();
 	*/
 
 }
@@ -725,8 +717,8 @@ void ShutdownSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr)
 
 void IncrementDrawOffset(float x, float y)
 {
-	SoftwareRasterizerSelfPointer->drawOffsetX += x;
-	SoftwareRasterizerSelfPointer->drawOffsetY += y;
+	SoftwareRasterizer.drawOffsetX += x;
+	SoftwareRasterizer.drawOffsetY += y;
 }
 
 
@@ -946,8 +938,8 @@ void DrawLine(DWORD* buffer, int lpitch32, int x0, int y0, int x1, int y1, DWORD
 
 void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BITMAP_FILE* source, int destPosX, int destPosY, RECT* sourceRegion)
 {
-//	destPosX += int(SoftwareRasterizerSelfPointer->drawOffsetX + 0.5f);
-//	destPosY += int(SoftwareRasterizerSelfPointer->drawOffsetY + 0.5f);
+//	destPosX += int(SoftwareRasterizer.drawOffsetX + 0.5f);
+//	destPosY += int(SoftwareRasterizer.drawOffsetY + 0.5f);
 
 	int image_width = source->infoHeader.biWidth;
 	int image_height = source->infoHeader.biHeight;
@@ -969,9 +961,9 @@ void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BITMAP_FILE* source, 
 		return;
 	if (destPosY + image_height < 0)
 		return;
-	if (destPosX > SoftwareRasterizerSelfPointer->clientRect.right)
+	if (destPosX > SoftwareRasterizer.clientRect.right)
 		return;
-	if (destPosY >  SoftwareRasterizerSelfPointer->clientRect.bottom)
+	if (destPosY >  SoftwareRasterizer.clientRect.bottom)
 		return;
 
 
@@ -985,10 +977,10 @@ void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BITMAP_FILE* source, 
 		x1 = 0;
 	if (y1 < 0)
 		y1 = 0;
-	if (x2 >= SoftwareRasterizerSelfPointer->clientRect.right)
-		x2 = SoftwareRasterizerSelfPointer->clientRect.right - 1;
-	if (y2 >= SoftwareRasterizerSelfPointer->clientRect.bottom)
-		y2 = SoftwareRasterizerSelfPointer->clientRect.bottom - 1;
+	if (x2 >= SoftwareRasterizer.clientRect.right)
+		x2 = SoftwareRasterizer.clientRect.right - 1;
+	if (y2 >= SoftwareRasterizer.clientRect.bottom)
+		y2 = SoftwareRasterizer.clientRect.bottom - 1;
 
 	//compute offset into region if clipped by window
 	int reg_offsetX = x1 - destPosX;

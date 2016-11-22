@@ -95,6 +95,23 @@ AnimatedBitmap::AnimatedBitmap(const AnimatedBitmap& rhv)
 
 }
 
+AnimatedBitmap::AnimatedBitmap(string filename, float scaleFactor)
+{
+	BITMAP_FILE tBmp;
+	BITMAP_FILE newBmp;
+	if (!LoadBitmapFromDisk(filename, &tBmp))
+		return;
+
+	ResizeBitmap(&newBmp, &tBmp, scaleFactor, scaleFactor);
+
+	FlipBitmap(&newBmp);
+	frames.push_back(newBmp);
+
+	//delete the original bitmap
+	delete tBmp.data;
+}
+
+
 
 AnimatedBitmap AnimatedBitmap::operator=(const AnimatedBitmap& rhv)
 {

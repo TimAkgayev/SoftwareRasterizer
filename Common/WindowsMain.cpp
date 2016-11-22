@@ -1,16 +1,19 @@
 #include "GameEngine.h"
+#include "DebugView.h"
+#include "ProgramEngineInterface.h"
 
+WINDOWS_SETTINGS Windows_Settings;
 
-void CreateEngineWindow(WINDOWS_SETTINGS& settings)
+void CreateEngineWindow()
 {
 	HWND hwnd;
 	POINT windowFrameDim = { 16, 39 };
 
-	wchar_t * windowTitle = settings.windowTitle;
+	
 
 	if (!(hwnd = CreateWindowEx(NULL,
 		TEXT(WINDOW_CLASS_NAME),     // class
-		windowTitle, // title
+		Windows_Settings.windowTitle, // title
 		WS_VISIBLE | WS_SYSMENU | WS_THICKFRAME | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,		//style
 		0, 0,	  // initial x,y
 		Windows_Settings.clientDimX + Windows_Settings.clientOffset.x + windowFrameDim.x, Windows_Settings.clientDimY + Windows_Settings.clientOffset.y + windowFrameDim.y,  // initial width, height
@@ -38,7 +41,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpCmdLine
 	SetThreadAffinityMask(GetCurrentThread(), mask);
 	
 	//allow the program to set it's window settings
-	UpdateSettings();
+	Windows_Settings = UpdateSettings();
 
 	WNDCLASSEX winclass;
 	HWND	   hwnd;
@@ -67,7 +70,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpCmdLine
 //entry point when resetting
 resetEntry:
 	
-	CreateEngineWindow(Windows_Settings);
+	CreateEngineWindow();
 
 	Initialization();
 

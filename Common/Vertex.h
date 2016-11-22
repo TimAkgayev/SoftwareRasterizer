@@ -1,8 +1,7 @@
 #pragma once
 #include <Windows.h>
 #include <d3d10.h>
-#include "MathStructures.h"
-#include "MathSoftware.h"
+#include "Math56.h"
 #include <DirectXMath.h>
 
 using namespace DirectX;

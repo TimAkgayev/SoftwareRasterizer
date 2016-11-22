@@ -140,10 +140,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DebugView.cpp" />
     <ClCompile Include="GameEngine.cpp" />
-    <ClCompile Include="Grid.cpp" />
-    <ClCompile Include="HardwareSurface.cpp" />
-    <ClCompile Include="MathSoftware.cpp" />
-    <ClCompile Include="MathStructures.cpp" />
+    <ClCompile Include="Math56.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Shapes.cpp" />
     <ClCompile Include="SoftwareRasterizer.cpp" />
@@ -157,11 +154,8 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DebugView.h" />
     <ClInclude Include="GameEngine.h" />
-    <ClInclude Include="Grid.h" />
-    <ClInclude Include="HardwareSurface.h" />
     <ClInclude Include="MacrosAndDefines.h" />
-    <ClInclude Include="MathSoftware.h" />
-    <ClInclude Include="MathStructures.h" />
+    <ClInclude Include="Math56.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="ProgramEngineInterface.h" />
     <ClInclude Include="ResourceManager.h" />

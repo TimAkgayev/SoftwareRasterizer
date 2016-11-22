@@ -34,3 +34,5 @@ public:
 private:
 	std::vector<ControlView> controlList;
 };
+
+void AttachDebugger(DebugView*);

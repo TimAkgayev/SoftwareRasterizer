@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include "ResourceManager.h"
-#include "MathStructures.h"
+#include "Math56.h"
 
 
 using namespace std;

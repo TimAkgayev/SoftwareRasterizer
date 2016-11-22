@@ -6,13 +6,7 @@
 #include "AnimatedBitmap.h"
 #include "Camera.h"
 #include "Timer.h"
-#include "HardwareSurface.h"
-#include "Grid.h"
-#include "DebugView.h"
-#include "ProgramEngineInterface.h"
-
-
-extern SOFTWARERASTERIZER_DX10_OBJECTS SoftwareRasterizer;
+#include "Math56.h"
 
 
 int Initialization();
@@ -66,8 +60,30 @@ public:
 
 
 
+class Grid
+{
+public:
+	Grid();
+	~Grid();
+
+	void Draw(DWORD* mem, int lpitch32);
+
+	void SetCenterCoordinate(float x, float y);
+	void SetSpacing(int spacing);
+	void SetLineThickness(int thickness);
+
+	int GetSpacing() const;
+private:
+
+	VECTOR2D CenterCoordinate;
+	int grid_spacing;
+	int line_thickness;
+	void DrawHorizontal(DWORD* mem, int lpitch32, int startX, int startY, int endX, int endY, float pxSpacing, DWORD colorStart = COLOR_RED, DWORD colorEnd = COLOR_RED, int indentAxis = -1, DWORD c1 = COLOR_YELLOW, DWORD c2 = COLOR_YELLOW);
+	void DrawVertical(DWORD* mem, int lpitch32, int startX, int startY, int endX, int endY, float pxSpacing, DWORD colorStart = COLOR_RED, DWORD colorEnd = COLOR_RED, int indentAxis = -1, DWORD c1 = COLOR_YELLOW, DWORD c2 = COLOR_YELLOW);
+};
+
+
+
 //unused for now
-extern SOFTWARERASTERIZER_DX7_OBJECTS softrest7_obj;
-extern SOFTWARERASTERIZER_DX12_OBJECTS softrest12_obj;
 int Game_Main_DX7();
 int Game_Main_DX12();

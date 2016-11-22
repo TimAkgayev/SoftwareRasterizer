@@ -164,8 +164,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Common\WindowsMain.cpp" />
     <ClCompile Include="Era.cpp" />
+    <ClCompile Include="WindowsMain.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

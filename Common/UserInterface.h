@@ -3,7 +3,7 @@
 #include "SoftwareRasterizer.h"
 #include "stdinclude.h"
 #include "MacrosAndDefines.h"
-#include "MathStructures.h"
+#include "Math56.h"
 #include "AnimatedBitmap.h"
 
 #define UI_CHAR_WIDTH_PIXELS 8
@@ -114,7 +114,7 @@ public:
 	
 
 	void SetOnLClickCallback(void(*cb)());
-	void SetImage(AnimatedBitmap* img);
+	void LoadImage(string filename);
 
 
 private:
@@ -125,7 +125,7 @@ private:
 	int mFrameSize;
 	int screen_w, screen_h;
 	string mText;
-	AnimatedBitmap* mImage;
+	AnimatedBitmap mImage;
 
 
 };
@@ -174,7 +174,7 @@ class UIRegion : public UIElement
 {
 public:
 	UIRegion();
-	UIRegion(int xpos, int ypos, int width, int height);
+	UIRegion(int xpos, int ypos, int width, int height, DWORD color);
 	~UIRegion();
 
 	void Draw(DWORD* mem, int lpitch32, float timeDelta) override;
@@ -477,7 +477,7 @@ public:
 	UICheckBox* createCheckBox(int xPos, int yPos, bool isChecked);
 	UIRadioGroup* createRadioGroup(int xPos, int yPos, int numButtons);
 	UIDropContainer* createDropContainer(int xPos, int yPos);
-	UIRegion* createRegion(int xPos, int yPos, int width, int height);
+	UIRegion* createRegion(int xPos, int yPos, int width, int height, DWORD color = COLOR_BLUE);
 	UIDropdownMenu* createDropdownMenu(int xPos, int yPos, string title);
 	UIWindow* createWindow(int xPos, int yPos, int width, int height, string Title, DWORD color = COLOR_BLUE); 
 	UIText* createText(int xPos, int yPos, int width, int height, string text, DWORD bColor = COLOR_BLACK, DWORD fColor = COLOR_RED);

@@ -1,19 +1,16 @@
 ﻿#include "HardwareSurface.h"
-using namespace DirectX;
-using std::vector;
 
 int HardwareSurface::instanceCount = 0;
 ID3D10Buffer* HardwareSurface::pD3D10IndexBuffer = NULL;
 ID3D10Buffer* HardwareSurface::pD3D10VertexBuffer = NULL;
-SOFTWARERASTERIZER_DX10_OBJECTS* localRasterizer;
 HardwareSurface::HardwareSurface(int inWidth, int inHeight, int numFrames)
 {
-	localRasterizer = GetSoftwareRasterizer();
+
 
 	//initialize the buffers on first run
 	if (instanceCount == 0)
 	{
-		float aspectRatio = float(localRasterizer->clientRect.right) / float(localRasterizer->clientRect.top);
+		float aspectRatio = float(SoftwareRasterizer.clientRect.right) / float(SoftwareRasterizer.clientRect.top);
 		float planeXOrig = -0.5f, planeYOrig = -0.5f;
 		float planeWidth = 1.0f;
 		float planeHeight = 1.0f;
@@ -27,7 +24,7 @@ HardwareSurface::HardwareSurface(int inWidth, int inHeight, int numFrames)
 		vbDesc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
 		vbDesc.MiscFlags = 0;
 
-		if (FAILED(localRasterizer->pD3D10Device->CreateBuffer(&vbDesc, NULL, &pD3D10VertexBuffer))) return;
+		if (FAILED(SoftwareRasterizer.pD3D10Device->CreateBuffer(&vbDesc, NULL, &pD3D10VertexBuffer))) return;
 
 
 		//create the INDEX BUFFER   ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
@@ -39,7 +36,7 @@ HardwareSurface::HardwareSurface(int inWidth, int inHeight, int numFrames)
 		ibDesc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
 		ibDesc.MiscFlags = 0;
 
-		if (FAILED(localRasterizer->pD3D10Device->CreateBuffer(&ibDesc, NULL, &pD3D10IndexBuffer))) return;
+		if (FAILED(SoftwareRasterizer.pD3D10Device->CreateBuffer(&ibDesc, NULL, &pD3D10IndexBuffer))) return;
 
 
 		//initialize the VERTEX BUFFER ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
@@ -70,19 +67,19 @@ HardwareSurface::HardwareSurface(int inWidth, int inHeight, int numFrames)
 		pD3D10IndexBuffer->Unmap();
 
 		//set up directly to clip projection 
-		XMMATRIX m = XMMatrixSet(2.0f / localRasterizer->clientRect.right, 0.0f, -1.0f, 0.0f,
-			0.0f, 2.0f / localRasterizer->clientRect.top, -1.0f, 0.0f,
+		XMMATRIX m = XMMatrixSet(2.0f / SoftwareRasterizer.clientRect.right, 0.0f, -1.0f, 0.0f,
+			0.0f, 2.0f / SoftwareRasterizer.clientRect.top, -1.0f, 0.0f,
 			0.0f, 0.0f, 1.0f, 0.0f,
 			0.0f, 0.0f, 0.0f, 1.0f);
 
-		//m._11 = 2.0f / localRasterizerObject->clientRect.right;
+		//m._11 = 2.0f / SoftwareRasterizerObject->clientRect.right;
 		//	m._13 = -1;
-		//m._22 = 2.0f / localRasterizerObject->clientRect.bottom;
+		//m._22 = 2.0f / SoftwareRasterizerObject->clientRect.bottom;
 		//m._23 = -1;
 
 		XMFLOAT4X4 mf;
 		XMStoreFloat4x4(&mf, m);
-		localRasterizer->pProjectionMatrixEffectVariable->SetMatrix((float*)mf.m);
+		SoftwareRasterizer.pProjectionMatrixEffectVariable->SetMatrix((float*)mf.m);
 
 	}
 
@@ -100,13 +97,13 @@ HardwareSurface::HardwareSurface(int inWidth, int inHeight, int numFrames)
 	desc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
 
 	if (numFrames == 1)
-		localRasterizer->pD3D10Device->CreateTexture2D(&desc, 0, &texture);
+		SoftwareRasterizer.pD3D10Device->CreateTexture2D(&desc, 0, &texture);
 	else
 	{
 		for (int i = 0; i < numFrames; i++)
 		{
 			ID3D10Texture2D* tex;
-			localRasterizer->pD3D10Device->CreateTexture2D(&desc, 0, &tex);
+			SoftwareRasterizer.pD3D10Device->CreateTexture2D(&desc, 0, &tex);
 			textureFlipBook.push_back(tex);
 		}
 
@@ -114,8 +111,8 @@ HardwareSurface::HardwareSurface(int inWidth, int inHeight, int numFrames)
 	}
 
 	//create intreface to shader kept texture
-	localRasterizer->pD3D10Device->CreateShaderResourceView(texture, NULL, &textureSRV);
-	textureSV = localRasterizer->pD3D10Effect->GetVariableByName("spriteTex")->AsShaderResource();
+	SoftwareRasterizer.pD3D10Device->CreateShaderResourceView(texture, NULL, &textureSRV);
+	textureSV = SoftwareRasterizer.pD3D10Effect->GetVariableByName("spriteTex")->AsShaderResource();
 	textureSV->SetResource(textureSRV);
 	currentFrame = 0;
 
@@ -154,30 +151,30 @@ void HardwareSurface::Draw()
 	ID3D10Buffer* lastVB, *lastIB;
 	DXGI_FORMAT ibFormat;
 	//save old buffers
-	localRasterizer->pD3D10Device->IAGetVertexBuffers(0, 1, &lastVB, &stride, &offset);
-	localRasterizer->pD3D10Device->IAGetIndexBuffer(&lastIB, &ibFormat, &offset);
+	SoftwareRasterizer.pD3D10Device->IAGetVertexBuffers(0, 1, &lastVB, &stride, &offset);
+	SoftwareRasterizer.pD3D10Device->IAGetIndexBuffer(&lastIB, &ibFormat, &offset);
 
 	//set new ones
-	localRasterizer->pD3D10Device->IASetVertexBuffers(0, 1, &pD3D10VertexBuffer, &stride, &offset);
-	localRasterizer->pD3D10Device->IASetIndexBuffer(pD3D10IndexBuffer, DXGI_FORMAT_R32_UINT, offset);
+	SoftwareRasterizer.pD3D10Device->IASetVertexBuffers(0, 1, &pD3D10VertexBuffer, &stride, &offset);
+	SoftwareRasterizer.pD3D10Device->IASetIndexBuffer(pD3D10IndexBuffer, DXGI_FORMAT_R32_UINT, offset);
 
 
 	//set transform
-	localRasterizer->pWorldMatrixEffectVariable->SetMatrix((float*)&worldTransform);
+	SoftwareRasterizer.pWorldMatrixEffectVariable->SetMatrix((float*)&worldTransform);
 
 	D3D10_TECHNIQUE_DESC techDesc;
-	localRasterizer->pD3D10EffectTechnique->GetDesc(&techDesc);
+	SoftwareRasterizer.pD3D10EffectTechnique->GetDesc(&techDesc);
 
 	//apply a pass, only the one correstponding to sprites
-	localRasterizer->pD3D10EffectTechnique->GetPassByIndex(1)->Apply(0);
+	SoftwareRasterizer.pD3D10EffectTechnique->GetPassByIndex(1)->Apply(0);
 
 	//draw
-	localRasterizer->pD3D10Device->DrawIndexed(6, 0, 0);
+	SoftwareRasterizer.pD3D10Device->DrawIndexed(6, 0, 0);
 
 
 	//replace old buffers
-	localRasterizer->pD3D10Device->IASetVertexBuffers(0, 1, &lastVB, &stride, &offset);
-	localRasterizer->pD3D10Device->IASetIndexBuffer(lastIB, ibFormat, offset);
+	SoftwareRasterizer.pD3D10Device->IASetVertexBuffers(0, 1, &lastVB, &stride, &offset);
+	SoftwareRasterizer.pD3D10Device->IASetIndexBuffer(lastIB, ibFormat, offset);
 
 
 }

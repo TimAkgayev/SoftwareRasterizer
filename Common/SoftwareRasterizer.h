@@ -13,14 +13,12 @@
 #include <wrl.h>
 #include <DirectXMath.h>
 
-#include "ResourceManager.h"
-#include "MathStructures.h"
+#include "Math56.h"
 #include "Vertex.h"
 #include "Mesh.h"
 #include "MacrosAndDefines.h"
-#include "MathSoftware.h"
 #include "Bitmap.h"
-#include "Camera.h"
+
 
 
 using namespace DirectX;
@@ -29,19 +27,7 @@ using namespace Microsoft::WRL;
 enum DRAW_OPTIONS { DO_POINTLIST = 0, DO_LINELIST, DO_FLAT, DO_GOURAUD, DO_TEXTURED };
 
 
-typedef struct SOFTWARERASTERIZER_DX7_OBJECTS_TYP
-{
-	LPDIRECTDRAW7         lpDDraw7Interface;   // main DirectDraw interface
-	LPDIRECTDRAWSURFACE7  lpDDSurfPrimary;     // primary drawing surface
-	LPDIRECTDRAWSURFACE7  lpDDSurfBack;		   // secondary surface, acts as a back buffer
-	DDSURFACEDESC2        ddSurfDesc;          // surface description struct, use one for all calls
-	DDPIXELFORMAT		  ddPixelFormat;	   // pixel format of the primary surface
-	HWND				  mainWindow;         
-	HINSTANCE			  hInstance; 
-
-} SOFTWARERASTERIZER_DX7_OBJECTS;    
-
-typedef struct SOFTWARERASTERIZER_DX10_OBJECTS_TYP
+struct SOFTWARERASTERIZER_DX10_OBJECTS
 {
 	ID3D10Device*				pD3D10Device;
 	IDXGISwapChain*				pD3D10SwapChain;
@@ -74,63 +60,8 @@ typedef struct SOFTWARERASTERIZER_DX10_OBJECTS_TYP
 	HINSTANCE	hInstance;
 	RECT		clientRect;
 	float		drawOffsetX, drawOffsetY;
-}SOFTWARERASTERIZER_DX10_OBJECTS;
-
-typedef struct SOFTWARERASTERIZER_DX12_OBJECTS_TYP
-{
-	/*
-	//pipeline
-	ComPtr<ID3D12Device>		pD3D12Device;
-	ComPtr<IDXGISwapChain3>		pD3D12SwapChain;
-	ComPtr<ID3D12Resource>      pD3D12RenderTargets[2];
-	ComPtr<ID3D12CommandAllocator> pD3D12CommandAllocator;
-	ComPtr<ID3D12CommandQueue> pD3D12CommandQueue;
-	ComPtr<ID3D12RootSignature> pD3D12RootSignature;
-	ComPtr<ID3D12DescriptorHeap> pD3D12RTVHeap;
-	ComPtr<ID3D12PipelineState> pD3D12PipelineState;
-	ComPtr<ID3D12GraphicsCommandList> pD3D12CommandList;
-	UINT rtvDescriptorSize;
-	D3D12_VIEWPORT d3d12Viewport;
-	D3D12_RECT	   d3d12ScissorRect;
-
-	//app resources
-	ComPtr<ID3D12Resource> pD3D12VertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW d3d12VertexBufferView;
-	ComPtr<ID3D12Resource> pD3D12IndexBuffer;
-	D3D12_INDEX_BUFFER_VIEW d3d12IndexBufferView;
-	
-
-	//sync
-	UINT frameIndex;
-	HANDLE hFenceEvent;
-	ComPtr<ID3D12Fence> pD3D12Fence;
-	UINT64 fenceValue;
-
-	/*
-	ID3D10EffectMatrixVariable* pViewMatrixEffectVariable;
-	ID3D10EffectMatrixVariable* pWorldMatrixEffectVariable;
-	ID3D10EffectMatrixVariable* pProjectionMatrixEffectVariable;
-
-	ID3D10ShaderResourceView*			textureSRV;
-	ID3D10EffectShaderResourceVariable* textureSV;
-	ID3D10Texture2D*					texture;
-
-	*/ 
-
-	XMFLOAT4X4	matView;
-	XMFLOAT4X4	matProjection;
-	XMFLOAT4X4  matWorld;
-
-	int			numVertices;
-	int			numIndices;
-
-	HWND		mainWindow;
-	HINSTANCE	hInstance;
-	RECT		clientRect;
-
-}SOFTWARERASTERIZER_DX12_OBJECTS;
-
-SOFTWARERASTERIZER_DX10_OBJECTS* GetSoftwareRasterizer();
+};
+extern SOFTWARERASTERIZER_DX10_OBJECTS SoftwareRasterizer;
 
 
 
@@ -151,17 +82,12 @@ RECT2D   SetClipRectangle(RECT2D);
 
 //software rast initializing functions
 ////////////////////////////////////////////////////////////////////////////////
-void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX7_OBJECTS* softObjPtr);
 
-void ShutdownSoftwareRasterizer(SOFTWARERASTERIZER_DX7_OBJECTS* softObjPtr);
 
-void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr);
+void InitializeSoftwareRasterizer();
 
-void ShutdownSoftwareRasterizer(SOFTWARERASTERIZER_DX10_OBJECTS* softObjPtr);
+void ShutdownSoftwareRasterizer();
 
-void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr);
-
-void ShutdownSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr);
 
 void IncrementDrawOffset(float x, float y);
 
@@ -216,3 +142,81 @@ void SystemHotKeys(HWND window);
  
 
  
+
+//unused
+
+typedef struct SOFTWARERASTERIZER_DX7_OBJECTS_TYP
+{
+	LPDIRECTDRAW7         lpDDraw7Interface;   // main DirectDraw interface
+	LPDIRECTDRAWSURFACE7  lpDDSurfPrimary;     // primary drawing surface
+	LPDIRECTDRAWSURFACE7  lpDDSurfBack;		   // secondary surface, acts as a back buffer
+	DDSURFACEDESC2        ddSurfDesc;          // surface description struct, use one for all calls
+	DDPIXELFORMAT		  ddPixelFormat;	   // pixel format of the primary surface
+	HWND				  mainWindow;
+	HINSTANCE			  hInstance;
+
+} SOFTWARERASTERIZER_DX7_OBJECTS;
+typedef struct SOFTWARERASTERIZER_DX12_OBJECTS_TYP
+{
+	/*
+	//pipeline
+	ComPtr<ID3D12Device>		pD3D12Device;
+	ComPtr<IDXGISwapChain3>		pD3D12SwapChain;
+	ComPtr<ID3D12Resource>      pD3D12RenderTargets[2];
+	ComPtr<ID3D12CommandAllocator> pD3D12CommandAllocator;
+	ComPtr<ID3D12CommandQueue> pD3D12CommandQueue;
+	ComPtr<ID3D12RootSignature> pD3D12RootSignature;
+	ComPtr<ID3D12DescriptorHeap> pD3D12RTVHeap;
+	ComPtr<ID3D12PipelineState> pD3D12PipelineState;
+	ComPtr<ID3D12GraphicsCommandList> pD3D12CommandList;
+	UINT rtvDescriptorSize;
+	D3D12_VIEWPORT d3d12Viewport;
+	D3D12_RECT	   d3d12ScissorRect;
+
+	//app resources
+	ComPtr<ID3D12Resource> pD3D12VertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW d3d12VertexBufferView;
+	ComPtr<ID3D12Resource> pD3D12IndexBuffer;
+	D3D12_INDEX_BUFFER_VIEW d3d12IndexBufferView;
+
+
+	//sync
+	UINT frameIndex;
+	HANDLE hFenceEvent;
+	ComPtr<ID3D12Fence> pD3D12Fence;
+	UINT64 fenceValue;
+
+	/*
+	ID3D10EffectMatrixVariable* pViewMatrixEffectVariable;
+	ID3D10EffectMatrixVariable* pWorldMatrixEffectVariable;
+	ID3D10EffectMatrixVariable* pProjectionMatrixEffectVariable;
+
+	ID3D10ShaderResourceView*			textureSRV;
+	ID3D10EffectShaderResourceVariable* textureSV;
+	ID3D10Texture2D*					texture;
+
+	*/
+
+	XMFLOAT4X4	matView;
+	XMFLOAT4X4	matProjection;
+	XMFLOAT4X4  matWorld;
+
+	int			numVertices;
+	int			numIndices;
+
+	HWND		mainWindow;
+	HINSTANCE	hInstance;
+	RECT		clientRect;
+
+}SOFTWARERASTERIZER_DX12_OBJECTS;
+extern SOFTWARERASTERIZER_DX7_OBJECTS softrest7_obj;
+extern SOFTWARERASTERIZER_DX12_OBJECTS softrest12_obj;
+
+
+void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX7_OBJECTS* softObjPtr);
+
+void ShutdownSoftwareRasterizer(SOFTWARERASTERIZER_DX7_OBJECTS* softObjPtr);
+
+void InitializeSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr);
+
+void ShutdownSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr);

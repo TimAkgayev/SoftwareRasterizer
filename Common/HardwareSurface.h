@@ -1,8 +1,5 @@
-#include <D3D10.h>
 #include <DirectXMath.h>
-#include <vector>
-#include <windows.h>
-#include "SoftwareRasterizer.h"
+#include "GameEngine.h"
 
 class HardwareSurface
 {

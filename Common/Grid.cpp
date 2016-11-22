@@ -83,8 +83,8 @@ void Grid::Draw(DWORD* mem, int lpitch32)
 {
 	int viewWidth, viewHeight;
 
-	viewWidth = GetSoftwareRasterizer()->clientRect.right;
-	viewHeight = GetSoftwareRasterizer()->clientRect.bottom;
+	viewWidth = SoftwareRasterizer.clientRect.right;
+	viewHeight = SoftwareRasterizer.clientRect.bottom;
 	
 
 	int gridStartX;
