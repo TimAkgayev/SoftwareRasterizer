@@ -113,6 +113,9 @@ void ResizeBitmap(BITMAP_FILE* out, BITMAP_FILE* original, RECT resizeRectangle)
 
 	int newXDimension = resizeRectangle.right - resizeRectangle.left;
 	int newYDimension = resizeRectangle.bottom - resizeRectangle.top;
+
+
+
 	int newDataSize = (original->infoHeader.biBitCount / 8) * newXDimension * newYDimension;
 
 	//layout of bmp
@@ -147,8 +150,8 @@ void ResizeBitmap(BITMAP_FILE* out, BITMAP_FILE* original, RECT resizeRectangle)
 	{
 		for (int column = 0; column < original->infoHeader.biWidth; column++)
 		{
-			int destinationRow = int(ratioY * row - 0.5f);
-			int destinationPixel = int(ratioX * column - 0.5f);
+			int destinationRow = int(ratioY * row);
+			int destinationPixel = int(ratioX * column);
 			newDataOffset[destinationRow* newXDimension + destinationPixel] = origDataOffset[column];
 		}
 
@@ -160,6 +163,9 @@ void ResizeBitmap(BITMAP_FILE* out, BITMAP_FILE* original, RECT resizeRectangle)
 	out->fileHeader = newFH;
 	out->infoHeader = newIH;
 	out->data = (unsigned char*) newData;
+
+	//delete the old data
+	delete original->data;
 	
 }
 void ResizeBitmap(BITMAP_FILE* out, BITMAP_FILE* original, float xscale, float yscale)

@@ -69,6 +69,10 @@ AnimatedBitmap::AnimatedBitmap()
 	startTime.QuadPart = 0;
 	endTime.QuadPart = 0;
 	QueryPerformanceFrequency(&perfFreq);
+	mID = allLoaded.size();
+
+	//save this instance
+	allLoaded.push_back(this);
 }
 
 AnimatedBitmap::AnimatedBitmap(const AnimatedBitmap& rhv)
@@ -81,6 +85,7 @@ AnimatedBitmap::AnimatedBitmap(const AnimatedBitmap& rhv)
 	startTime.QuadPart = rhv.startTime.QuadPart;
 	endTime.QuadPart = rhv.endTime.QuadPart;
 	perfFreq = rhv.perfFreq;
+	mID = allLoaded.size();
 
 	for (int i = 0; i < rhv.frames.size(); i++)
 	{
@@ -92,11 +97,15 @@ AnimatedBitmap::AnimatedBitmap(const AnimatedBitmap& rhv)
 		frames.push_back(copy);
 	}
 
-
+	//save this instance
+	allLoaded.push_back(this);
 }
 
-AnimatedBitmap::AnimatedBitmap(string filename, float scaleFactor)
+AnimatedBitmap::AnimatedBitmap(string filename, string name, float scaleFactor)
 {
+	mID = allLoaded.size();
+	mName = name;
+
 	BITMAP_FILE tBmp;
 	BITMAP_FILE newBmp;
 	if (!LoadBitmapFromDisk(filename, &tBmp))
@@ -107,8 +116,9 @@ AnimatedBitmap::AnimatedBitmap(string filename, float scaleFactor)
 	FlipBitmap(&newBmp);
 	frames.push_back(newBmp);
 
-	//delete the original bitmap
-	delete tBmp.data;
+
+	//save this instance
+	allLoaded.push_back(this);
 }
 
 
@@ -150,11 +160,32 @@ AnimatedBitmap AnimatedBitmap::operator=(const AnimatedBitmap& rhv)
 
 AnimatedBitmap::~AnimatedBitmap()
 {
+	if (allLoaded.size())
+	{
+		vector<AnimatedBitmap*>::iterator thisIter;
+		for (thisIter = allLoaded.begin(); thisIter < allLoaded.end(); thisIter++)
+		{
+			if ((*thisIter)->GetID() == this->mID)
+			{
+				thisIter = allLoaded.erase(thisIter);
+				break;
+			}
+		
+				
+		}
+	}
 	vector<BITMAP_FILE>::iterator vIter;
 	for (vIter = frames.begin(); vIter < frames.end(); vIter++)
 	{
 		Unload_Bitmap_File(&(*vIter));
 	}
+}
+
+vector<AnimatedBitmap*> AnimatedBitmap::allLoaded;
+
+int AnimatedBitmap::GetID()
+{
+	return mID;
 }
 
 void AnimatedBitmap::AddFrame(string path, float scaleFactor)
@@ -163,14 +194,17 @@ void AnimatedBitmap::AddFrame(string path, float scaleFactor)
 	BITMAP_FILE newBmp;
 	if (!LoadBitmapFromDisk(path, &tBmp))
 		return;
-	
-	ResizeBitmap(&newBmp, &tBmp, scaleFactor, scaleFactor);
 
-	FlipBitmap(&newBmp);
-	frames.push_back(newBmp);
+	if (scaleFactor != 1.0f)
+	{
+		ResizeBitmap(&newBmp, &tBmp, scaleFactor, scaleFactor);
 
-	//delete the original bitmap
-	delete tBmp.data;
+		FlipBitmap(&newBmp);
+		frames.push_back(newBmp);
+
+	}
+	else
+		frames.push_back(tBmp);
 }
 
 void AnimatedBitmap::AddFrame(BITMAP_FILE image)
@@ -193,6 +227,11 @@ void AnimatedBitmap::SetPosition(VECTOR2D& pos)
 	position = pos;
 }
 
+void AnimatedBitmap::SetName(string name)
+{
+	mName = name;
+}
+
 void AnimatedBitmap::GetFrameDimensions(POINT& wh) const
 {
 	wh.x = frames[0].infoHeader.biWidth;
@@ -211,6 +250,31 @@ BITMAP_FILE* AnimatedBitmap::GetFrame(int frame)
 {
 	if (frame < frames.size())
 		return &frames[frame];
+}
+
+string AnimatedBitmap::GetName()
+{
+	return mName;
+}
+
+int AnimatedBitmap::GetNumFrames()
+{
+	return frames.size();
+}
+
+VECTOR2D AnimatedBitmap::GetPosition() const
+{
+	return position;
+}
+
+AnimatedBitmap* AnimatedBitmap::GetLoadedInstance(string name)
+{
+	vector<AnimatedBitmap*>::iterator thisIter;
+	for (thisIter = allLoaded.begin(); thisIter < allLoaded.end(); thisIter++)
+	{
+		if ((*thisIter)->GetName().compare(name) == 0)
+			return *thisIter;
+	}
 }
 
 void AnimatedBitmap::RemoveFrame(int frame)

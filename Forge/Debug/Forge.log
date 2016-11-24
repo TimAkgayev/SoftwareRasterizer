@@ -1,1 +1,10 @@
-﻿  Forge.vcxproj -> D:\Users\Tim\Documents\Visual Studio Projects\SoftwareRasterizer\Debug\Forge.exe
+﻿  Forge.cpp
+d:\users\tim\documents\visual studio projects\softwarerasterizer\common\math56.h(214): warning C4244: '=': conversion from 'LONG' to 'float', possible loss of data
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\forge.cpp(25): warning C4018: '<': signed/unsigned mismatch
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\forge.cpp(120): warning C4018: '<': signed/unsigned mismatch
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\forge.cpp(236): warning C4101: 'texPitch': unreferenced local variable
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\forge.cpp(235): warning C4101: 'texMem': unreferenced local variable
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\forge.cpp(487): warning C4018: '<': signed/unsigned mismatch
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\forge.cpp(483): warning C4101: 'viewportTx': unreferenced local variable
+d:\users\tim\documents\visual studio projects\softwarerasterizer\forge\saveload.h(261): warning C4715: 'LoadGUIFromFile': not all control paths return a value
+  Forge.vcxproj -> D:\Users\Tim\Documents\Visual Studio Projects\SoftwareRasterizer\Debug\Forge.exe

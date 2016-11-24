@@ -48,6 +48,7 @@ void ResourceManager::MemoryAllocated(void* p, size_t size)
 
 void ResourceManager::MemoryDeleted(void* p)
 {
+	
 	if (m_allocatedPointers.size() == 0)
 		return;
 
@@ -61,7 +62,7 @@ void ResourceManager::MemoryDeleted(void* p)
 		}
 	}
 
-
+	
 }
 
 void* operator new(size_t size)

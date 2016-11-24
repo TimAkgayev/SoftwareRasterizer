@@ -165,10 +165,8 @@
     <ResourceCompile Include="Forge.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\Desktop\era\Source Images\ARROW_CURSOR.cur" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\..\..\Desktop\era\Source Images\REGION_CURSOR.png" />
+    <None Include="..\..\..\era\Source Images\ARROW_CURSOR.cur" />
+    <None Include="..\..\..\era\Source Images\REGION_CURSOR.cur" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

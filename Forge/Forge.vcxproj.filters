@@ -42,13 +42,11 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\Desktop\era\Source Images\ARROW_CURSOR.cur">
+    <None Include="..\..\..\era\Source Images\ARROW_CURSOR.cur">
       <Filter>Resource Files</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\..\..\Desktop\era\Source Images\REGION_CURSOR.png">
+    <None Include="..\..\..\era\Source Images\REGION_CURSOR.cur">
       <Filter>Resource Files</Filter>
-    </Image>
+    </None>
   </ItemGroup>
 </Project>

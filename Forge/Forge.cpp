@@ -152,16 +152,23 @@ private:
 HotBox myHotBox;
 UserInterface* MyUserInterface;
 
+enum { GUI_MODE, WORLD_MODE};
+enum { TOOL_ARROW, TOOL_REGION};
+enum { FUNCTION_NONE, FUNCTION_LANDPLOT };
+
 WINDOWS_SETTINGS LocalWindowsSettings = { 1500, 1080,{ 0, 0 }, TEXT("Forge") };
 RECT gClientRect;
 int currentTool = TOOL_ARROW;
+int currentFunction = FUNCTION_NONE;
 bool isResetRequested = false;
 UIWindow* newGUIWindow = NULL;
 RECT2D gMarginRect = { 10, 30, 400, 60 }; //invsere area of a clip rect, contains margin offsets
 RECT2D gControlPanelRect = {gMarginRect.left, LocalWindowsSettings.clientDimY - gMarginRect.bottom + 10.0f, LocalWindowsSettings.clientDimX - gMarginRect.right, LocalWindowsSettings.clientDimY -5.0f };
 RECT2D gWorldPanelRect = { LocalWindowsSettings.clientDimX - gMarginRect.right + 10.0f , gMarginRect.top, LocalWindowsSettings.clientDimX - gMarginRect.left, gControlPanelRect.bottom};
 string gRootImageDirectory = "D:\\Users\\Tim\\Documents\\Visual Studio Projects\\SoftwareRasterizer\\Forge\\Images\\";
-int world_gridspacing = 50;
+int world_gridspacing = 35;
+AnimatedBitmap* currentInsertElement;
+vector<AnimatedBitmap> LandSpriteList;
 
 int currentMode;
 int gMouseX = 0, gMouseY = 0;
@@ -185,6 +192,7 @@ void ApplicationInitialization()
 	//set cursor
 	ARROW_CURSOR = LoadCursor(SoftwareRasterizer.hInstance, MAKEINTRESOURCE(FORGE_CURSOR_ARROW));
 	REGION_CURSOR = LoadCursor(SoftwareRasterizer.hInstance, MAKEINTRESOURCE(FORGE_CURSOR_REGION));
+	LAND1_CURSOR = LoadCursor(SoftwareRasterizer.hInstance, MAKEINTRESOURCE(FORGE_CURSOR_LAND1));
 	CURRENT_CURSOR = ARROW_CURSOR;
 	SetCursor(CURRENT_CURSOR);
 
@@ -208,6 +216,9 @@ void ApplicationInitialization()
 	//Get client size for convinience
 	gClientRect.right = SoftwareRasterizer.clientRect.right;
 	gClientRect.bottom = SoftwareRasterizer.clientRect.bottom;
+
+	//set up grid
+	backgroundGrid.SetSpacing(35);
 	
 };
 
@@ -253,7 +264,7 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch32)
 	RECT2D oldClip = SetClipRectangle(cRect);
 	backgroundGrid.Draw(video_mem, lpitch32);
 	DrawParabola(video_mem, lpitch32);
-	
+
 	if (currentTool == TOOL_REGION && MyUserInterface->isLMD())
 	{
 		RECT r;
@@ -268,6 +279,12 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch32)
 	SetClipRectangle(oldClip);
 
 	DrawLineQueue(video_mem, lpitch32);
+
+	vector<AnimatedBitmap>::iterator vIter = LandSpriteList.begin();
+	for (vIter; vIter < LandSpriteList.end(); vIter++)
+	{
+		vIter->Draw(video_mem, lpitch32);
+	}
 }
 
 void ApplicationHardwareRender()
@@ -364,17 +381,65 @@ void CreateUserInterface()
 	//world panel
 	MyUserInterface->createRegion(gWorldPanelRect.GetPosition().x, gWorldPanelRect.GetPosition().y, gWorldPanelRect.getWidth(), gWorldPanelRect.getHeight(), _RGBA32BIT(200, 200, 200, 255));
 
-	UIButton* b = MyUserInterface->createButton(ArrowBtnCB, 15, SoftwareRasterizer.clientRect.bottom - 45, "REGION", 35, 35);
+	UIButton* b = MyUserInterface->createButton(ArrowBtnCB, 15, SoftwareRasterizer.clientRect.bottom - 45, "ARROW", 35, 35);
 	b->LoadImage(gRootImageDirectory + "ArrowButton.bmp");
 
-	UIButton* b2 = MyUserInterface->createButton(RegionBtnCB, 55, SoftwareRasterizer.clientRect.bottom - 45, "REGION", 35, 35);
+	UIButton* b2 = MyUserInterface->createButton(RegionBtnCB, 55, SoftwareRasterizer.clientRect.bottom - 45, "SELECT", 35, 35);
 	b2->LoadImage(gRootImageDirectory + "RegionButton.bmp");
+
+	UIButton* b3 = MyUserInterface->createButton(Land1CB, gWorldPanelRect.GetPosition().x + 10, gWorldPanelRect.GetPosition().y + 10, "LAND1", 35, 35);
+	b3->LoadImage(gRootImageDirectory + "Land1.bmp");
+
+	UIButton* b4 = MyUserInterface->createButton(Land2CB, gWorldPanelRect.GetPosition().x + 55, gWorldPanelRect.GetPosition().y + 10, "LAND2", 35, 35);
+	b4->LoadImage(gRootImageDirectory + "Land2.bmp");
+
+	UIButton* b5 = MyUserInterface->createButton(Land3CB, gWorldPanelRect.GetPosition().x + 10, gWorldPanelRect.GetPosition().y + 55, "LAND3", 35, 35);
+	b5->LoadImage(gRootImageDirectory + "Land3.bmp");
 
 
 }
 
 
+void ArrowBtnCB()
+{
+	CURRENT_CURSOR = ARROW_CURSOR;
+	SetCursor(CURRENT_CURSOR);
+	currentTool = TOOL_ARROW;
+}
 
+void RegionBtnCB()
+{
+	CURRENT_CURSOR = REGION_CURSOR;
+	SetCursor(CURRENT_CURSOR);
+	currentTool = TOOL_REGION;
+}
+
+void Land1CB()
+{
+	CURRENT_CURSOR = LAND1_CURSOR;
+	SetCursor(CURRENT_CURSOR);
+	currentFunction = FUNCTION_LANDPLOT;
+	currentInsertElement = AnimatedBitmap::GetLoadedInstance("Land1.bmp");
+	int x = 9;
+}
+
+void Land2CB()
+{
+	CURRENT_CURSOR = LAND1_CURSOR;
+	SetCursor(CURRENT_CURSOR);
+	currentFunction = FUNCTION_LANDPLOT;
+	currentInsertElement = AnimatedBitmap::GetLoadedInstance("Land2.bmp");
+	int x = 9;
+}
+
+void Land3CB()
+{
+	CURRENT_CURSOR = LAND1_CURSOR;
+	SetCursor(CURRENT_CURSOR);
+	currentFunction = FUNCTION_LANDPLOT;
+	currentInsertElement = AnimatedBitmap::GetLoadedInstance("Land3.bmp");
+	int x = 9;
+}
 
 
 void PlotParabola(float constant, int divisions)
@@ -446,6 +511,18 @@ POINT FindNearestSnapPoint(POINT mouse)
 	snap.y = int(float(mouse.y) / backgroundGrid.GetSpacing() + 0.5f) * backgroundGrid.GetSpacing();
 	return snap;
 }
+
+POINT FindNearestCellCenter(POINT mouse)
+{
+	POINT center;
+	center.x = int(float(mouse.x) / backgroundGrid.GetSpacing() + 0.5f) * backgroundGrid.GetSpacing();
+	center.y = int(float(mouse.y) / backgroundGrid.GetSpacing() + 0.5f) * backgroundGrid.GetSpacing();
+
+	center.x += 12;
+	center.y += 12;
+
+	return center;
+}
 void CreateCameraToViewportTransform(MATRIX4x4& m)
 {
 
@@ -507,6 +584,7 @@ WINDOWS_SETTINGS& UpdateSettings()
 {
 	return LocalWindowsSettings;
 }
+
 
 
 LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -581,12 +659,57 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 				selectionBoxPoints[1].x = snap.x;
 				selectionBoxPoints[1].y = snap.y;
 			}
+			
+			if (currentFunction == FUNCTION_LANDPLOT)
+			{
+				POINT corner = FindNearestSnapPoint({ int(xPos + 0.5f), int(yPos + 0.5f) });
+				//make sure that there is no other bitmap in that cell, if so delete it
+				auto vIter = LandSpriteList.begin();
+				for (vIter; vIter < LandSpriteList.end(); vIter++)
+				{
+					if (corner.x == vIter->GetPosition().x && corner.y == vIter->GetPosition().y)
+					{
+						LandSpriteList.erase(vIter);
+						break;
+					}
+				}
+
+				AnimatedBitmap ins = *currentInsertElement;
+				ins.SetPosition( corner.x, corner.y);
+				LandSpriteList.push_back(ins);
+			}
 
 			
 		}
 					
 	}break;
 
+	case WM_RBUTTONDOWN:
+	{
+		float xPos = GET_X_LPARAM(lParam);
+		float yPos = GET_Y_LPARAM(lParam);
+
+		if (currentFunction == FUNCTION_LANDPLOT)
+		{
+
+			POINT corner = FindNearestSnapPoint({ int(xPos + 0.5f), int(yPos + 0.5f) });
+			
+			//erase sprite clicked on
+			vector<AnimatedBitmap>::iterator vIter = LandSpriteList.begin();
+			for (vIter; vIter < LandSpriteList.end(); vIter++)
+			{
+				if (corner.x == vIter->GetPosition().x && corner.y == vIter->GetPosition().y)
+				{
+					vIter = LandSpriteList.erase(vIter);
+					break;
+				}
+			}
+
+			int x = 0;
+		}
+
+	}break;
+	
 	case WM_LBUTTONUP:
 	{
 		float xPos = GET_X_LPARAM(lParam);
@@ -725,19 +848,7 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 //Callbacks
 /////////////////////////////////////////////////////////////////////////////////////////
 
-void ArrowBtnCB()
-{
-	CURRENT_CURSOR = ARROW_CURSOR;
-	SetCursor(CURRENT_CURSOR);
-	currentTool = TOOL_ARROW;
-}
 
-void RegionBtnCB()
-{
-	CURRENT_CURSOR = REGION_CURSOR;
-	SetCursor(CURRENT_CURSOR);
-	currentTool = TOOL_REGION;
-}
 
 void myMouseCallBack(int x, int y)
 {

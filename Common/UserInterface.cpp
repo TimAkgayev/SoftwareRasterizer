@@ -174,20 +174,25 @@ void UIButton::SetOnLClickCallback(void(*cb)())
 
 void UIButton::LoadImage(string filename)
 {
+	string nameOfFile = filename.substr(filename.find_last_of("\\") + 1, string::npos);
+	mImage.SetName(nameOfFile);
+
 	mImage.AddFrame(filename);
 
+	
 	//position must allways be zero because we're drawing in a local ui frame
 	mImage.SetPosition(0, 0);
 
+	
 	//scale the image to button size
 	BITMAP_FILE transformed;
 	ResizeBitmap(&transformed, mImage.GetFrame(0), region.GetWINRECT());
 
-	//remove the old bitmap
-	delete	mImage.GetFrame(0)->data;
+
 	mImage.RemoveFrame(0);
 
 	mImage.AddFrame(transformed);
+	
 }
 
 
@@ -197,9 +202,10 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 
 	ZeroMemory(mFrameMem, mFrameSize);
 
-	if (mImage.GetFrame(0)->data)
+	if (mImage.GetNumFrames())
 	{
-		mImage.Draw(mFrameMem, region.getWidth());
+		
+			mImage.Draw(mFrameMem, region.getWidth());
 	}
 	else
 		renderTextToRegion(mFrameMem, region.getWidth(), mText, region.GetWINRECT(), bgColor, COLOR_RED);
@@ -219,7 +225,8 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
 	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
 	DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() - 1, 0, 0, colorState, colorState);
-
+	
+	
 	//blit to screen
 	DWORD* tempMem = mFrameMem;
 	DWORD* tempMainMem = mem;

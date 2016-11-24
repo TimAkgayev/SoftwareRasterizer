@@ -1,4 +1,5 @@
 #pragma once
+#pragma strict_gs_check(on) 
 
 #include "../Common/GameEngine.h"
 #include "../Common/ProgramEngineInterface.h"
@@ -13,12 +14,12 @@ SRTimer timer;
 SRTimer timerHardware;
 AnimatedBitmap RegionBtnImage;
 HCURSOR CURRENT_CURSOR, ARROW_CURSOR, REGION_CURSOR;
+HCURSOR LAND1_CURSOR;
 Grid backgroundGrid;
 VECTOR2D selectionBoxPoints[2];
 
 
-enum { GUI_MODE, WORLD_MODE };
-enum { TOOL_ARROW, TOOL_REGION };
+
 
 void RegionBtnCB();
 void ArrowBtnCB();
@@ -36,7 +37,9 @@ void widthTextCB();
 void heightTextCB();
 void fileNewGUICB();
 void myMouseCallBack(int x, int y);
-
+void Land1CB();
+void Land2CB();
+void Land3CB();
 
 //utility 
 void DrawClipRectBorder();

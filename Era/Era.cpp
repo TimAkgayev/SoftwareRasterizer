@@ -130,7 +130,7 @@ void LoadData()
 	inGamePlayer.AddRightAnimation(rightAnim);
 }
 
-void ApplicationInitialization(RECT)
+void ApplicationInitialization()
 {
 	
 	QueryPerformanceFrequency(&perfFreq);
@@ -171,7 +171,7 @@ void ApplicationInitialization(RECT)
 	ingameUI = new UserInterface(&SoftwareRasterizer);
 	ingameUI->createRegion(5, SoftwareRasterizer.clientRect.bottom - 50, SoftwareRasterizer.clientRect.right - 10, 45);
 	baseBtn = ingameUI->createButton(NULL, 15, gClientRect.bottom - 40, "BASE");
-	baseBtn->SetImage(&wigwam);
+//	baseBtn->LoadImageW(rootImageDir + "Wigwam.bmp");
 	baseBtn->SetOnLClickCallback(mmCreateWigwamBtn);
 
 	inGame.userInterface = ingameUI;
@@ -187,7 +187,7 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch32)
 	currentWorld->SoftwareDraw(video_mem, lpitch32);
 
 	int off = currentWorld->userInterface->displayString("Allocated space: ", 10, 10, video_mem, lpitch32);
-	currentWorld->userInterface->displayString(ResourceManager::getAllocatedSpace(), off, 10, video_mem, lpitch32);
+	currentWorld->userInterface->displayString(0 , off, 10, video_mem, lpitch32);
 
 
 }
