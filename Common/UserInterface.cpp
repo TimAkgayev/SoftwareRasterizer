@@ -172,27 +172,18 @@ void UIButton::SetOnLClickCallback(void(*cb)())
 	mCallbackLClick = cb;
 }
 
-void UIButton::LoadImage(string filename)
+void UIButton::SetImage(int RMKey)
 {
-	string nameOfFile = filename.substr(filename.find_last_of("\\") + 1, string::npos);
-	mImage.SetName(nameOfFile);
 
-	mImage.AddFrame(filename);
+	BitmapFile* bmp = ResourceManager::GetImage(RMKey);
+
+	//scale the image to button size
+	bmp->ResizeBitmap(region.GetWINRECT());
+	mImage.AddFrame(bmp);
 
 	
 	//position must allways be zero because we're drawing in a local ui frame
-	mImage.SetPosition(0, 0);
-
-	
-	//scale the image to button size
-	BITMAP_FILE transformed;
-	ResizeBitmap(&transformed, mImage.GetFrame(0), region.GetWINRECT());
-
-
-	mImage.RemoveFrame(0);
-
-	mImage.AddFrame(transformed);
-	
+	mImage.SetPosition(0, 0);	
 }
 
 
@@ -1455,13 +1446,13 @@ void UIDropContainer::OnHover(int xPos, int yPos)
 {
 }
 
-void UIDropContainer::AddItem(BITMAP_FILE* image, UINT uitype, void(*func)())
+void UIDropContainer::AddItem(int RMKey, UINT uitype, void(*func)())
 {
 	cDropItem item;
 	item.actionFunction = func;
-	item.image = image;
-	item.localRegion.setHeight(image->infoHeader.biHeight);
-	item.localRegion.setWidth(image->infoHeader.biWidth);
+	item.image = ResourceManager::GetImage(RMKey);
+	item.localRegion.setHeight(item.image->GetInfoHeader().biHeight);
+	item.localRegion.setWidth(item.image->GetInfoHeader().biWidth);
 	item.uiType = uitype;
 	item.itemInstance = NULL;
 
@@ -1503,8 +1494,8 @@ void UIDropContainer::Draw(DWORD* mem, int lpitch32, float timeDelta)
 {
 	//reseize region to fit items
 	/*	int newWidth, newHeight;
-	newWidth = (m_numColumns - 1)*m_spacingPx + 2 * m_borderPx + m_numColumns*mItemList[0].image->infoHeader.biWidth;
-	newHeight = m_borderPx * 2 + (int((float(mItemList.size()) / 2.0f) + 0.5f) - 1)*m_spacingPx + (int((float(mItemList.size()) / 2.0f) + 0.5f) - 1)*mItemList[0].image->infoHeader.biHeight;
+	newWidth = (m_numColumns - 1)*m_spacingPx + 2 * m_borderPx + m_numColumns*mItemList[0].image->GetInfoHeader().biWidth;
+	newHeight = m_borderPx * 2 + (int((float(mItemList.size()) / 2.0f) + 0.5f) - 1)*m_spacingPx + (int((float(mItemList.size()) / 2.0f) + 0.5f) - 1)*mItemList[0].image->GetInfoHeader().biHeight;
 	if (mFrameMem)
 	{
 	free(mFrameMem);
@@ -1539,9 +1530,9 @@ void UIDropContainer::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	for (vIter; vIter < mItemList.end(); vIter++)
 	{
 		tempFrameMem = mFrameMem;
-		DWORD* bitmapMem = (DWORD*)vIter->image->data;
-		uint imgWidth = vIter->image->infoHeader.biWidth;
-		uint imgHeight = vIter->image->infoHeader.biHeight;
+		DWORD* bitmapMem = (DWORD*)vIter->image->GetData();
+		uint imgWidth = vIter->image->GetInfoHeader().biWidth;
+		uint imgHeight = vIter->image->GetInfoHeader().biHeight;
 		VECTOR2D pos = VECTOR2D(x, y);
 		vIter->localRegion.setPos(pos.x, pos.y);
 
@@ -1586,7 +1577,7 @@ void UIDropContainer::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	//item is picked up
 	if (mPickedUpItem != -1)
 	{
-		DWORD* itemIconMem = (DWORD*)mItemList[mPickedUpItem].image->data;
+		DWORD* itemIconMem = (DWORD*)mItemList[mPickedUpItem].image->GetData();
 		DWORD* tempMainMem = mem;
 		POINT cursorPos;
 		POINT clientPos = { 0, 0 };
@@ -1596,8 +1587,8 @@ void UIDropContainer::Draw(DWORD* mem, int lpitch32, float timeDelta)
 		cursorPos.x -= clientPos.x;
 		cursorPos.y -= clientPos.y;
 		tempMainMem += cursorPos.x + cursorPos.y*lpitch32;
-		int itemHeight = mItemList[mPickedUpItem].image->infoHeader.biHeight;
-		int itemWidth = mItemList[mPickedUpItem].image->infoHeader.biWidth;
+		int itemHeight = mItemList[mPickedUpItem].image->GetInfoHeader().biHeight;
+		int itemWidth = mItemList[mPickedUpItem].image->GetInfoHeader().biWidth;
 		for (int i = 0; i < itemHeight; i++)
 		{
 			memcpy(tempMainMem, itemIconMem, sizeof(DWORD)*itemWidth);
@@ -1832,23 +1823,6 @@ std::string UIText::GetText()
 
 UserInterface::~UserInterface() {}
 
-int UserInterface::LoadRosource(string filename)
-{
-
-	BITMAP_FILE bmp;
-	LoadBitmapFromDisk(filename, &bmp);
-
-	mImageData.push_back(bmp);
-
-	return mImageData.size() - 1;
-}
-
-
-
-BITMAP_FILE* UserInterface::GetImageResource(int resourceID)
-{
-	return &(mImageData[resourceID]);
-}
 
 
 

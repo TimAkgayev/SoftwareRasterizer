@@ -1,5 +1,6 @@
 #include "AnimatedBitmap.h"
 
+/*
 SpriteLoader::~SpriteLoader()
 {
 	if (sprite.data)
@@ -58,6 +59,7 @@ BITMAP_FILE SpriteLoader::GetCell(int row, int col)
 }
 
 
+*/
 
 AnimatedBitmap::AnimatedBitmap()
 {
@@ -86,36 +88,27 @@ AnimatedBitmap::AnimatedBitmap(const AnimatedBitmap& rhv)
 	endTime.QuadPart = rhv.endTime.QuadPart;
 	perfFreq = rhv.perfFreq;
 	mID = allLoaded.size();
+	mName = rhv.mName;
 
-	for (int i = 0; i < rhv.frames.size(); i++)
-	{
-		BITMAP_FILE copy;
-		copy.infoHeader = rhv.frames[i].infoHeader;
-		copy.fileHeader = rhv.frames[i].fileHeader;
-		copy.data = new unsigned char[rhv.frames[i].infoHeader.biSizeImage];
-		memcpy(copy.data, rhv.frames[i].data, rhv.frames[i].infoHeader.biSizeImage);
-		frames.push_back(copy);
-	}
+	for (int i = 0; i < rhv.frames.size(); i++)	
+		frames.push_back(ResourceManager::GetImage(rhv.frames[i]->GetResouceManagerKey()));
 
 	//save this instance
 	allLoaded.push_back(this);
 }
 
-AnimatedBitmap::AnimatedBitmap(string filename, string name, float scaleFactor)
+AnimatedBitmap::AnimatedBitmap(int RMKey, string name, float scaleFactor)
 {
 	mID = allLoaded.size();
 	mName = name;
 
-	BITMAP_FILE tBmp;
-	BITMAP_FILE newBmp;
-	if (!LoadBitmapFromDisk(filename, &tBmp))
-		return;
+	BitmapFile* bmp = ResourceManager::GetImage(RMKey);
+	bmp->ResizeBitmap(scaleFactor, scaleFactor);
+	bmp->FlipBitmap();
 
-	ResizeBitmap(&newBmp, &tBmp, scaleFactor, scaleFactor);
+	frames.push_back(bmp);
 
-	FlipBitmap(&newBmp);
-	frames.push_back(newBmp);
-
+	mName = bmp->GetName();
 
 	//save this instance
 	allLoaded.push_back(this);
@@ -123,7 +116,7 @@ AnimatedBitmap::AnimatedBitmap(string filename, string name, float scaleFactor)
 
 
 
-AnimatedBitmap AnimatedBitmap::operator=(const AnimatedBitmap& rhv)
+AnimatedBitmap& AnimatedBitmap::operator=(const AnimatedBitmap& rhv)
 {
 	//make sure it's not the same object we're assigning to 
 	if (this == &rhv)
@@ -138,47 +131,33 @@ AnimatedBitmap AnimatedBitmap::operator=(const AnimatedBitmap& rhv)
 	startTime.QuadPart = rhv.startTime.QuadPart;
 	endTime.QuadPart = rhv.endTime.QuadPart;
 	perfFreq = rhv.perfFreq;
+	mName = rhv.mName;
 
-	//first realease any frames that are present
-	vector<BITMAP_FILE>::iterator vIter;
-	for (vIter = frames.begin(); vIter < frames.end(); vIter++)
-		Unload_Bitmap_File(&(*vIter));
-
-	//copy over the frames
+	//reload the frames into new instance
 	for (int i = 0; i < rhv.frames.size(); i++)
-	{
-		BITMAP_FILE copy;
-		copy.infoHeader = rhv.frames[i].infoHeader;
-		copy.fileHeader = rhv.frames[i].fileHeader;
-		copy.data = new unsigned char[rhv.frames[i].infoHeader.biSizeImage];
-		memcpy(copy.data, rhv.frames[i].data, rhv.frames[i].infoHeader.biSizeImage);
-		frames.push_back(copy);
-	}
+		frames.push_back(ResourceManager::GetImage(frames[i]->GetResouceManagerKey()));
 
 	return *this;
 }
 
 AnimatedBitmap::~AnimatedBitmap()
 {
+
 	if (allLoaded.size())
 	{
 		vector<AnimatedBitmap*>::iterator thisIter;
-		for (thisIter = allLoaded.begin(); thisIter < allLoaded.end(); thisIter++)
+		for (thisIter = allLoaded.begin(); thisIter != allLoaded.end(); thisIter++)
 		{
 			if ((*thisIter)->GetID() == this->mID)
 			{
-				thisIter = allLoaded.erase(thisIter);
+				allLoaded.erase(thisIter);
 				break;
 			}
 		
 				
 		}
 	}
-	vector<BITMAP_FILE>::iterator vIter;
-	for (vIter = frames.begin(); vIter < frames.end(); vIter++)
-	{
-		Unload_Bitmap_File(&(*vIter));
-	}
+	
 }
 
 vector<AnimatedBitmap*> AnimatedBitmap::allLoaded;
@@ -188,28 +167,15 @@ int AnimatedBitmap::GetID()
 	return mID;
 }
 
-void AnimatedBitmap::AddFrame(string path, float scaleFactor)
+void AnimatedBitmap::AddFrame(BitmapFile* bmp_p)
 {
-	BITMAP_FILE tBmp;
-	BITMAP_FILE newBmp;
-	if (!LoadBitmapFromDisk(path, &tBmp))
-		return;
-
-	if (scaleFactor != 1.0f)
-	{
-		ResizeBitmap(&newBmp, &tBmp, scaleFactor, scaleFactor);
-
-		FlipBitmap(&newBmp);
-		frames.push_back(newBmp);
-
-	}
-	else
-		frames.push_back(tBmp);
+	mName = bmp_p->GetName();
+	frames.push_back(bmp_p);
 }
-
-void AnimatedBitmap::AddFrame(BITMAP_FILE image)
+void AnimatedBitmap::AddFrame(int key)
 {
-	frames.push_back(image);
+	
+	frames.push_back(ResourceManager::GetImage(key));
 }
 
 void AnimatedBitmap::SetFramerate(int rate)
@@ -234,22 +200,22 @@ void AnimatedBitmap::SetName(string name)
 
 void AnimatedBitmap::GetFrameDimensions(POINT& wh) const
 {
-	wh.x = frames[0].infoHeader.biWidth;
-	wh.y = frames[0].infoHeader.biHeight;
+	wh.x = frames[0]->GetInfoHeader().biWidth;
+	wh.y = frames[0]->GetInfoHeader().biHeight;
 }
 
 void AnimatedBitmap::GetBoundingRectangle(RECT2D& ret)
 {
 
-	ret.setHeight(frames[0].infoHeader.biHeight);
-	ret.setWidth(frames[0].infoHeader.biWidth);
+	ret.setHeight(frames[0]->GetInfoHeader().biHeight);
+	ret.setWidth(frames[0]->GetInfoHeader().biWidth);
 	ret.setPos(position);
 }
 
-BITMAP_FILE* AnimatedBitmap::GetFrame(int frame)
+int AnimatedBitmap::GetFrame(int frame)
 {
 	if (frame < frames.size())
-		return &frames[frame];
+		return frames[frame]->GetResouceManagerKey();
 }
 
 string AnimatedBitmap::GetName()
@@ -303,7 +269,7 @@ void AnimatedBitmap::Draw(DWORD* vmem, int lpitch32)
 		currentFrame = 0;
 
 
-	DrawBitmapWithClipping(vmem, lpitch32, &frames[currentFrame], int(position.x + 0.5f), int(position.y + 0.5f), NULL);
+	DrawBitmapWithClipping(vmem, lpitch32, frames[currentFrame], int(position.x + 0.5f), int(position.y + 0.5f), NULL);
 
 	QueryPerformanceCounter(&startTime);
 	isClockStarted = true;
@@ -312,7 +278,7 @@ void AnimatedBitmap::Draw(DWORD* vmem, int lpitch32)
 bool AnimatedBitmap::CheckCollision(RECT& rect)
 {
 
-	RECT2D thisRect(position.x, position.y, frames[0].infoHeader.biWidth, frames[0].infoHeader.biHeight);
+	RECT2D thisRect(position.x, position.y, frames[0]->GetInfoHeader().biWidth, frames[0]->GetInfoHeader().biHeight);
 
 
 	if (thisRect.isPointInRect(rect.left, rect.top) || thisRect.isPointInRect(rect.right, rect.bottom))
@@ -323,9 +289,9 @@ bool AnimatedBitmap::CheckCollision(RECT& rect)
 
 void AnimatedBitmap::RotateLeft()
 {
-	vector<BITMAP_FILE>::iterator vIter = frames.begin();
+	vector<BitmapFile*>::iterator vIter = frames.begin();
 	for (vIter; vIter < frames.end(); vIter++)
 	{
-		RotateBitmapLeft(&(*vIter));
+		(*vIter)->RotateBitmapLeft();
 	}
 }

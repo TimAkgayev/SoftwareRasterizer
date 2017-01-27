@@ -936,16 +936,16 @@ void DrawLine(DWORD* buffer, int lpitch32, int x0, int y0, int x1, int y1, DWORD
 
 
 
-void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BITMAP_FILE* source, int destPosX, int destPosY, RECT* sourceRegion)
+void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BitmapFile* source, int destPosX, int destPosY, RECT* sourceRegion)
 {
 //	destPosX += int(SoftwareRasterizer.drawOffsetX + 0.5f);
 //	destPosY += int(SoftwareRasterizer.drawOffsetY + 0.5f);
 
-	int image_width = source->infoHeader.biWidth;
-	int image_height = source->infoHeader.biHeight;
+	int image_width = source->GetInfoHeader().biWidth;
+	int image_height = source->GetInfoHeader().biHeight;
 	int offsetX = 0;
 	int offsetY = 0;
-	UINT byteCount = source->infoHeader.biBitCount / 8;
+	UINT byteCount = source->GetInfoHeader().biBitCount / 8;
 
 	//use whole source image unless region is specified
 	if (sourceRegion)
@@ -989,7 +989,7 @@ void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BITMAP_FILE* source, 
 	//establish starting points in memory for 32 bit bitmap
 	if (byteCount == 4)
 	{
-		DWORD* sourceStartMem = ((DWORD*)source->data) + ((offsetX + reg_offsetX) + ((offsetY + reg_offsetY) * image_width));
+		DWORD* sourceStartMem = ((DWORD*)source->GetData()) + ((offsetX + reg_offsetX) + ((offsetY + reg_offsetY) * image_width));
 		DWORD* destStartMem = (dest) + ( x1 +  y1*destLPitch32);
 
 		int numColumns = (x2 - x1);
@@ -1011,7 +1011,7 @@ void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BITMAP_FILE* source, 
 	}
 	else if (byteCount == 3)
 	{
-		UCHAR* sourceStartMem = source->data + (((offsetX + reg_offsetX) * byteCount) + ((offsetY + reg_offsetY)* image_width * byteCount));
+		UCHAR* sourceStartMem = source->GetData() + (((offsetX + reg_offsetX) * byteCount) + ((offsetY + reg_offsetY)* image_width * byteCount));
 		UCHAR* destStartMem = (UCHAR*) (dest)+ ( x1  + y1 *(destLPitch32 << 2));
 
 		int numColumns = (x2 - x1) + 1;
@@ -1126,7 +1126,7 @@ void DrawCharBitmap(DWORD* mem_buffer, int lpitch32, char* bitmap, DWORD color, 
 	}
 }
 
-void _DrawFlatTopTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BITMAP_FILE_PTR texture, DWORD* video_mem, int lpitch32)
+void _DrawFlatTopTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BitmapFile* texture, DWORD* video_mem, int lpitch32)
 {
 	float xtranslate = transform.M[2][0];
 	float ytranslate = transform.M[2][1];
@@ -1168,12 +1168,12 @@ void _DrawFlatTopTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BIT
 			xstart = x_left;
 			xend = x_right;
 
-			DWORD* texData = (DWORD*)texture->data;
+			DWORD* texData = (DWORD*)texture->GetData();
 			for(xstart; xstart < xend; xstart++)
 			{
 				int iui = int(ui + 0.5f);
 				int ivi = int(vi + 0.5f);
-				DWORD pixel = texData[iui + ivi*texture->infoHeader.biWidth];
+				DWORD pixel = texData[iui + ivi*texture->GetInfoHeader().biWidth];
 				video_mem[int(xstart + xtranslate + (y + ytranslate)*lpitch32 + 0.5f)] = pixel;
 
 				ui+= du;
@@ -1197,7 +1197,7 @@ void _DrawFlatTopTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BIT
 
 
 }
-void _DrawFlatBottomTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BITMAP_FILE_PTR texture, DWORD* video_mem, int lpitch32)
+void _DrawFlatBottomTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BitmapFile* texture, DWORD* video_mem, int lpitch32)
 {
 	float dxdyL = (sortVerts[0].pos.x - sortVerts[2].pos.x)/abs(sortVerts[0].pos.y - sortVerts[2].pos.y);
 	float dudyL = (sortVerts[0].u - sortVerts[2].u) / abs(sortVerts[0].pos.y - sortVerts[2].pos.y);
@@ -1236,12 +1236,12 @@ void _DrawFlatBottomTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, 
 			xstart = x_left;
 			xend = x_right;
 
-			DWORD* texMem = (DWORD*)texture->data;
+			DWORD* texMem = (DWORD*)texture->GetData();
 			for(xstart; xstart < xend; xstart++)
 			{
 				int iui = int(ui + 0.5f);
 				int ivi = int(vi + 0.5f);
-				DWORD pixel = texMem[iui + ivi*texture->infoHeader.biWidth];
+				DWORD pixel = texMem[iui + ivi*texture->GetInfoHeader().biWidth];
 				video_mem[int(xstart + transformX + (y + transformY)*lpitch32)] = pixel;
 
 				ui+= du;
@@ -1745,7 +1745,7 @@ void DrawMeshObject(MESHOBJECT& m, int flags, DWORD* video_mem, int lpitch32)
 			tri[1] = m.vertexBuffer[m.indexBuffer[i + 1]];
 			tri[2] = m.vertexBuffer[m.indexBuffer[i + 2]];
 
-			DrawTriangle(video_mem, lpitch32, tri, m.worldTransform, DO_TEXTURED, &m.texture);
+			DrawTriangle(video_mem, lpitch32, tri, m.worldTransform, DO_TEXTURED, m.texture);
 		}
 
 	}break;
@@ -1757,7 +1757,7 @@ void DrawMeshObject(MESHOBJECT& m, int flags, DWORD* video_mem, int lpitch32)
 }
 
 
-void DrawTriangle(DWORD* video_mem, int lpitch32, VERTEX2D triangle[3], MATRIX3D& transform, int drawOptions, BITMAP_FILE* texture)
+void DrawTriangle(DWORD* video_mem, int lpitch32, VERTEX2D triangle[3], MATRIX3D& transform, int drawOptions, BitmapFile* texture)
 {
 	if (drawOptions == DRAW_OPTIONS::DO_FLAT)
 	{

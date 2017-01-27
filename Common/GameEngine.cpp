@@ -162,25 +162,25 @@ void Player::Draw(DWORD* vmem, int lpitch32)
 		{
 			RECT2D r;
 			backAnim.GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, backAnim.GetFrame(0), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(backAnim.GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 		else if (facingDirection == "down")
 		{
 			RECT2D r;
 			frontAnim.GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, frontAnim.GetFrame(0), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(frontAnim.GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 		else if (facingDirection == "left")
 		{
 			RECT2D r;
 			leftAnim.GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, leftAnim.GetFrame(0), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(leftAnim.GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 		else if (facingDirection == "right")
 		{
 			RECT2D r;
 			rightAnim.GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, rightAnim.GetFrame(0), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(rightAnim.GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 
 		return;

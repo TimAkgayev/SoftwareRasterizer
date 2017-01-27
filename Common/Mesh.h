@@ -9,13 +9,13 @@ typedef struct MESHOBJECT_TYP
 {
 	MESHOBJECT_TYP()
 	{
-		texture.data = NULL;
+		
 	}
 
 	MATRIX3D     worldTransform;
 	vector<VERTEX2D> vertexBuffer;
 	vector<int>      indexBuffer;
-	BITMAP_FILE   texture;
+	BitmapFile*   texture;
 
 
 }MESHOBJECT, *MESHOBJECT_PTR;

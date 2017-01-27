@@ -1,9 +1,9 @@
 ﻿  AnimatedBitmap.cpp
 d:\users\tim\documents\visual studio projects\softwarerasterizer\common\math56.h(214): warning C4244: '=': conversion from 'LONG' to 'float', possible loss of data
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(90): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(148): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(251): warning C4018: '<': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(302): warning C4018: '>=': signed/unsigned mismatch
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(253): warning C4715: 'AnimatedBitmap::GetFrame': not all control paths return a value
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(278): warning C4715: 'AnimatedBitmap::GetLoadedInstance': not all control paths return a value
+d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(93): warning C4018: '<': signed/unsigned mismatch
+d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(137): warning C4018: '<': signed/unsigned mismatch
+d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(217): warning C4018: '<': signed/unsigned mismatch
+d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(268): warning C4018: '>=': signed/unsigned mismatch
+d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(219): warning C4715: 'AnimatedBitmap::GetFrame': not all control paths return a value
+d:\users\tim\documents\visual studio projects\softwarerasterizer\common\animatedbitmap.cpp(244): warning C4715: 'AnimatedBitmap::GetLoadedInstance': not all control paths return a value
   Common.vcxproj -> D:\Users\Tim\Documents\Visual Studio Projects\SoftwareRasterizer\Common\Debug\Common.lib

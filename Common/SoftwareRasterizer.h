@@ -18,6 +18,7 @@
 #include "Mesh.h"
 #include "MacrosAndDefines.h"
 #include "Bitmap.h"
+#include "ResourceManager.h"
 
 
 
@@ -111,11 +112,11 @@ void DrawLineQueue(DWORD* buffer, int lpitch);
 /////////////////////////////////////////////////////////////////////////////////////////////////
 void DrawLine(DWORD* buffer, int lpitch32, int x0, int y0, int x1, int y1, DWORD color0, DWORD color1, RECT* clipRect = NULL);
 
-void DrawTriangle(DWORD* video_mem, int lpitch32, VERTEX2D triangle[3], MATRIX3D& transform, int drawOptions, BITMAP_FILE* texture = NULL);
+void DrawTriangle(DWORD* video_mem, int lpitch32, VERTEX2D triangle[3], MATRIX3D& transform, int drawOptions, BitmapFile* texture = NULL);
 
-	void _DrawFlatTopTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BITMAP_FILE_PTR texture, DWORD* video_mem, int lpitch32);
+	void _DrawFlatTopTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BitmapFile* texture, DWORD* video_mem, int lpitch32);
  
-	void _DrawFlatBottomTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BITMAP_FILE_PTR texture, DWORD* video_mem, int lpitch32);
+	void _DrawFlatBottomTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BitmapFile* texture, DWORD* video_mem, int lpitch32);
  
 	void _DrawFlatTopTriangleConstant(VERTEX2D sortVerts[], MATRIX3D& transform, DWORD* video_mem, int lpitch32);
 
@@ -130,7 +131,7 @@ void DrawCircle(DWORD* video_mem, int lpitch32, int xCenter, int yCenter, int ra
 
 void DrawMeshObject(MESHOBJECT& m, int flags, DWORD* video_mem, int lpitch32);
 
-void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BITMAP_FILE* bitmap, int destPosX, int destPosY, RECT* sourceRegion);
+void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BitmapFile* bitmap, int destPosX, int destPosY, RECT* sourceRegion);
  
 
  

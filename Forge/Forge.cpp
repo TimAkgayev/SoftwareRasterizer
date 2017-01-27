@@ -1,6 +1,10 @@
 ﻿#include "Forge.h"
 
-
+struct LandCell
+{
+	AnimatedBitmap sprite;
+	bool isColliding;
+};
 
 
 class HotBox
@@ -168,7 +172,7 @@ RECT2D gWorldPanelRect = { LocalWindowsSettings.clientDimX - gMarginRect.right +
 string gRootImageDirectory = "D:\\Users\\Tim\\Documents\\Visual Studio Projects\\SoftwareRasterizer\\Forge\\Images\\";
 int world_gridspacing = 35;
 AnimatedBitmap* currentInsertElement;
-vector<AnimatedBitmap> LandSpriteList;
+vector<LandCell> LandSpriteList;
 
 int currentMode;
 int gMouseX = 0, gMouseY = 0;
@@ -280,10 +284,10 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch32)
 
 	DrawLineQueue(video_mem, lpitch32);
 
-	vector<AnimatedBitmap>::iterator vIter = LandSpriteList.begin();
+	vector<LandCell>::iterator vIter = LandSpriteList.begin();
 	for (vIter; vIter < LandSpriteList.end(); vIter++)
 	{
-		vIter->Draw(video_mem, lpitch32);
+		vIter->sprite.Draw(video_mem, lpitch32);
 	}
 }
 
@@ -381,20 +385,21 @@ void CreateUserInterface()
 	//world panel
 	MyUserInterface->createRegion(gWorldPanelRect.GetPosition().x, gWorldPanelRect.GetPosition().y, gWorldPanelRect.getWidth(), gWorldPanelRect.getHeight(), _RGBA32BIT(200, 200, 200, 255));
 
+	
 	UIButton* b = MyUserInterface->createButton(ArrowBtnCB, 15, SoftwareRasterizer.clientRect.bottom - 45, "ARROW", 35, 35);
-	b->LoadImage(gRootImageDirectory + "ArrowButton.bmp");
+	b->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "ArrowButton.bmp"));
 
 	UIButton* b2 = MyUserInterface->createButton(RegionBtnCB, 55, SoftwareRasterizer.clientRect.bottom - 45, "SELECT", 35, 35);
-	b2->LoadImage(gRootImageDirectory + "RegionButton.bmp");
+	b2->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "RegionButton.bmp"));
 
 	UIButton* b3 = MyUserInterface->createButton(Land1CB, gWorldPanelRect.GetPosition().x + 10, gWorldPanelRect.GetPosition().y + 10, "LAND1", 35, 35);
-	b3->LoadImage(gRootImageDirectory + "Land1.bmp");
+	b3->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "Land1.bmp"));
 
 	UIButton* b4 = MyUserInterface->createButton(Land2CB, gWorldPanelRect.GetPosition().x + 55, gWorldPanelRect.GetPosition().y + 10, "LAND2", 35, 35);
-	b4->LoadImage(gRootImageDirectory + "Land2.bmp");
+	b4->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "Land2.bmp"));
 
 	UIButton* b5 = MyUserInterface->createButton(Land3CB, gWorldPanelRect.GetPosition().x + 10, gWorldPanelRect.GetPosition().y + 55, "LAND3", 35, 35);
-	b5->LoadImage(gRootImageDirectory + "Land3.bmp");
+	b5->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "Land3.bmp"));
 
 
 }
@@ -667,16 +672,18 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 				auto vIter = LandSpriteList.begin();
 				for (vIter; vIter < LandSpriteList.end(); vIter++)
 				{
-					if (corner.x == vIter->GetPosition().x && corner.y == vIter->GetPosition().y)
+					if (corner.x == vIter->sprite.GetPosition().x && corner.y == vIter->sprite.GetPosition().y)
 					{
 						LandSpriteList.erase(vIter);
 						break;
 					}
 				}
 
-				AnimatedBitmap ins = *currentInsertElement;
-				ins.SetPosition( corner.x, corner.y);
-				LandSpriteList.push_back(ins);
+				LandCell lc;
+				lc.sprite = *currentInsertElement;
+				lc.sprite.SetPosition( corner.x, corner.y);
+				
+				LandSpriteList.push_back(lc);
 			}
 
 			

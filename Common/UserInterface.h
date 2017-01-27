@@ -114,7 +114,7 @@ public:
 	
 
 	void SetOnLClickCallback(void(*cb)());
-	void LoadImage(string filename);
+	void SetImage(int RMKey);
 
 
 private:
@@ -361,7 +361,7 @@ public:
 	void Draw(DWORD* mem, int lpitch32, float timeDelta) override;
 	
 
-	void AddItem(BITMAP_FILE* image, UINT uitype, void(*func)());
+	void AddItem(int RMkey, UINT uitype, void(*func)());
 	void SetUIInstance(UserInterface* inst);
 	void InsertInitializatinData(UINT uiType, vector<void*>& data);
 	UIElement* GetItemInstance(int id);
@@ -373,7 +373,7 @@ private:
 
 	struct cDropItem
 	{
-		BITMAP_FILE* image;
+		BitmapFile* image;
 		void(*actionFunction)();
 		RECT2D localRegion;
 		UINT uiType;
@@ -468,8 +468,8 @@ public:
 	UserInterface(const SOFTWARERASTERIZER_DX10_OBJECTS* localRasterizer);
 	~UserInterface();
 
-	int LoadRosource(string filename);
-	BITMAP_FILE* GetImageResource(int resourceID);
+	
+	
 
 	UIButton* createButton(void(*lbCallback)(), int xPos, int yPos, string text, int width = UI_BUTTONWIDTH, int height = UI_BUTTONHEIGHT);
 	UITextField* createTextField(void(*tfCallback)(), int xPos, int yPos, int numChars);
@@ -530,7 +530,7 @@ private:
 	int xpos;
 	int ypos;
 	vector<string> mImageLoadList;
-	vector<BITMAP_FILE> mImageData;
+	vector<BitmapFile*> mImageData;
 	bool mIsLButtonDown;
 	VECTOR2D mLMouseDownPosition;
 	double m_LMouseDownTimeStamp;

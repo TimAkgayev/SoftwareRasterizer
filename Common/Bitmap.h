@@ -9,21 +9,48 @@
 
 using namespace std;
 
-//low level bitmap structure
-typedef struct BITMAP_FILE_TAG
+
+class BitmapFile
 {
+public:
+
+	
+
+	BitmapFile(int width, int height);
+	BitmapFile(string fileName);
+	~BitmapFile();
+	BitmapFile& operator=(const BitmapFile& rhv);
+
+	void FlipBitmap();
+	void ResizeBitmap(RECT resizeRectangle);
+	void ResizeBitmap(float xscale, float yscale);
+	void RotateBitmapLeft();
+
+	void SetResourceManagerKey(int id);
+	void SetName(string);
+
+	POINT GetDimensions() const;
+	int   GetDataSize() const;
+	const BITMAPFILEHEADER& GetFileHeader() const;
+	const BITMAPINFOHEADER& GetInfoHeader() const;
+	UCHAR* GetData() const;
+	const PALETTEENTRY* GetPalette() const;
+	int GetResouceManagerKey() const;
+	string GetName() const;
+
+private:
+	int LoadBitmapFromDisk(string szFileName);
+	int Unload_Bitmap_File();
+
 	BITMAPFILEHEADER fileHeader;
 	BITMAPINFOHEADER infoHeader;
 	PALETTEENTRY	 palette[256];
 	UCHAR*			 data;
 
-}BITMAP_FILE, *BITMAP_FILE_PTR;
+	string name;
+	int resource_manager_key;
 
 
-int LoadBitmapFromDisk(string szFileName, BITMAP_FILE_PTR bitmap);
-int LoadFileToMemory(string szFileName, unsigned char** buffer);
-int Unload_Bitmap_File(BITMAP_FILE_PTR bitmap);
-void FlipBitmap(BITMAP_FILE* bitmap);
-void ResizeBitmap(BITMAP_FILE* out, BITMAP_FILE* original, RECT resizeRectangle);
-void ResizeBitmap(BITMAP_FILE* out, BITMAP_FILE* original, float xscale, float yscale);
-void RotateBitmapLeft(BITMAP_FILE*);
+};
+
+
