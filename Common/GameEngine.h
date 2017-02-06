@@ -3,10 +3,9 @@
 #include "SoftwareRasterizer.h"
 #include "Shapes.h"
 #include "UserInterface.h"
-#include "AnimatedBitmap.h"
 #include "Camera.h"
 #include "Timer.h"
-#include "Math56.h"
+#include "SRMath.h"
 
 
 int Initialization();
@@ -21,10 +20,10 @@ public:
 	Player();
 	~Player();
 
-	void AddFrontAnimation(AnimatedBitmap anim);
-	void AddLeftAnimation(AnimatedBitmap anim);
-	void AddRightAnimation(AnimatedBitmap anim);
-	void AddBackAnimation(AnimatedBitmap anim);
+	void AddFrontAnimation(AnimatedBitmap* anim);
+	void AddLeftAnimation(AnimatedBitmap* anim);
+	void AddRightAnimation(AnimatedBitmap* anim);
+	void AddBackAnimation(AnimatedBitmap* anim);
 
 	void SetPosition(VECTOR2D& pos);
 	void SetPosition(float x, float y);
@@ -40,7 +39,7 @@ private:
 	VECTOR2D position;
 	string facingDirection;
 	float moveSpeed;
-	AnimatedBitmap frontAnim, leftAnim, rightAnim, backAnim;
+	AnimatedBitmap *frontAnim, *leftAnim, *rightAnim, *backAnim;
 	bool isPositionUpdated;
 
 };

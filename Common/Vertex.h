@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
 #include <d3d10.h>
-#include "Math56.h"
+#include "SRMath.h"
 #include <DirectXMath.h>
 
 using namespace DirectX;
@@ -60,4 +60,4 @@ typedef struct VERTEX3D_TYP
 }VERTEX3D;
 
 
-void TransformVertexList(VERTEX2D* vertexBuffer, int numVerts, MATRIX3D* transform);
+void TransformVertexList(VERTEX2D* vertexbuffer, int numVerts, MATRIX3D* transform);

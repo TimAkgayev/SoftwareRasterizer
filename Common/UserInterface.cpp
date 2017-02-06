@@ -9,6 +9,7 @@ UIElement::UIElement()
 	stateID = 0;
 	isInFocus = false;
 	isVisible = true;
+	isEnabled = true;
 }
 
 void UIElement::OnHover(int xPos, int yPos) {}
@@ -39,7 +40,14 @@ void UIElement::SetVisibility(bool state)
 	isVisible = state;
 }
 
+void UIElement::SetEnabledState(bool state)
+{
+	isEnabled = state;
+}
+
 bool UIElement::GetVisibility() const { return isVisible; }
+
+bool UIElement::GetEnabledState() const { return isEnabled; }
 
 void UIElement::SetFocus(bool state)
 {
@@ -142,6 +150,19 @@ void UIButton::SetText(string text)
 
 string UIButton::GetText() const { return mText; }
 
+bool UIButton::IsInRegion(int x, int y)
+{
+	return region.isPointInRect(x, y);
+}
+
+void UIButton::SetDimension(int w, int h)
+{
+	if (mFrameMem)
+		delete mFrameMem;
+	mFrameMem = new DWORD[w * h];
+	region.setWidth(w);
+	region.setHeight(h);
+}
 
 bool UIButton::OnLDown(int xPos, int yPos)
 {
@@ -174,16 +195,17 @@ void UIButton::SetOnLClickCallback(void(*cb)())
 
 void UIButton::SetImage(int RMKey)
 {
-
 	BitmapFile* bmp = ResourceManager::GetImage(RMKey);
+	
 
 	//scale the image to button size
 	bmp->ResizeBitmap(region.GetWINRECT());
-	mImage.AddFrame(bmp);
+	mImage = new AnimatedBitmap(bmp);
+
 
 	
 	//position must allways be zero because we're drawing in a local ui frame
-	mImage.SetPosition(0, 0);	
+	mImage->SetPosition(0, 0);	
 }
 
 
@@ -193,13 +215,15 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 
 	ZeroMemory(mFrameMem, mFrameSize);
 
-	if (mImage.GetNumFrames())
+
+
+	if (mImage)
 	{
-		
-			mImage.Draw(mFrameMem, region.getWidth());
+		if(mImage->GetNumFrames())
+			mImage->Draw(mFrameMem, region.getWidth());
 	}
 	else
-		renderTextToRegion(mFrameMem, region.getWidth(), mText, region.GetWINRECT(), bgColor, COLOR_RED);
+		RenderTextToRegion(mFrameMem, region.getWidth(), mText, region.GetWINRECT(), bgColor, COLOR_RED);
 
 	DWORD colorState = 0;
 	if (stateID == UISTATE_PRESSED)
@@ -212,10 +236,10 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	
 	
 		
-	DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth() - 1, 0, colorState, colorState);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
-	DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() - 1, 0, 0, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight() - 1, 0, 0, colorState, colorState);
 	
 	
 	//blit to screen
@@ -254,12 +278,12 @@ UITextField::UITextField() {
 }
 
 UITextField::~UITextField() {
-	vector<DWORD*>::iterator vIter = mCharFrames.begin();
-	for (vIter; vIter < mCharFrames.end(); vIter++)
+	auto vIter = mCharFramesMap.begin();
+	for (vIter; vIter != mCharFramesMap.end(); vIter++)
 	{
-		delete *vIter;
+		delete vIter->second;
 	}
-	mCharFrames.clear();
+	mCharFramesMap.clear();
 
 	if (mFrameMem)
 	{
@@ -327,15 +351,36 @@ void UITextField::SetFontSize(int pxWidth)
 	mCellWidthPx = pxWidth;
 	mCellSizeBy = sizeof(DWORD)*pxWidth*pxWidth;
 
-	//render the letters
+	//lowercase
 	DWORD* buffer;
-	for (int i = 0, asciiLetter = 65; i < 26; i++, asciiLetter++)
+	for (int i = 65; i <= 90; i++)
 	{
 		buffer = new DWORD[pxWidth*pxWidth];
 		memset(buffer, 0, mCellSizeBy);
 		RECT reg = { 0, 0, mCellWidthPx - 1, mCellWidthPx - 1 };
-		renderTextToRegion(buffer, pxWidth, (char)asciiLetter, reg, bckgColor, COLOR_WHITE);
-		mCharFrames.push_back(buffer);
+		RenderTextToRegion(buffer, pxWidth, (char)i, reg, bckgColor, COLOR_WHITE);
+		mCharFramesMap.insert(std::make_pair(i, buffer));
+	}
+
+	//upper case
+	for (int i = 97; i <= 122; i++)
+	{
+		buffer = new DWORD[pxWidth*pxWidth];
+		memset(buffer, 0, mCellSizeBy);
+		RECT reg = { 0, 0, mCellWidthPx - 1, mCellWidthPx - 1 };
+		RenderTextToRegion(buffer, pxWidth, (char)i-32, reg, bckgColor, COLOR_WHITE);
+		mCharFramesMap.insert(std::make_pair(i, buffer));
+	}
+
+	//render the numbers
+	for (int i = 48; i <= 57; i++)
+	{
+		buffer = new DWORD[pxWidth*pxWidth];
+		memset(buffer, 0, mCellSizeBy);
+		RECT reg = { 0, 0, mCellWidthPx - 1, mCellWidthPx - 1 };
+		RenderTextToRegion(buffer, pxWidth, (char)i, reg, bckgColor, COLOR_WHITE);
+		mCharFramesMap.insert(std::make_pair(i, buffer));
+
 	}
 
 	//create the blank cell for space
@@ -344,7 +389,9 @@ void UITextField::SetFontSize(int pxWidth)
 		for (int c = 0; c < mCellWidthPx; c++)
 			buffer[c + r*mCellWidthPx] = COLOR_BLACK;
 
-	mCharFrames.push_back(buffer);
+	mCharFramesMap.insert(std::make_pair((int)' ', buffer));
+
+
 
 	//create selection color
 	mSelectionColor = new DWORD[pxWidth * pxWidth];
@@ -386,7 +433,7 @@ void UITextField::RemoveCharacter(int pos)
 		pos = mCursorPos;
 
 	mText.erase(mText.begin() + pos - 1);
-	mCursorPos--;
+	//mCursorPos--;
 }
 
 string UITextField::GetText()
@@ -429,45 +476,16 @@ void UITextField::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	{
 
 		//space
-		if (*vIter == 32)
-		{
-			DWORD* tFmem = tempFrameMem;
-			DWORD* tCmem = mCharFrames[26]; //right after the last letter
-			for (int i = 0; i < region.getHeight(); i++)
-			{
-				memcpy(tFmem, tCmem, sizeof(DWORD)*mCellWidthPx);
-				tFmem += int(region.getWidth());
-				tCmem += mCellWidthPx;
-			}
-		}
 
-		if (*vIter >= 65 && *vIter <= 90)
+		DWORD* tFmem = tempFrameMem;
+		DWORD* tCmem = mCharFramesMap[*vIter];
+		for (int i = 0; i < region.getHeight(); i++)
 		{
-			int offset = *vIter - 65;
-			DWORD* tFmem = tempFrameMem;
-			DWORD* tCmem = mCharFrames[offset];
-			for (int i = 0; i < region.getHeight(); i++)
-			{
-				memcpy(tFmem, tCmem, sizeof(DWORD)*mCellWidthPx);
-				tFmem += int(region.getWidth());
-				tCmem += mCellWidthPx;
-			}
-
+			memcpy(tFmem, tCmem, sizeof(DWORD)*mCellWidthPx);
+			tFmem += int(region.getWidth());
+			tCmem += mCellWidthPx;
 		}
-		//if lower case letter, convert to upper case
-		else if (*vIter >= 97 && *vIter <= 122)
-		{
-			*vIter -= 32;
-			int offset = *vIter - 65;
-			DWORD* tFmem = tempFrameMem;
-			DWORD* tCmem = mCharFrames[offset];
-			for (int i = 0; i < region.getHeight(); i++)
-			{
-				memcpy(tFmem, tCmem, sizeof(DWORD)*mCellWidthPx);
-				tFmem += int(region.getWidth());
-				tCmem += mCellWidthPx;
-			}
-		}
+	
 
 		//draw cursor overlay
 
@@ -497,10 +515,10 @@ void UITextField::Draw(DWORD* mem, int lpitch32, float timeDelta)
 
 	//draw border
 
-	DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-	DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 
 
@@ -525,8 +543,13 @@ void UITextField::Draw(DWORD* mem, int lpitch32, float timeDelta)
 
 }
 
+void UITextField::Clear()
+{
+	mText.clear();
+	mCursorPos = 0;
+}
 
-UIRegion::UIRegion(int xpos, int ypos, int width, int height, DWORD color)
+UIRegion::UIRegion(int xpos, int ypos, string title, int width, int height, DWORD color)
 {
 	region.setPos(xpos, ypos);
 	region.setWidth(width);
@@ -543,6 +566,8 @@ UIRegion::UIRegion(int xpos, int ypos, int width, int height, DWORD color)
 
 	mFrameMem = new DWORD[region.getWidth() * region.getHeight()];
 	mFrameSize = region.getWidth() * region.getHeight() * sizeof(DWORD);
+
+	mElementName = title;
 }
 
 UIRegion::UIRegion()
@@ -576,20 +601,29 @@ void UIRegion::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	ZeroMemory(mFrameMem, mFrameSize);
 
 	RECT r = region.GetWINRECT();
-	DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth()-1, 0, mBorderColor, mBorderColor);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth()-1, 0, region.getWidth()-1, region.getHeight() - 1, mBorderColor, mBorderColor);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth()-1, region.getHeight()-1, 0, region.getHeight()-1, mBorderColor, mBorderColor);
-	DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight()-1, 0, 0, mBorderColor, mBorderColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),    0, 0, region.getWidth()-1, 0, mBorderColor, mBorderColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(), region.getWidth()-1, 0, region.getWidth()-1, region.getHeight() - 1, mBorderColor, mBorderColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),    region.getWidth()-1, region.getHeight()-1, 0, region.getHeight()-1, mBorderColor, mBorderColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),   0, region.getHeight()-1, 0, 0, mBorderColor, mBorderColor);
 
+	
 
 	int xstart = 1;
 	int xend = region.getWidth() - 1 ;
 	int y = 1;
 
 	for (y; y < region.getHeight() - 1; y++)
-		DrawLine(mFrameMem, region.getWidth(), xstart, y, xend, y, mBckgColor, mBckgColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  xstart, y, xend, y, mBckgColor, mBckgColor);
 
-	//blit to screen
+	//draw the title to new memory
+	DWORD* titleFrameMem;
+	int titlePitch;
+	int titleHeight;
+	VECTOR2D titlePos(region.GetPosition().x + region.getWidth() / 2, region.GetPosition().y - 10);
+	TextRenderer::RenderTextAt(mem, lpitch32, mElementName, titlePos.x, titlePos.y, 10.0f, COLOR_GREY);
+
+
+	//blit main frame to screen
 	DWORD* tempMem = mFrameMem;
 	DWORD* tempMainMem = mem;
 	VECTOR2D pos = region.GetPosition();
@@ -602,6 +636,7 @@ void UIRegion::Draw(DWORD* mem, int lpitch32, float timeDelta)
 		tempMainMem += lpitch32;
 		tempMem += int(region.getWidth());
 	}
+
 	
 }
 
@@ -745,17 +780,17 @@ void UIList::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	}
 
 	//draw the main frame
-	DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth()-1, 0, frameColor, frameColor);
-	DrawLine(mFrameMem, region.getWidth(), 0, 1, region.getWidth()-1, 1, frameColor, frameColor); //1 pixel frame
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth()-1, 0, frameColor, frameColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 1, region.getWidth()-1, 1, frameColor, frameColor); //1 pixel frame
 
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth()-1, 0, region.getWidth()-1, region.getHeight()-1, frameColor, frameColor);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth()-2, 0, region.getWidth()-2, region.getHeight()-1, frameColor, frameColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth()-1, 0, region.getWidth()-1, region.getHeight()-1, frameColor, frameColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth()-2, 0, region.getWidth()-2, region.getHeight()-1, frameColor, frameColor);
 
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth()-1, region.getHeight()-1, 0, region.getHeight()-1, frameColor, frameColor);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth()-1, region.getHeight()-2, 0, region.getHeight()-2, frameColor, frameColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth()-1, region.getHeight()-1, 0, region.getHeight()-1, frameColor, frameColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth()-1, region.getHeight()-2, 0, region.getHeight()-2, frameColor, frameColor);
 
-	DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight()-1, 0, 0, frameColor, frameColor);
-	DrawLine(mFrameMem, region.getWidth(), 1, region.getHeight()-1, 1, 0, frameColor, frameColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight()-1, 0, 0, frameColor, frameColor);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  1, region.getHeight()-1, 1, 0, frameColor, frameColor);
 
 	
 
@@ -763,7 +798,7 @@ void UIList::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	for (int i = 0; i < mItemList.size(); i++)
 	{
 		int cellDivider = (mItemList[i].region.GetPosition().y - region.GetPosition().y) + mCellHeight;
-		DrawLine(mFrameMem, region.getWidth(), 0, cellDivider, region.getWidth(), cellDivider, frameColor, frameColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, cellDivider, region.getWidth(), cellDivider, frameColor, frameColor);
 	}
 
 
@@ -794,7 +829,7 @@ void UIList::AddItem(string text, void(*callback)())
 	i.txt = text;
 	i.region = { region.GetPosition().x, region.GetPosition().y + mCellHeight * mItemList.size(), region.GetPosition().x + region.getWidth(), region.GetPosition().y + mCellHeight * mItemList.size() + mCellHeight };
 	i.itemFrame = new DWORD[int(i.region.getWidth() * i.region.getHeight()*sizeof(DWORD))];
-	renderTextToRegion(i.itemFrame, i.region.getWidth(), text, i.region.GetWINRECT(), COLOR_BLACK, COLOR_WHITE);
+	RenderTextToRegion(i.itemFrame, i.region.getWidth(), text, i.region.GetWINRECT(), COLOR_BLACK, COLOR_WHITE);
 	mItemList.push_back(i);
 
 	// recalculate the main region
@@ -904,12 +939,12 @@ void UISelectionBox::Draw(DWORD* mem, int lpitch32, float timeDelta)
 			borderColor = COLOR_BLUE;
 
 		//draw the title by itself
-		renderTextToRegion(mFrameMem, (int)region.getWidth(), mSelectedTitle, region.GetWINRECT(), bgColor, COLOR_BLUE);
+		RenderTextToRegion(mFrameMem, (int)region.getWidth(), mSelectedTitle, region.GetWINRECT(), bgColor, COLOR_BLUE);
 
-		DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 
 	}
@@ -922,12 +957,12 @@ void UISelectionBox::Draw(DWORD* mem, int lpitch32, float timeDelta)
 			borderColor = COLOR_BLUE;
 
 		//draw title
-		renderTextToRegion(mFrameMem, (int)region.getWidth(), mSelectedTitle, region.GetWINRECT(), bgColor, COLOR_BLUE);
+		RenderTextToRegion(mFrameMem, (int)region.getWidth(), mSelectedTitle, region.GetWINRECT(), bgColor, COLOR_BLUE);
 
-		DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 		//draw the elements
 		DWORD* tempItemMem = mItemFrameMem;
@@ -938,12 +973,12 @@ void UISelectionBox::Draw(DWORD* mem, int lpitch32, float timeDelta)
 			else
 				borderColor = COLOR_BLUE;
 
-			renderTextToRegion(tempItemMem, (int)region.getWidth(), mItems[i], mItemRegions[i].GetWINRECT(), bgColor, COLOR_BLUE);
+			RenderTextToRegion(tempItemMem, (int)region.getWidth(), mItems[i], mItemRegions[i].GetWINRECT(), bgColor, COLOR_BLUE);
 
-			DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-			DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-			DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-			DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 			tempItemMem += int(region.getHeight())*int(region.getWidth());
 		}
@@ -1133,13 +1168,13 @@ void UIDropdownMenu::Draw(DWORD* mem, int lpitch32, float timeDelta)
 			borderColor = COLOR_BLUE;
 
 		//draw the title by itself
-		renderTextToRegion(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT(), bgColor, COLOR_RED);
+		RenderTextToRegion(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT(), bgColor, COLOR_RED);
 		
 
-		DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 
 	}
@@ -1152,12 +1187,12 @@ void UIDropdownMenu::Draw(DWORD* mem, int lpitch32, float timeDelta)
 			borderColor = COLOR_BLUE;
 
 		//draw title
-		renderTextToRegion(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT(), bgColor, COLOR_RED);
+		RenderTextToRegion(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT(), bgColor, COLOR_RED);
 
-		DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-		DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 
 		//draw the elements
@@ -1169,12 +1204,12 @@ void UIDropdownMenu::Draw(DWORD* mem, int lpitch32, float timeDelta)
 			else
 				borderColor = COLOR_BLUE;
 
-			renderTextToRegion(tempItemMem, (int)region.getWidth(), mItems[i].title, mItemRegions[i].GetWINRECT(), bgColor, COLOR_RED);
+			RenderTextToRegion(tempItemMem, (int)region.getWidth(), mItems[i].title, mItemRegions[i].GetWINRECT(), bgColor, COLOR_RED);
 
-			DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
-			DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
-			DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
-			DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
+			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
+			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
+			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, borderColor, borderColor);
+			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight() - 1, 0, 0, borderColor, borderColor);
 
 
 			tempItemMem += int(region.getHeight())*int(region.getWidth());
@@ -1516,10 +1551,10 @@ void UIDropContainer::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	else if (stateID == UISTATE_HOVER)
 		colorState = COLOR_RED;
 
-	DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth() - 1, 0, colorState, colorState);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
-	DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() - 1, 0, 0, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight() - 1, 0, 0, colorState, colorState);
 
 	//draw items
 	DWORD* tempFrameMem;
@@ -1694,15 +1729,15 @@ void UIWindow::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	for (int i = 0; i < region.getHeight(); i++)
 	{
 		if (i < titleBarWidth)
-			DrawLine(mFrameMem, region.getWidth(), 0, i, region.getWidth()-1, i, mTitleBarColor, mTitleBarColor);
+			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, i, region.getWidth()-1, i, mTitleBarColor, mTitleBarColor);
 		else
-			DrawLine(mFrameMem, region.getWidth(), 0, i, region.getWidth()-1, i, mBackgroundColor, mBackgroundColor);
+			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, i, region.getWidth()-1, i, mBackgroundColor, mBackgroundColor);
 
 	}
 	
 	RECT r = region.GetWINRECT();
 	r.bottom = r.top + titleBarWidth;
-	renderTextToRegion(mFrameMem, region.getWidth(), mTitle, r, mTitleBarColor, COLOR_RED);
+	RenderTextToRegion(mFrameMem, region.getWidth(), mTitle, r, mTitleBarColor, COLOR_RED);
 	
 	//blit to screen
 	DWORD* tempMem = mFrameMem;
@@ -1790,7 +1825,7 @@ UIText::~UIText()
 void UIText::Draw(DWORD* mem, int lpitch32, float deltaTime)
 {
 	ZeroMemory(mFrameMem, mFrameSize);
-	renderTextToRegion(mFrameMem, region.getWidth(), mText, region.GetWINRECT(), mBackgroundColor, mTextColor);
+	RenderTextToRegion(mFrameMem, region.getWidth(), mText, region.GetWINRECT(), mBackgroundColor, mTextColor);
 
 
 	//blit to screen
@@ -1824,7 +1859,209 @@ std::string UIText::GetText()
 UserInterface::~UserInterface() {}
 
 
+bool UserInterface::CheckLastProcessEventResults(int code)
+{
+	auto vIter = lastEventResultList.begin();
+	for (;vIter < lastEventResultList.end(); vIter++)
+	{
+		if (*vIter == code)
+			return true;
+	}
 
+	return false;
+}
+
+void UserInterface::ProcessEvent(UINT msg, WPARAM wparam, LPARAM lparam)
+{
+	lastEventResultList.clear();
+
+	switch (msg)
+	{
+
+	case WM_LBUTTONDOWN:
+	{
+		float xPos = GET_X_LPARAM(lparam);
+		float yPos = GET_Y_LPARAM(lparam);
+
+		mIsLButtonDown = true;
+		LARGE_INTEGER timestmp;
+		QueryPerformanceCounter(&timestmp);
+		m_LMouseDownTimeStamp = timestmp.QuadPart;
+		mLMouseDownPosition = VECTOR2D(xPos, yPos);
+
+		int elmOffset = 0;
+		bool isElementHit = false;
+		vector<UIElement*>::iterator vIter;
+
+		//check if any gui element is hit
+		for (vIter = mUIElements.begin(); vIter < mUIElements.end(); vIter++, elmOffset++)
+		{
+			//make sure the element is visible and enabled
+			if ((*vIter)->GetVisibility() && (*vIter)->GetEnabledState())
+			{
+				//on hit, do this
+				if ((*vIter)->OnLDown(xPos, yPos))
+				{
+					//if clicked on element not previously focused
+					if (elmOffset != mElementInFocus)
+					{
+
+						RemoveFocus();
+						(*vIter)->SetFocus(true);
+						mElementInFocus = elmOffset;
+					}
+
+
+					isElementHit = true;
+					break;
+				}
+			}
+
+		}
+
+		//nothing is hit
+		if (isElementHit == false)
+		{
+			RemoveFocus();
+			lastEventResultList.push_back(GUI_MOUSEDOWN_NOHIT);	
+		}
+		else
+			lastEventResultList.push_back(GUI_MOUSEDOWN_HIT);
+
+	}break;
+
+	case WM_LBUTTONUP:
+	{
+		float xPos = GET_X_LPARAM(lparam);
+		float yPos = GET_Y_LPARAM(lparam);
+
+		mIsLButtonDown = false;
+		LARGE_INTEGER t;
+		QueryPerformanceCounter(&t);
+		double nowCount = t.QuadPart;
+		double countDifference = nowCount - m_LMouseDownTimeStamp;
+
+
+		if (mElementInFocus != -1) //something has focus
+		{
+			//let the previously focused element handle the up click
+			mUIElements[mElementInFocus]->OnLUp(xPos, yPos);
+
+		}
+		else
+		{
+
+			/*
+			//see if anytyhing is hit on up click
+			int elmOffset = 0;
+			bool isElementHit = false;
+			vector<UIElement*>::iterator vIter;
+			for (vIter = mUIElements.begin(); vIter < mUIElements.end(); vIter++, elmOffset++)
+			{
+
+			//if hit, do this
+			if ((*vIter)->OnLUp(xPos, yPos))
+			{
+			//clicked on previously focused element
+			if (elmOffset == mElementInFocus)
+			{
+			//	(*vIter)->isInFocus = false;
+			//		mElementInFocus = -1;
+			}
+			else //if (focusable)
+			{
+			RemoveFocus();
+			(*vIter)->isInFocus = true;
+			mElementInFocus = elmOffset;
+			}
+			//else //clicked on unfocusable element
+			//	RemoveFocus();
+
+			isElementHit = true;
+			break;
+			}
+
+			}
+
+			//nothing was hit
+			if (isElementHit == false)
+			{
+
+			RemoveFocus();
+
+			return GUI_MOUSEUP_NOHIT;
+			}
+
+			return GUI_MOUSEUP_HIT;
+			*/
+		}
+
+	}break;
+
+	case WM_MOUSEMOVE:
+	{
+		float xPos = GET_X_LPARAM(lparam);
+		float yPos = GET_Y_LPARAM(lparam);
+
+		mousePos = { (LONG)xPos, (LONG)yPos };
+		vector<UIElement*>::iterator vIter;
+		for (vIter = mUIElements.begin(); vIter < mUIElements.end(); vIter++)
+		{
+			//make sure the element is visible and enabled
+			if ((*vIter)->GetVisibility() && (*vIter)->GetEnabledState())
+				(*vIter)->OnHover(xPos, yPos);
+
+		}
+
+	}break;
+
+
+	case WM_KEYDOWN:
+	{
+
+		//if element has focus, filter for text characters and send to element
+		if (mElementInFocus != -1)
+		{
+			//make sure the element is enabled and visible
+			if (!(mUIElements[mElementInFocus]->GetVisibility() && mUIElements[mElementInFocus]->GetEnabledState()))
+				return;
+
+			//virtual key codes match directly to ascii table
+			bool isNumber = wparam >= 0x30 && wparam <= 0x39;
+			bool isLetter = wparam >= 0x41 && wparam <= 0x5A;
+			bool isSpace = wparam == 32;
+
+			if (isNumber || isLetter || isSpace)
+				if (mUIElements[mElementInFocus]->GetType() == UITYPE_TEXTFIELD)
+				{
+					UITextField* tfld = (UITextField*)mUIElements[mElementInFocus];
+					tfld->AddCharacter(wparam);
+				}
+
+			if (wparam == VK_BACK)
+			{
+				UITextField* tfld = (UITextField*)mUIElements[mElementInFocus];
+				tfld->RemoveCharacter();
+			}
+		}
+
+
+		if (wparam == 0xC0)
+		{
+			isUIVisible = !isUIVisible;
+
+
+		}
+
+
+	}
+
+
+	default: break;
+	}
+
+
+}
 
 UIButton* UserInterface::createButton(void(*lbCallback)(), int xPos, int yPos, string text, int width, int height)
 {
@@ -1926,9 +2163,9 @@ UIList* UserInterface::createList(int xPos, int yPos, int width)
 	return list;
 }
 
-UIRegion* UserInterface::createRegion(int xPos, int yPos, int width, int height, DWORD color)
+UIRegion* UserInterface::createRegion(int xPos, int yPos, string title, int width, int height, DWORD color)
 {
-	UIRegion * reg = new UIRegion(xPos, yPos, width, height, color);
+	UIRegion * reg = new UIRegion(xPos, yPos, title, width, height, color);
 	mUIElements.push_back((UIElement*)reg);
 
 	return reg;
@@ -1970,139 +2207,7 @@ POINT UserInterface::getLMDPosition()
 }
 
 
-//process mouse down and up for gui, returns if hit and mouse state
-int UserInterface::ProcessMouseClick(int mouseButton, bool isPressedDown, int xPos, int yPos)
-{
-	if (mouseButton == UI_LMOUSEBUTTON)
-	{
-		if (isPressedDown == true) //down click
-		{
 
-			mIsLButtonDown = true;
-			LARGE_INTEGER timestmp;
-			QueryPerformanceCounter(&timestmp);
-			m_LMouseDownTimeStamp = timestmp.QuadPart;
-			mLMouseDownPosition = VECTOR2D(xPos, yPos);
-
-			int elmOffset = 0;
-			bool isElementHit = false;
-			vector<UIElement*>::iterator vIter;
-
-			//check if any gui element is hit
-			for (vIter = mUIElements.begin(); vIter < mUIElements.end(); vIter++, elmOffset++)
-			{
-				//make sure the element is active (visible)
-				if ((*vIter)->GetVisibility())
-				{
-					//on hit, do this
-					if ((*vIter)->OnLDown(xPos, yPos))
-					{
-						//if clicked on element not previously focused
-						if (elmOffset != mElementInFocus)
-						{
-
-							RemoveFocus();
-							(*vIter)->SetFocus(true);
-							mElementInFocus = elmOffset;
-						}
-
-
-						isElementHit = true;
-						break;
-					}
-				}
-
-			}
-
-			//nothing is hit
-			if (isElementHit == false)
-			{
-
-				RemoveFocus();
-
-				return GUI_MOUSEDOWN_NOHIT;
-			}
-
-			return GUI_MOUSEDOWN_HIT;
-		}
-		else if (isPressedDown == false) //up click
-		{
-
-			mIsLButtonDown = false;
-			LARGE_INTEGER t;
-			QueryPerformanceCounter(&t);
-			double nowCount = t.QuadPart;
-			double countDifference = nowCount - m_LMouseDownTimeStamp;
-
-
-			if (mElementInFocus != -1) //something has focus
-			{
-				//let the previously focused element handle the up click
-				mUIElements[mElementInFocus]->OnLUp(xPos, yPos);
-
-			}
-			else
-			{
-
-				/*
-				//see if anytyhing is hit on up click
-				int elmOffset = 0;
-				bool isElementHit = false;
-				vector<UIElement*>::iterator vIter;
-				for (vIter = mUIElements.begin(); vIter < mUIElements.end(); vIter++, elmOffset++)
-				{
-
-				//if hit, do this
-				if ((*vIter)->OnLUp(xPos, yPos))
-				{
-				//clicked on previously focused element
-				if (elmOffset == mElementInFocus)
-				{
-				//	(*vIter)->isInFocus = false;
-				//		mElementInFocus = -1;
-				}
-				else //if (focusable)
-				{
-				RemoveFocus();
-				(*vIter)->isInFocus = true;
-				mElementInFocus = elmOffset;
-				}
-				//else //clicked on unfocusable element
-				//	RemoveFocus();
-
-				isElementHit = true;
-				break;
-				}
-
-				}
-
-				//nothing was hit
-				if (isElementHit == false)
-				{
-
-				RemoveFocus();
-
-				return GUI_MOUSEUP_NOHIT;
-				}
-
-				return GUI_MOUSEUP_HIT;
-				*/
-			}
-
-
-		}
-
-
-	}
-	else if (mouseButton == UI_MMOUSEBUTTON)
-	{
-
-	}
-	else if (mouseButton == UI_RMOUSEBUTTON)
-	{
-
-	}
-}
 
 void UserInterface::RemoveFocus()
 {
@@ -2114,19 +2219,7 @@ void UserInterface::RemoveFocus()
 	}
 }
 
-//process highlights and OnHover functions
-void UserInterface::ProcessMousePosition(int xPos, int yPos)
-{
 
-	mousePos = { xPos, yPos };
-	vector<UIElement*>::iterator vIter;
-	for (vIter = mUIElements.begin(); vIter < mUIElements.end(); vIter++)
-	{
-		(*vIter)->OnHover(xPos, yPos);
-
-	}
-
-}
 
 
 
@@ -2227,6 +2320,16 @@ void UserInterface::DrawUI(float deltaTime)
 
 }
 
+UIElement* UserInterface::GetHitElement(int x, int y)
+{
+	auto vIter = mUIElements.begin();
+	for (vIter; vIter != mUIElements.end(); vIter++)
+		if ((*vIter)->IsInRegion(x, y))
+			return *vIter;;
+	
+	return 0;
+}
+
 char* UserInterface::GetCharacterBitmap(char c)
 {
 	return getCharBitmap(c);
@@ -2274,8 +2377,13 @@ void UserInterface::sortElementsByDepth()
 	}
 }
 
+void UserInterface::Clear()
+{
+	mUIElements.clear();
+}
 
-void renderTextToRegion(DWORD* buffer, int lpitch32, string text, RECT region, DWORD bgColor, DWORD color)
+
+void RenderTextToRegion(DWORD* buffer, int lpitch32, string text, RECT region, DWORD bgColor, DWORD color)
 {
 	for (int r = 0; r < region.bottom - region.top; r++)
 		for (int c = 0; c < region.right - region.left; c++)
@@ -2289,311 +2397,311 @@ void renderTextToRegion(DWORD* buffer, int lpitch32, string text, RECT region, D
 	if (numChars == 0)
 		return;
 
-	int pxBorderWidth = 5;
+	int pxBorder = (region.bottom - region.top - 10) / 2;
 	int pxCharSpacing = 2;
 
-	//how many pixels in width per character
-	int regWidth = region.right - region.left  - pxBorderWidth*2;
-	int regHeight = region.bottom - region.top - pxBorderWidth*2;
+	//how many pixels in width per charactermBufferPitch
+	int regWidth = region.right - region.left - pxBorder * 2;
+	int regHeight = region.bottom - region.top - pxBorder * 2;
 	int regHalfHeight = int((float(regHeight) / 2.0f) + 0.5f);
 	int regThreeFourthHeight = int((float(regHeight) * 3.0f / 4.0f) + 0.5f);
 	int regQuarterHeight = int((float(regHeight) / 4.0f) + 0.5f);
-	int pxPerChar = int((float(regWidth - pxCharSpacing*numSpaces) / float(numChars)) + 0.5f);
-	int pxHalfChar = int((float(pxPerChar) / 2.0f) + 0.5f);
-	int pxQuarterChar = int((float(pxPerChar) / 4.0f) + 0.5f);
-	int pxThreeFourthChar = int((float(pxPerChar) * 3.0f / 4.0f) + 0.5f);
+	int pxCharWidth = int((float(regWidth - pxCharSpacing*numSpaces) / float(numChars)) + 0.5f);
+	int pxHalfChar = int((float(pxCharWidth) / 2.0f) + 0.5f);
+	int pxQuarterChar = int((float(pxCharWidth) / 4.0f) + 0.5f);
+	int pxThreeFourthChar = int((float(pxCharWidth) * 3.0f / 4.0f) + 0.5f);
 
 
 	string::iterator sIter = text.begin();
-	int cursorPos = pxBorderWidth;
+	int cursorPos = pxBorder;
 	for (sIter; sIter < text.end(); sIter++)
 	{
 		if (*sIter == 'A')
 		{
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, pxBorderWidth, color, color);
-			DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-			//	DrawLine(buffer,lpitch32, xOffset + (width / 2) - 2, yOffset + (height / 2), xOffset + (width / 2) + 2, yOffset + (height / 2), color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxHalfChar, pxBorder, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxHalfChar, pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
+			//	DrawLine(buffer,lpitch32, regHeight, xOffset + (width / 2) - 2, yOffset + (height / 2), xOffset + (width / 2) + 2, yOffset + (height / 2), color, color);
 		}
 		else if (*sIter == 'B')
 		{
 			//vertical stem
-			DrawLine(buffer,lpitch32, cursorPos , pxBorderWidth, cursorPos , regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos , pxBorder, cursorPos , regHeight + pxBorder, color, color);
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos , pxBorderWidth, cursorPos  + pxThreeFourthChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos , pxBorder, cursorPos  + pxThreeFourthChar, pxBorder, color, color);
 			//mid horiz line
-			DrawLine(buffer,lpitch32, cursorPos , regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos , regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 			//lower horiz line
-			DrawLine(buffer,lpitch32, cursorPos , regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos , regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//top cell vertical
-			DrawLine(buffer,lpitch32, cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxThreeFourthChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxThreeFourthChar, pxBorder, cursorPos + pxThreeFourthChar, regHalfHeight + pxBorder, color, color);
 			//bottom cell vertical
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 
 
 		}
 		else if (*sIter == 'C')
 		{
 			//vertical stem
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//top cell vertical
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//bottom cell vertical
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'D')
 		{
 			//vertical stem
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxThreeFourthChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxThreeFourthChar, pxBorder, color, color);
 			//bottom horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxThreeFourthChar, regHeight + pxBorder, color, color);
 			//top chord
-			DrawLine(buffer,lpitch32, cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxPerChar, regQuarterHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxThreeFourthChar, pxBorder, cursorPos + pxCharWidth, regQuarterHeight + pxBorder, color, color);
 			//right vertical
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth + regQuarterHeight, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, pxBorder + regQuarterHeight, cursorPos + pxCharWidth, regHeight + pxBorder - regQuarterHeight, color, color);
 			//bottom chord
-			DrawLine(buffer,lpitch32, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxThreeFourthChar, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder - regQuarterHeight, color, color);
 
 		}
 		else if (*sIter == 'E')
 		{
 			//vertical stem
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//middle horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 			//lower horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'F')
 		{
 			//vertical stem
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//middle horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'G')
 		{
 			//vertical stem
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//lower horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//left vertical
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//middle horiz line
-			DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxHalfChar, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'H')
 		{
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//vertical right
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//middle horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'I')
 		{
 			//vertical stem 
-			DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxHalfChar, pxBorder, cursorPos + pxHalfChar, regHeight + pxBorder, color, color);
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//lower horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'J')
 		{
 			//vertical right
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//lower horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHalfHeight + pxBorder, cursorPos, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'K')
 		{
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//top diagonal
-			DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//bottom diagonal
-			DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'L')
 		{
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//lower horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'M')
 		{
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//vertical right
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//diag left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxHalfChar, regHalfHeight + pxBorder, color, color);
 			//diag right
-			DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxHalfChar, regHalfHeight + pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 
 		}
 		else if (*sIter == 'N')
 		{
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//vertical right
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//diag left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'O')
 		{
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//vertical right
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//lower horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'P')
 		{
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 			//middle horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'Q')
 		{
 			//vertical stem
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//bottom horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxThreeFourthChar, regHeight + pxBorder, color, color);
 			//right vertical
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//bottom chord
-			DrawLine(buffer,lpitch32, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxThreeFourthChar, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder - regQuarterHeight, color, color);
 			
 		}
 		else if (*sIter == 'R')
 		{
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 			//middle horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 			//bottom diagonal
-			DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'S')
 		{
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos + pxQuarterChar, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxQuarterChar, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//1st chord
-			DrawLine(buffer,lpitch32, cursorPos, regQuarterHeight + pxBorderWidth, cursorPos + pxQuarterChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regQuarterHeight + pxBorder, cursorPos + pxQuarterChar, pxBorder, color, color);
 			//2nd vertical left
-			DrawLine(buffer,lpitch32, cursorPos, regQuarterHeight + pxBorderWidth, cursorPos, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regQuarterHeight + pxBorder, cursorPos, regHalfHeight + pxBorder, color, color);
 			//middle horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 			//3rd vertical left
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regThreeFourthHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regThreeFourthHeight + pxBorder, color, color);
 			//bottom horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxThreeFourthChar, regHeight + pxBorder, color, color);
 			//bottom chord
-			DrawLine(buffer,lpitch32, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxThreeFourthChar, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder - regQuarterHeight, color, color);
 
 		}
 		else if (*sIter == 'T')
 		{
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//vertical stem 
-			DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxHalfChar, pxBorder, cursorPos + pxHalfChar, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'U')
 		{
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//vertical right
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//lower horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'V')
 		{
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
-			DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxHalfChar, regHeight + pxBorder, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxHalfChar, regHeight + pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 
 		}
 		else if (*sIter == 'W')
 		{
 			//vertical left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos, regHeight + pxBorder, color, color);
 			//vertical right
-			DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//diag left
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxHalfChar, regHalfHeight + pxBorder, color, color);
 			//diag right
-			DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxHalfChar, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'X')
 		{
 		
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 
 		}
 		else if (*sIter == 'Y')
 		{
 			//diag left
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxHalfChar, regHalfHeight + pxBorder, color, color);
 			//diag right
-			DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxHalfChar, regHalfHeight + pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//vertical stem 
-			DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos + pxHalfChar, regHalfHeight + pxBorder, cursorPos + pxHalfChar, regHeight + pxBorder, color, color);
 
 		}
 		else if (*sIter == 'Z')
 		{
 			//top horiz line
-			DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 			//lower horiz line
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxCharWidth, regHeight + pxBorder, color, color);
 			//diag 
-			DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
+			DrawLine(buffer,lpitch32, regHeight, cursorPos, regHeight + pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
 
 		}
 		else if (*sIter == ' ')
@@ -2601,648 +2709,382 @@ void renderTextToRegion(DWORD* buffer, int lpitch32, string text, RECT region, D
 			//do nothing, let it skip
 		}
 
-		cursorPos += pxPerChar + pxCharSpacing;
+		cursorPos += pxCharWidth + pxCharSpacing;
 
 	} //end for string iterator
 }
 
-void renderTextToRegion(DWORD* buffer, int lpitch32, char letter, RECT region, DWORD bckgColor, DWORD color)
+void RenderTextToRegion(DWORD* buffer, int lpitch32, char letter, RECT region, DWORD bckgColor, DWORD color)
 {
 
-	for (int r = 0; r < region.bottom; r++)
-		for (int c = 0; c < region.right; c++)
-			buffer[c + r*region.bottom] = bckgColor;
+	string s(&letter);
+	RenderTextToRegion(buffer, lpitch32, s, region, bckgColor, color);
+}
+
+
+DWORD* TextRenderer::mBuffer;
+int TextRenderer::mBufferPitch;
+int TextRenderer::mFontHeight;
+
+void TextRenderer::RenderTextAt(DWORD* buffer, int lpitch32, string text, int x, int y, float scale, DWORD color)
+{
+
 
 	//how many characters to draw
-	int numChars = 1;
+	int numChars = text.size();
 	int numSpaces = numChars - 1;
 
 	//null string, break
 	if (numChars == 0)
 		return;
 
-	int pxBorderWidth = 5;
-	int pxCharSpacing = 2;
+	//define aspect ratio
+	float aspectRatio = 0.5f;
+
+	int pxCharWidth = 1 * scale;
+
+	int pxBorder = 0;
+	int pxCharSpacing = pxCharWidth/5;
 
 	//how many pixels in width per character
-	int regWidth = region.right - region.left - pxBorderWidth * 2;
-	int regHeight = region.bottom - region.top - pxBorderWidth * 2;
+	int regWidth = numChars * pxCharWidth;
+	int regHeight = pxCharWidth / aspectRatio;
+
 	int regHalfHeight = int((float(regHeight) / 2.0f) + 0.5f);
 	int regThreeFourthHeight = int((float(regHeight) * 3.0f / 4.0f) + 0.5f);
 	int regQuarterHeight = int((float(regHeight) / 4.0f) + 0.5f);
-	int pxPerChar = int((float(regWidth - pxCharSpacing*numSpaces) / float(numChars)) + 0.5f);
-	int pxHalfChar = int((float(pxPerChar) / 2.0f) + 0.5f);
-	int pxQuarterChar = int((float(pxPerChar) / 4.0f) + 0.5f);
-	int pxThreeFourthChar = int((float(pxPerChar) * 3.0f / 4.0f) + 0.5f);
+	
+	int pxHalfChar = int((float(pxCharWidth) / 2.0f) + 0.5f);
+	int pxQuarterChar = int((float(pxCharWidth) / 4.0f) + 0.5f);
+	int pxThreeFourthChar = int((float(pxCharWidth) * 3.0f / 4.0f) + 0.5f);
+
+	//create a buffer
+	mBuffer = new DWORD[regWidth * regHeight];
+	mBufferPitch = regWidth;
+	mFontHeight = regHeight;
+
+	string::iterator sIter = text.begin();
+	int cursorPos = pxBorder;
+	
+	for (sIter; sIter < text.end(); sIter++)
+	{/*
+		if (*sIter == 'A')
+		{
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxHalfChar, pxBorder, color, color);
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxHalfChar, pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//	DrawLine(mBuffer,mBufferPitch, xOffset + (width / 2) - 2, yOffset + (height / 2), xOffset + (width / 2) + 2, yOffset + (height / 2), color, color);
+		}
+		
+		else if (*sIter == 'B')
+		{
+			//vertical stem
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxThreeFourthChar, pxBorder, color, color);
+			//mid horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
+			//lower horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//top cell vertical
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxThreeFourthChar, pxBorder, cursorPos + pxThreeFourthChar, regHalfHeight + pxBorder, color, color);
+			//bottom cell vertical
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
 
 
+		}
+		else if (*sIter == 'C')
+		{
+			//vertical stem
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//top cell vertical
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//bottom cell vertical
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
 
-	int cursorPos = pxBorderWidth;
+		}
+				else if (*sIter == 'D')
+		{
+			//vertical stem
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxThreeFourthChar, pxBorder, color, color);
+			//bottom horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxThreeFourthChar, regHeight - pxBorder, color, color);
+			//top chord
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxThreeFourthChar, pxBorder, cursorPos + pxCharWidth, regQuarterHeight + pxBorder, color, color);
+			//right vertical
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, pxBorder + regQuarterHeight, cursorPos + pxCharWidth, regHeight - pxBorder - regQuarterHeight, color, color);
+			//bottom chord
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxThreeFourthChar, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder - regQuarterHeight, color, color);
 
-	if (letter == 'A')
-	{
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, pxBorderWidth, color, color);
-		DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//	DrawLine(buffer,lpitch32, xOffset + (width / 2) - 2, yOffset + (height / 2), xOffset + (width / 2) + 2, yOffset + (height / 2), color, color);
-	}
-	else if (letter == 'B')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxThreeFourthChar, pxBorderWidth, color, color);
-		//mid horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//top cell vertical
-		DrawLine(buffer,lpitch32, cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxThreeFourthChar, regHalfHeight + pxBorderWidth, color, color);
-		//bottom cell vertical
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-
-
-	}
-	else if (letter == 'C')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//top cell vertical
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//bottom cell vertical
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'D')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxThreeFourthChar, pxBorderWidth, color, color);
-		//bottom horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
-		//top chord
-		DrawLine(buffer,lpitch32, cursorPos + pxThreeFourthChar, pxBorderWidth, cursorPos + pxPerChar, regQuarterHeight + pxBorderWidth, color, color);
-		//right vertical
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth + regQuarterHeight, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
-		//bottom chord
-		DrawLine(buffer,lpitch32, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
-
-	}
-	else if (letter == 'E')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'F')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'G')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//left vertical
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'H')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'I')
-	{
-		//vertical stem 
-		DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'J')
-	{
-		//vertical right
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'K')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//top diagonal
-		DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//bottom diagonal
-		DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'L')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'M')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//diag left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
-		//diag right
-		DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'N')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//diag left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'O')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'P')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'Q')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//bottom horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
-		//right vertical
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//bottom chord
-		DrawLine(buffer,lpitch32, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
-
-	}
-	else if (letter == 'R')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
-		//bottom diagonal
-		DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'S')
-	{
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos + pxQuarterChar, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//1st chord
-		DrawLine(buffer,lpitch32, cursorPos, regQuarterHeight + pxBorderWidth, cursorPos + pxQuarterChar, pxBorderWidth, color, color);
-		//2nd vertical left
-		DrawLine(buffer,lpitch32, cursorPos, regQuarterHeight + pxBorderWidth, cursorPos, regHalfHeight + pxBorderWidth, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, color, color);
-		//3rd vertical left
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regThreeFourthHeight + pxBorderWidth, color, color);
-		//bottom horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, color, color);
-		//bottom chord
-		DrawLine(buffer,lpitch32, cursorPos + pxThreeFourthChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth - regQuarterHeight, color, color);
-
-	}
-	else if (letter == 'T')
-	{
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//vertical stem 
-		DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'U')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'V')
-	{
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
-		DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'W')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos, regHeight + pxBorderWidth, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, cursorPos + pxPerChar, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//diag left
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
-		//diag right
-		DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'X')
-	{
-
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'Y')
-	{
-		//diag left
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, color, color);
-		//diag right
-		DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//vertical stem 
-		DrawLine(buffer,lpitch32, cursorPos + pxHalfChar, regHalfHeight + pxBorderWidth, cursorPos + pxHalfChar, regHeight + pxBorderWidth, color, color);
-
-	}
-	else if (letter == 'Z')
-	{
-		//top horiz line
-		DrawLine(buffer,lpitch32, cursorPos, pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, regHeight + pxBorderWidth, color, color);
-		//diag 
-		DrawLine(buffer,lpitch32, cursorPos, regHeight + pxBorderWidth, cursorPos + pxPerChar, pxBorderWidth, color, color);
-
-	}
-	else if (letter == ' ')
-	{
-		//do nothing, let it skip
-	}
+		}
 
 		
-}
+			else if (*sIter == 'E')
+		{
+			//vertical stem
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//middle horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
+			//lower horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
 
-void renderLetterToBuffer(DWORD* buffer, int lpitch32, int pxWidth, char letter, DWORD color)
-{
-	memset(buffer, 0, sizeof(DWORD)*pxWidth*pxWidth);
+		}
+		else if (*sIter == 'F')
+		{
+			//vertical stem
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//middle horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 
-	//make zero based, 0 to width-1
-	pxWidth--;
+		}
+		else if (*sIter == 'G')
+		{
+			//vertical stem
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//lower horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//left vertical
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//middle horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxHalfChar, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 
-	//how many pixels in width per character
-	int pxHalfWidth = int((float(pxWidth) / 2.0f) + 0.5f);
-	int pxThreeFourthWidth = int((float(pxWidth) * 3.0f / 4.0f) + 0.5f);
-	int pxQuarterWidth = int((float(pxWidth) / 4.0f) + 0.5f);
+		}
+		else if (*sIter == 'H')
+		{
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//vertical right
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//middle horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
 
+		}
+		else if (*sIter == 'I')
+		{
+			//vertical stem 
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxHalfChar, pxBorder, cursorPos + pxHalfChar, regHeight - pxBorder, color, color);
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//lower horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
 
-	if (letter == 'A')
+		}
+		else if (*sIter == 'J')
+		{
+			//vertical right
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//lower horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHalfHeight + pxBorder, cursorPos, regHeight - pxBorder, color, color);
+
+		}
+		else if (*sIter == 'K')
+		{
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//top diagonal
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//bottom diagonal
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+
+		}
+				else if (*sIter == 'L')
+		{
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//lower horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+
+		}
+		else if (*sIter == 'M')
+		{
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//vertical right
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//diag left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxHalfChar, regHalfHeight + pxBorder, color, color);
+			//diag right
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxHalfChar, regHalfHeight + pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+
+		}
+		else if (*sIter == 'N')
+		{
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//vertical right
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//diag left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+
+		}
+		else if (*sIter == 'O')
+		{
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//vertical right
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//lower horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+
+		}
+		else if (*sIter == 'P')
+		{
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
+			//middle horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
+
+		}
+				else if (*sIter == 'Q')
+		{
+			//vertical stem
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//bottom horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxThreeFourthChar, regHeight - pxBorder, color, color);
+			//right vertical
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//bottom chord
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxThreeFourthChar, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder - regQuarterHeight, color, color);
+
+		}
+		else if (*sIter == 'R')
+		{
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
+			//middle horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
+			//bottom diagonal
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+
+		}
+	else if (*sIter == 'S')
+		{
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxQuarterChar, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//1st chord
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regQuarterHeight + pxBorder, cursorPos + pxQuarterChar, pxBorder, color, color);
+			//2nd vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regQuarterHeight + pxBorder, cursorPos, regHalfHeight + pxBorder, color, color);
+			//middle horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHalfHeight + pxBorder, color, color);
+			//3rd vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regThreeFourthHeight + pxBorder, color, color);
+			//bottom horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxThreeFourthChar, regHeight - pxBorder, color, color);
+			//bottom chord
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxThreeFourthChar, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder - regQuarterHeight, color, color);
+
+		}
+		else if (*sIter == 'T')
+		{
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//vertical stem 
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxHalfChar, pxBorder, cursorPos + pxHalfChar, regHeight - pxBorder, color, color);
+
+		}
+		else if (*sIter == 'U')
+		{
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//vertical right
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//lower horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+
+		}
+		else if (*sIter == 'V')
+		{
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxHalfChar, regHeight - pxBorder, color, color);
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxHalfChar, regHeight - pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+
+		}
+		else if (*sIter == 'W')
+		{
+			//vertical left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos, regHeight - pxBorder, color, color);
+			//vertical right
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxCharWidth, pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//diag left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxHalfChar, regHalfHeight + pxBorder, color, color);
+			//diag right
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxHalfChar, regHalfHeight + pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+
+		}
+		else if (*sIter == 'X')
+		{
+
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+
+		}
+		else if (*sIter == 'Y')
+		{
+			//diag left
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxHalfChar, regHalfHeight + pxBorder, color, color);
+			//diag right
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxHalfChar, regHalfHeight + pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//vertical stem 
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos + pxHalfChar, regHalfHeight + pxBorder, cursorPos + pxHalfChar, regHeight - pxBorder, color, color);
+
+		}
+		else if (*sIter == 'Z')
+		{
+			//top horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+			//lower horiz line
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, regHeight - pxBorder, color, color);
+			//diag 
+			DrawLine(mBuffer, mBufferPitch, mFontHeight,cursorPos, regHeight - pxBorder, cursorPos + pxCharWidth, pxBorder, color, color);
+
+		}
+		else if (*sIter == ' ')
+		{
+			//do nothing, let it skip
+		}
+		
+		cursorPos += pxCharWidth + pxCharSpacing;
+		*/
+	} //end for string iterator
+	
+
+	//draw to screen
+	DWORD* tempMem = mBuffer;
+	DWORD* tempMainMem = buffer;
+	VECTOR2D pos = VECTOR2D(x, y);
+	tempMainMem += int(pos.x + pos.y*lpitch32);
+
+	for (int i = 0; i < mFontHeight; i++)
 	{
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxHalfWidth, 0, color, color);
-		DrawLine(buffer,lpitch32, 0 + pxHalfWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//	DrawLine(buffer,lpitch32, xOffset + (width / 2) - 2, yOffset + (height / 2), xOffset + (width / 2) + 2, yOffset + (height / 2), color, color);
-	}
-	else if (letter == 'B')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxThreeFourthWidth, 0, color, color);
-		//mid horiz line
-		DrawLine(buffer,lpitch32, 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//top cell vertical
-		DrawLine(buffer,lpitch32, 0 + pxThreeFourthWidth, 0, 0 + pxThreeFourthWidth, pxHalfWidth + 0, color, color);
-		//bottom cell vertical
-		DrawLine(buffer,lpitch32, 0 + pxWidth, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-
-
-	}
-	else if (letter == 'C')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//top cell vertical
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, 0, color, color);
-		//bottom cell vertical
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'D')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxThreeFourthWidth, 0, color, color);
-		//bottom horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxThreeFourthWidth, pxWidth + 0, color, color);
-		//top chord
-		DrawLine(buffer,lpitch32, 0 + pxThreeFourthWidth, 0, 0 + pxWidth, pxQuarterWidth + 0, color, color);
-		//right vertical
-		DrawLine(buffer,lpitch32, 0 + pxWidth, 0 + pxQuarterWidth, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
-		//bottom chord
-		DrawLine(buffer,lpitch32, 0 + pxThreeFourthWidth, pxWidth + 0, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
-
-	}
-	else if (letter == 'E')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, 0, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'F')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, 0, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
-
-	}
-	else if (letter == 'G')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, 0, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//left vertical
-		DrawLine(buffer,lpitch32, 0 + pxWidth, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
-
-	}
-	else if (letter == 'H')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
-
-	}
-	else if (letter == 'I')
-	{
-		//vertical stem 
-		DrawLine(buffer,lpitch32, 0 + pxHalfWidth, 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, 0, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'J')
-	{
-		//vertical right
-		DrawLine(buffer,lpitch32, 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//vertical left
-		DrawLine(buffer,lpitch32, 0, pxHalfWidth + 0, 0, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'K')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//top diagonal
-		DrawLine(buffer,lpitch32, 0, pxHalfWidth + 0, 0 + pxWidth, 0, color, color);
-		//bottom diagonal
-		DrawLine(buffer,lpitch32, 0, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'L')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'M')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//diag left
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxHalfWidth, pxHalfWidth + 0, color, color);
-		//diag right
-		DrawLine(buffer,lpitch32, 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, 0, color, color);
-
-	}
-	else if (letter == 'N')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//diag left
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'O')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, 0, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'P')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, 0, color, color);
-		//vertical left
-		DrawLine(buffer,lpitch32, 0 + pxWidth, 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
-
-	}
-	else if (letter == 'Q')
-	{
-		//vertical stem
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, 0, color, color);
-		//bottom horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxThreeFourthWidth, pxWidth + 0, color, color);
-		//right vertical
-		DrawLine(buffer,lpitch32, 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//bottom chord
-		DrawLine(buffer,lpitch32, 0 + pxThreeFourthWidth, pxWidth + 0, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
-
-	}
-	else if (letter == 'R')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, 0, color, color);
-		//vertical left
-		DrawLine(buffer,lpitch32, 0 + pxWidth, 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
-		//bottom diagonal
-		DrawLine(buffer,lpitch32, 0, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'S')
-	{
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0 + pxQuarterWidth, 0, 0 + pxWidth, 0, color, color);
-		//1st chord
-		DrawLine(buffer,lpitch32, 0, pxQuarterWidth + 0, 0 + pxQuarterWidth, 0, color, color);
-		//2nd vertical left
-		DrawLine(buffer,lpitch32, 0, pxQuarterWidth + 0, 0, pxHalfWidth + 0, color, color);
-		//middle horiz line
-		DrawLine(buffer,lpitch32, 0, pxHalfWidth + 0, 0 + pxWidth, pxHalfWidth + 0, color, color);
-		//3rd vertical left
-		DrawLine(buffer,lpitch32, 0 + pxWidth, pxHalfWidth + 0, 0 + pxWidth, pxThreeFourthWidth + 0, color, color);
-		//bottom horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxThreeFourthWidth, pxWidth + 0, color, color);
-		//bottom chord
-		DrawLine(buffer,lpitch32, 0 + pxThreeFourthWidth, pxWidth + 0, 0 + pxWidth, pxWidth + 0 - pxQuarterWidth, color, color);
-
-	}
-	else if (letter == 'T')
-	{
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, 0, color, color);
-		//vertical stem 
-		DrawLine(buffer,lpitch32, 0 + pxHalfWidth, 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'U')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'V')
-	{
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
-		DrawLine(buffer,lpitch32, 0 + pxHalfWidth, pxWidth + 0, 0 + pxWidth, 0, color, color);
-
-	}
-	else if (letter == 'W')
-	{
-		//vertical left
-		DrawLine(buffer,lpitch32, 0, 0, 0, pxWidth + 0, color, color);
-		//vertical right
-		DrawLine(buffer,lpitch32, 0 + pxWidth, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//diag left
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxHalfWidth, pxHalfWidth + 0, color, color);
-		//diag right
-		DrawLine(buffer,lpitch32, 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'X')
-	{
-
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, pxWidth + 0, color, color);
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, 0, color, color);
-
-	}
-	else if (letter == 'Y')
-	{
-		//diag left
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxHalfWidth, pxHalfWidth + 0, color, color);
-		//diag right
-		DrawLine(buffer,lpitch32, 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxWidth, 0, color, color);
-		//vertical stem 
-		DrawLine(buffer,lpitch32, 0 + pxHalfWidth, pxHalfWidth + 0, 0 + pxHalfWidth, pxWidth + 0, color, color);
-
-	}
-	else if (letter == 'Z')
-	{
-		//top horiz line
-		DrawLine(buffer,lpitch32, 0, 0, 0 + pxWidth, 0, color, color);
-		//lower horiz line
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, pxWidth + 0, color, color);
-		//diag 
-		DrawLine(buffer,lpitch32, 0, pxWidth + 0, 0 + pxWidth, 0, color, color);
-
-	}
-	else if (letter == ' ')
-	{
-		//do nothing, let it skip
+		memcpy(tempMainMem, tempMem, sizeof(DWORD)*mBufferPitch);
+		tempMainMem += lpitch32;
+		tempMem += int(mBufferPitch);
 	}
 
-
-
+	delete mBuffer;
+	
+	
 }
 
 
@@ -3322,15 +3164,15 @@ void UICheckBox::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	else if (stateID == UISTATE_HOVER)
 		colorState = COLOR_RED;
 
-	DrawLine(mFrameMem, region.getWidth(), 0, 0, region.getWidth() - 1, 0, colorState, colorState);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
-	DrawLine(mFrameMem, region.getWidth(), region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
-	DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() - 1, 0, 0, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
+	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight() - 1, 0, 0, colorState, colorState);
 
 	if (mIsChecked)
 	{
-		DrawLine(mFrameMem, region.getWidth(), 0, region.getHeight() / 2, region.getWidth() / 2, int(region.getHeight()), COLOR_RED, COLOR_RED);
-		DrawLine(mFrameMem, region.getWidth(), region.getWidth() / 2 , region.getHeight(), region.getWidth(), 0, COLOR_RED, COLOR_RED);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, region.getHeight() / 2, region.getWidth() / 2, int(region.getHeight()), COLOR_RED, COLOR_RED);
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() / 2 , region.getHeight(), region.getWidth(), 0, COLOR_RED, COLOR_RED);
 
 	}
 
@@ -3421,7 +3263,7 @@ void UIRadioGroup::Draw(DWORD* mem, int lpitch32, float timeDelta)
 }
 
 
-UserInterface::UserInterface(const SOFTWARERASTERIZER_DX10_OBJECTS* localRasterizer)
+UserInterface::UserInterface(const SOFTWARERASTERIZER_DX10_OBJECTS* localRasterizer): EventListener(this)
 {
 	
 
@@ -3520,106 +3362,6 @@ UserInterface::UserInterface(const SOFTWARERASTERIZER_DX10_OBJECTS* localRasteri
 
 }
 
-void UserInterface::ProcessKeyboard(unsigned int virtual_key)
-{
-
-	//if element has focus, filter for text characters and send to element
-	if (mElementInFocus != -1)
-	{
-		//virtual key codes match directly to ascii table
-		bool isNumber = virtual_key >= 0x30 && virtual_key <= 0x39;
-		bool isLetter = virtual_key >= 0x41 && virtual_key <= 0x5A;
-		bool isSpace = virtual_key == 32;
-
-		if (isNumber || isLetter || isSpace)
-		if (mUIElements[mElementInFocus]->GetType() == UITYPE_TEXTFIELD)
-		{
-			UITextField* tfld = (UITextField*)mUIElements[mElementInFocus];
-			tfld->AddCharacter(virtual_key);
-		}
-
-		if (virtual_key == VK_BACK)
-		{
-			UITextField* tfld = (UITextField*)mUIElements[mElementInFocus];
-			tfld->RemoveCharacter();
-		}
-	}
-
-
-	if (virtual_key == 0xC0)
-	{
-		isUIVisible = !isUIVisible;
-
-
-	}
-
-	if (mode == "normal")
-	{
-
-		if (isUIVisible)
-		{
-			if (virtual_key >= 0x30 && virtual_key <= 0x5A)
-			{
-//				addCharToBuffer(virtual_key);
-			}
-			else if (virtual_key == 0x20 || virtual_key == 0xBC || virtual_key == 0xBE)
-			{
-		//		addCharToBuffer(virtual_key);
-			}
-			else if (virtual_key == VK_RETURN)
-			{
-		//		textBuffer.push_back(0);
-		//		string userInput = textBuffer.data();
-		//		textBuffer.clear();
-		//		charImageBuffer.clear();
-
-
-//				if (userInput.compare("MOVE") == 0)
-		//		{
-		//			mode = "move";
-		//		}
-		//		else if (userInput.compare("SCREENSHOT") == 0)
-		//		{
-				//	SOFTWARERASTERIZER_DX10_OBJECTS* localObjects = NULL;
-				//	GetSoftwareRasterizerObjects(localObjects);
-				/*	D3D10_MAPPED_TEXTURE2D mappedTex;
-					bitmap_image saveBmp(SCREEN_WIDTH, SCREEN_HEIGHT);
-					rasterObjects->texture->Map(D3D10CalcSubresource(0, 0, 1), D3D10_MAP_WRITE_DISCARD, 0, &mappedTex);
-					UCHAR* data = (UCHAR*)mappedTex.pData;
-					for (int x = 0; x < mappedTex.RowPitch; x += 4)
-					for (int y = 0; y < SCREEN_HEIGHT; y++)
-					{
-						saveBmp.set_pixel(x, y, data[(x + y*mappedTex.RowPitch)], data[(x + y*mappedTex.RowPitch) + 1], data[(x + y*mappedTex.RowPitch) + 2]);
-					}
-
-					rasterObjects->texture->Unmap(D3D10CalcSubresource(0, 0, 1));
-
-					saveBmp.save_image("ScreenCapture.bmp");*/
-		//		}
-
-
-			}
-		}
-	}
-	else if (mode == "move")
-	{
-		if (virtual_key == VK_LEFT)
-		{
-		}
-		else if (virtual_key == VK_RIGHT)
-		{
-
-		}
-		else if (virtual_key == VK_UP)
-		{
-		}
-		else if (virtual_key == VK_DOWN)
-		{
-		}
-	}
-
-
-}
 
 char* UserInterface::getCharBitmap(char c)
 {

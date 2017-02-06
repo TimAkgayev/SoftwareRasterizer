@@ -3,8 +3,8 @@
 #include "SoftwareRasterizer.h"
 #include "stdinclude.h"
 #include "MacrosAndDefines.h"
-#include "Math56.h"
-#include "AnimatedBitmap.h"
+#include "SRMath.h"
+#include "EventListener.h"
 
 #define UI_CHAR_WIDTH_PIXELS 8
 #define UI_CHAR_SPACING_PIXELS 2
@@ -25,11 +25,29 @@ enum { DEPTHINDEX_BACKGROUND, DEPTHINDEX_FOREGROUND };
 
 #define GUI_MOUSEDOWN_HIT 1
 #define GUI_MOUSEDOWN_NOHIT 2
-#define GUI_MOUSEUP_HIT 3
-#define GUI_MOUSEUP_NOHIT 4
+#define GUI_MOUSEUP_NOHIT 3
+#define GUI_MOUSEUP_HIT 4
+
 
 typedef unsigned int uint;
 typedef unsigned char uchar;
+
+
+
+void RenderTextToRegion(DWORD* buffer, int lpitch32, string text, RECT region, DWORD bgColor, DWORD color);
+void RenderTextToRegion(DWORD* buffer, int lpitch32, char letter, RECT region, DWORD bgColor, DWORD color);
+
+class TextRenderer {
+public:
+
+	static void RenderTextAt(DWORD* buffer, int lpitch32, string text, int x, int y, float scale, DWORD color);
+
+private:
+	static DWORD* mBuffer;
+	static	int mBufferPitch;
+	static	int mFontHeight;
+
+};
 
 
 
@@ -67,6 +85,7 @@ public:
 	virtual void SetDimension(int widht, int height);
 	virtual void SetDepthIndex(int index);
 	virtual void SetName(std::string name);
+	virtual void SetEnabledState(bool state);
 
 	virtual bool GetVisibility() const;
 	virtual bool GetFocus() const;
@@ -76,6 +95,7 @@ public:
 	virtual VECTOR2D GetPosition() const;
 	virtual RECT2D GetRECT() const;
 	virtual std::string GetName() const;
+	virtual bool GetEnabledState() const;
 
 	virtual void Draw(DWORD* mem, int lpitch32, float timeDelta);
 	virtual bool IsInRegion(int mouseX, int mouseY);
@@ -88,14 +108,11 @@ protected:
 	int stateID;
 	bool isInFocus;
 	bool isVisible;
+	bool isEnabled;
 	int depthIndex;
 	std::string mElementName;
 
 };
-
-void renderTextToRegion(DWORD* buffer, int lpitch32, string text, RECT region, DWORD bgColor, DWORD color);
-void renderTextToRegion(DWORD* buffer, int lpitch32, char letter, RECT region, DWORD bgColor, DWORD color);
-void renderLetterToBuffer(DWORD* buffer, int lpitch32, int pxWidth, char letter, DWORD color);
 
 class UIButton : public UIElement
 {
@@ -108,9 +125,12 @@ public:
 	bool OnLDown(int xPos, int yPos) override;
 	bool OnLUp(int xPos, int yPos) override;
 	void Draw(DWORD* mem, int lpitch32, float timeDelta) override;
+	bool IsInRegion(int x, int y) override;
+	void SetDimension(int, int) override;
 
 	void SetText(string text);
 	string GetText() const;
+	
 	
 
 	void SetOnLClickCallback(void(*cb)());
@@ -125,7 +145,7 @@ private:
 	int mFrameSize;
 	int screen_w, screen_h;
 	string mText;
-	AnimatedBitmap mImage;
+	AnimatedBitmap* mImage;
 
 
 };
@@ -148,6 +168,7 @@ public:
 	void SetFontSize(int pxWidth);
 	void AddCharacter(char c, int pos = -1);
 	void RemoveCharacter(int pos = -1);
+	void Clear();
 	std::string GetText();
 	int GetCellCount() const;
 
@@ -155,7 +176,7 @@ public:
 private:
 	vector<bool>  mCellSelectionList;
 	vector<char>  mText;
-	vector<DWORD*> mCharFrames;
+	map<int, DWORD*> mCharFramesMap;
 	void(*mCallbackLClick)();
 	DWORD* mFrameMem;
 	DWORD* mSelectionColor;
@@ -174,7 +195,7 @@ class UIRegion : public UIElement
 {
 public:
 	UIRegion();
-	UIRegion(int xpos, int ypos, int width, int height, DWORD color);
+	UIRegion(int xpos, int ypos, string title, int width, int height, DWORD color);
 	~UIRegion();
 
 	void Draw(DWORD* mem, int lpitch32, float timeDelta) override;
@@ -187,6 +208,7 @@ private:
 	DWORD mBorderColor;
 	
 	DWORD* mFrameMem;
+	
 	int mFrameSize;
 
 };
@@ -461,15 +483,15 @@ private:
 
 //-------------------------------------------------------------------------------------------------------------------------------
 
-class UserInterface
+class UserInterface : EventListener
 {
 public:
 
 	UserInterface(const SOFTWARERASTERIZER_DX10_OBJECTS* localRasterizer);
 	~UserInterface();
 
-	
-	
+	void ProcessEvent(UINT msg, WPARAM wparam, LPARAM lparam) override;
+	bool CheckLastProcessEventResults(int code);
 
 	UIButton* createButton(void(*lbCallback)(), int xPos, int yPos, string text, int width = UI_BUTTONWIDTH, int height = UI_BUTTONHEIGHT);
 	UITextField* createTextField(void(*tfCallback)(), int xPos, int yPos, int numChars);
@@ -477,7 +499,7 @@ public:
 	UICheckBox* createCheckBox(int xPos, int yPos, bool isChecked);
 	UIRadioGroup* createRadioGroup(int xPos, int yPos, int numButtons);
 	UIDropContainer* createDropContainer(int xPos, int yPos);
-	UIRegion* createRegion(int xPos, int yPos, int width, int height, DWORD color = COLOR_BLUE);
+	UIRegion* createRegion(int xPos, int yPos, string title, int width, int height, DWORD color = COLOR_BLUE);
 	UIDropdownMenu* createDropdownMenu(int xPos, int yPos, string title);
 	UIWindow* createWindow(int xPos, int yPos, int width, int height, string Title, DWORD color = COLOR_BLUE); 
 	UIText* createText(int xPos, int yPos, int width, int height, string text, DWORD bColor = COLOR_BLACK, DWORD fColor = COLOR_RED);
@@ -485,13 +507,8 @@ public:
 
 	bool isLMD();
 	POINT getLMDPosition();
-	//process mouse down and up for gui, returns if hit and mouse state
-	int ProcessMouseClick(int mouseButton, bool isPressedDown, int xPos, int yPos);
+
 	void RemoveFocus();
-	//process highlights and OnHover functions
-	void ProcessMousePosition(int xPos, int yPos);
-	//process the keyboard buttons
-	void ProcessKeyboard(uint virtual_key);
 	//returns offset in pixel to the end of the string
 	static int displayString(string str, int x, int y, DWORD* mem, int lpitch32);
 	//returns offset in pixel to the end of the string
@@ -503,12 +520,18 @@ public:
 	UIElement* GetElementByName(std::string name);
 	UIElement* GetElement(int offset);
 	int GetNumberOfElements();
+	UIElement* GetHitElement(int x, int y);
+
+	//removes all children
+	void Clear();
 
 	string mode;
 	POINT mousePos;
 
 private:
 	
+	vector<int> lastEventResultList;
+
 	vector<UIElement*> mUIElements;
 	const SOFTWARERASTERIZER_DX10_OBJECTS* lro;
 

@@ -219,7 +219,7 @@ int LoadGUIFromFile(string filename, UserInterface* ui)
 		{
 			UIRegion* uiregion = new UIRegion();
 			inGUIFile.read((char*)uiregion, sizeof(UIRegion));
-			ui->createRegion(uiregion->GetPosition().x, uiregion->GetPosition().y, uiregion->GetRECT().getWidth(), uiregion->GetRECT().getHeight());
+			ui->createRegion(uiregion->GetPosition().x, uiregion->GetPosition().y, uiregion->GetName(), uiregion->GetRECT().getWidth(), uiregion->GetRECT().getHeight());
 			delete uiregion;
 
 		}break;

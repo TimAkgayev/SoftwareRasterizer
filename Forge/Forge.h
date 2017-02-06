@@ -5,6 +5,8 @@
 #include "../Common/ProgramEngineInterface.h"
 #include "../Common/DebugView.h"
 
+#include "../Common/EventListener.h"
+#include "../Common/BezzierCurve.h"
 #include "resource.h"
 #include "SaveLoad.h"
 
@@ -12,7 +14,7 @@ Camera2D* cam2d;
 DebugView* debugger;
 SRTimer timer;
 SRTimer timerHardware;
-AnimatedBitmap RegionBtnImage;
+
 HCURSOR CURRENT_CURSOR, ARROW_CURSOR, REGION_CURSOR;
 HCURSOR LAND1_CURSOR;
 Grid backgroundGrid;
@@ -40,6 +42,19 @@ void myMouseCallBack(int x, int y);
 void Land1CB();
 void Land2CB();
 void Land3CB();
+void Obstacle1CB();
+void GridDivisionsCB();
+void insertButtonCB();
+void insertRegionCB();
+void insertLableCB();
+void insertTextCB();
+void insertSelectionCB();
+void insertRadioCB();
+void insertListCB();
+void insertCheckCB();
+
+void CreateWorldBuilderUI();
+void CreateGUIBuilderUI();
 
 //utility 
 void DrawClipRectBorder();

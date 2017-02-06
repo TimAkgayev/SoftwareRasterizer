@@ -13,11 +13,10 @@
 #include <wrl.h>
 #include <DirectXMath.h>
 
-#include "Math56.h"
+#include "SRMath.h"
 #include "Vertex.h"
 #include "Mesh.h"
 #include "MacrosAndDefines.h"
-#include "Bitmap.h"
 #include "ResourceManager.h"
 
 
@@ -110,7 +109,7 @@ void DrawLineQueue(DWORD* buffer, int lpitch);
 
 // vertex rendering
 /////////////////////////////////////////////////////////////////////////////////////////////////
-void DrawLine(DWORD* buffer, int lpitch32, int x0, int y0, int x1, int y1, DWORD color0, DWORD color1, RECT* clipRect = NULL);
+void DrawLine(DWORD* buffer, int lpitch32, int height, int x0, int y0, int x1, int y1, DWORD color0, DWORD color1, RECT* clipRect = NULL);
 
 void DrawTriangle(DWORD* video_mem, int lpitch32, VERTEX2D triangle[3], MATRIX3D& transform, int drawOptions, BitmapFile* texture = NULL);
 
@@ -150,7 +149,7 @@ typedef struct SOFTWARERASTERIZER_DX7_OBJECTS_TYP
 {
 	LPDIRECTDRAW7         lpDDraw7Interface;   // main DirectDraw interface
 	LPDIRECTDRAWSURFACE7  lpDDSurfPrimary;     // primary drawing surface
-	LPDIRECTDRAWSURFACE7  lpDDSurfBack;		   // secondary surface, acts as a back buffer
+	LPDIRECTDRAWSURFACE7  lpDDSurfBack;		   // secondary surface, acts as a back *buffer
 	DDSURFACEDESC2        ddSurfDesc;          // surface description struct, use one for all calls
 	DDPIXELFORMAT		  ddPixelFormat;	   // pixel format of the primary surface
 	HWND				  mainWindow;
@@ -175,10 +174,10 @@ typedef struct SOFTWARERASTERIZER_DX12_OBJECTS_TYP
 	D3D12_RECT	   d3d12ScissorRect;
 
 	//app resources
-	ComPtr<ID3D12Resource> pD3D12VertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW d3d12VertexBufferView;
-	ComPtr<ID3D12Resource> pD3D12IndexBuffer;
-	D3D12_INDEX_BUFFER_VIEW d3d12IndexBufferView;
+	ComPtr<ID3D12Resource> pD3D12Vertex*buffer;
+	D3D12_VERTEX_*buffer_VIEW d3d12Vertex*bufferView;
+	ComPtr<ID3D12Resource> pD3D12Index*buffer;
+	D3D12_INDEX_*buffer_VIEW d3d12Index*bufferView;
 
 
 	//sync

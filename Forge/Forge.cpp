@@ -5,7 +5,7 @@ struct LandCell
 	AnimatedBitmap sprite;
 	bool isColliding;
 };
-
+  
 
 class HotBox
 {
@@ -155,26 +155,42 @@ private:
 };
 HotBox myHotBox;
 UserInterface* MyUserInterface;
+UserInterface* AppUserInterface;
 
-enum { GUI_MODE, WORLD_MODE};
+enum { MODE_GUI, MODE_WORLD};
 enum { TOOL_ARROW, TOOL_REGION};
-enum { FUNCTION_NONE, FUNCTION_LANDPLOT };
+enum { FUNCTION_NONE, FUNCTION_LANDPLOT, FUNCTION_INSERT_BUTTON, FUNCTION_INSERT_REGION, FUNCTION_INSERT_LABLE, FUNCTION_INSERT_TEXT, FUNCTION_INSERT_SELECTION, FUNCTION_INSERT_RADIO, FUNCTION_INSERT_LIST, FUNCTION_INSERT_CHECK };
 
 WINDOWS_SETTINGS LocalWindowsSettings = { 1500, 1080,{ 0, 0 }, TEXT("Forge") };
 RECT gClientRect;
 int currentTool = TOOL_ARROW;
 int currentFunction = FUNCTION_NONE;
 bool isResetRequested = false;
+
+
 UIWindow* newGUIWindow = NULL;
-RECT2D gMarginRect = { 10, 30, 400, 60 }; //invsere area of a clip rect, contains margin offsets
-RECT2D gControlPanelRect = {gMarginRect.left, LocalWindowsSettings.clientDimY - gMarginRect.bottom + 10.0f, LocalWindowsSettings.clientDimX - gMarginRect.right, LocalWindowsSettings.clientDimY -5.0f };
-RECT2D gWorldPanelRect = { LocalWindowsSettings.clientDimX - gMarginRect.right + 10.0f , gMarginRect.top, LocalWindowsSettings.clientDimX - gMarginRect.left, gControlPanelRect.bottom};
+RECT2D gWorldBuilderMarginRect = { 10, 30, 400, 60 }; //invsere area of a clip rect, contains margin offsets
+RECT2D gGUIBuilderMarginRect = { 10, 30, 150, 60 }; //invsere area of a clip rect, contains margin offsets
+
+RECT2D gWorldBuilderControlPanelRect = {gWorldBuilderMarginRect.left, LocalWindowsSettings.clientDimY - gWorldBuilderMarginRect.bottom + 10.0f, LocalWindowsSettings.clientDimX - gWorldBuilderMarginRect.right, LocalWindowsSettings.clientDimY -5.0f };
+RECT2D gWorldBuilderElementsRect = { LocalWindowsSettings.clientDimX - gWorldBuilderMarginRect.right + 10.0f , gWorldBuilderMarginRect.top, LocalWindowsSettings.clientDimX - gWorldBuilderMarginRect.left, gWorldBuilderControlPanelRect.bottom};
+
+RECT2D gGUIBuilderControlPanelRect = { gGUIBuilderMarginRect.left, LocalWindowsSettings.clientDimY - gGUIBuilderMarginRect.bottom + 10.0f, LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.right, LocalWindowsSettings.clientDimY - 5.0f };
+RECT2D gGUIBuilderElementsRect = { LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.right + 10.0f , gGUIBuilderMarginRect.top, LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.left, gGUIBuilderControlPanelRect.bottom };
 string gRootImageDirectory = "D:\\Users\\Tim\\Documents\\Visual Studio Projects\\SoftwareRasterizer\\Forge\\Images\\";
 int world_gridspacing = 35;
-AnimatedBitmap* currentInsertElement;
+
+LandCell land1;
+LandCell land2;
+LandCell land3;
+LandCell land4;
+
+
+LandCell currentInsertElement;
 vector<LandCell> LandSpriteList;
 
-int currentMode;
+UITextField* gridSpacingTextField;
+int currentMode = MODE_GUI;
 int gMouseX = 0, gMouseY = 0;
 vector<VERTEX2D> parabolaVs;
 float dt;
@@ -182,16 +198,17 @@ float lpx = 0, lpy = 0;
 float parabolaAnimTime = 0;
 VECTOR2D v;
 
+BezierCurve b;
 
 
 void ApplicationInitialization()
 {
 
 	//attach debug window
-	debugger->AddVariableView((void*)&gMarginRect.left);
-	debugger->AddVariableView((void*)&gMarginRect.top);
-	debugger->AddVariableView((void*)&gMarginRect.right);
-	debugger->AddVariableView((void*)&gMarginRect.bottom);
+	debugger->AddVariableView((void*)&gWorldBuilderMarginRect.left);
+	debugger->AddVariableView((void*)&gWorldBuilderMarginRect.top);
+	debugger->AddVariableView((void*)&gWorldBuilderMarginRect.right);
+	debugger->AddVariableView((void*)&gWorldBuilderMarginRect.bottom);
 
 	//set cursor
 	ARROW_CURSOR = LoadCursor(SoftwareRasterizer.hInstance, MAKEINTRESOURCE(FORGE_CURSOR_ARROW));
@@ -214,16 +231,17 @@ void ApplicationInitialization()
 	CreateUserInterface();
 
 
-	//Set mode to GUI by default
-	modeGUICB();
-
 	//Get client size for convinience
 	gClientRect.right = SoftwareRasterizer.clientRect.right;
 	gClientRect.bottom = SoftwareRasterizer.clientRect.bottom;
 
 	//set up grid
 	backgroundGrid.SetSpacing(35);
-	
+
+
+
+
+
 };
 
 int ApplicationUpdate()
@@ -254,18 +272,32 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch32)
 {
 
 	myHotBox.Draw(video_mem, lpitch32);
-	MyUserInterface->displayString(dt, SoftwareRasterizer.clientRect.right - 230, 10, video_mem, lpitch32);
+	AppUserInterface->displayString(dt, SoftwareRasterizer.clientRect.right - 230, 10, video_mem, lpitch32);
 	string clientDim = std::to_string((int)SoftwareRasterizer.clientRect.right) + 'X' + std::to_string((int)SoftwareRasterizer.clientRect.bottom);
-	MyUserInterface->displayString(clientDim, SoftwareRasterizer.clientRect.right / 2.0f, 10, video_mem, lpitch32);
+	AppUserInterface->displayString(clientDim, SoftwareRasterizer.clientRect.right / 2.0f, 10, video_mem, lpitch32);
 	DrawClipRectBorder();
 
-	QueueRectangle(gWorldPanelRect.GetWINRECT(), COLOR_WHITE);
+	//QueueRectangle(gWorldBuilderElementsRect.GetWINRECT(), COLOR_WHITE);
 
 	//generate clip from margin rectangle
-	RECT cRect = gMarginRect.GetWINRECT();
-	cRect.right = gClientRect.right - gMarginRect.right;
-	cRect.bottom = gClientRect.bottom - gMarginRect.bottom;
+	RECT cRect;
+	if (currentMode == MODE_WORLD)
+	{
+		cRect = gWorldBuilderMarginRect.GetWINRECT();
+		cRect.right = gClientRect.right - gWorldBuilderMarginRect.right;
+		cRect.bottom = gClientRect.bottom - gWorldBuilderMarginRect.bottom;
+
+	}
+	else if (currentMode == MODE_GUI)
+	{
+		cRect = gGUIBuilderMarginRect.GetWINRECT();
+		cRect.right = gClientRect.right - gGUIBuilderMarginRect.right;
+		cRect.bottom = gClientRect.bottom - gGUIBuilderMarginRect.bottom;
+
+	}
+
 	RECT2D oldClip = SetClipRectangle(cRect);
+
 	backgroundGrid.Draw(video_mem, lpitch32);
 	DrawParabola(video_mem, lpitch32);
 
@@ -284,8 +316,8 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch32)
 
 	DrawLineQueue(video_mem, lpitch32);
 
-	vector<LandCell>::iterator vIter = LandSpriteList.begin();
-	for (vIter; vIter < LandSpriteList.end(); vIter++)
+	auto vIter = LandSpriteList.begin();
+	for (vIter; vIter != LandSpriteList.end(); vIter++)
 	{
 		vIter->sprite.Draw(video_mem, lpitch32);
 	}
@@ -324,7 +356,7 @@ void ApplicationHardwareRender()
 	XMStoreFloat4x4(&totalF, total);
 	
 
-	
+	AppUserInterface->DrawUI(deltaTime);
 	MyUserInterface->DrawUI(deltaTime);
 
 	timerHardware.Start();
@@ -341,6 +373,7 @@ void ApplicationShutdown()
 void CreateUserInterface()
 {
 	//UI
+	AppUserInterface = new UserInterface(&SoftwareRasterizer);
 	MyUserInterface = new UserInterface(&SoftwareRasterizer);
 	myHotBox.Init(MyUserInterface);
 	UIList* createMenu = myHotBox.AddButton("GUI");
@@ -364,42 +397,104 @@ void CreateUserInterface()
 	//UITextField* f = MyUserInterface->createTextField(textFieldCallback, 1, SoftwareRasterizer.clientRect.bottom - 21);
 	//f->SetCellCount(40);
 
-	UIDropdownMenu* fileMenu = MyUserInterface->createDropdownMenu(5, 5, "FILE");
+	UIDropdownMenu* fileMenu = AppUserInterface->createDropdownMenu(5, 5, "FILE");
 	fileMenu->AddItem("NEW GUI", fileNewGUICB);
 	fileMenu->AddItem("LOAD", NULL);
 	fileMenu->AddItem("SAVE", NULL);
 	fileMenu->AddItem("EXIT", NULL);
 
-	UIDropdownMenu* editMenu = MyUserInterface->createDropdownMenu(85, 5, "EDIT");
+	UIDropdownMenu* editMenu = AppUserInterface->createDropdownMenu(85, 5, "EDIT");
 	editMenu->AddItem("MOVE", NULL);
 	editMenu->AddItem("SCALE", NULL);
 
 
-	UIDropdownMenu* modeMenu = MyUserInterface->createDropdownMenu(165, 5, "MODE");
+	UIDropdownMenu* modeMenu = AppUserInterface->createDropdownMenu(165, 5, "MODE");
 	modeMenu->AddItem("GUI", modeGUICB);
 	modeMenu->AddItem("WORLD", modeWorldCB);
 
+
+	if (currentMode == MODE_WORLD)
+		CreateWorldBuilderUI();
+	else
+		CreateGUIBuilderUI();
+
+}
+
+
+void CreateWorldBuilderUI()
+{
+	//clear previous UI
+	MyUserInterface->Clear();
+
 	//tool panel
-	MyUserInterface->createRegion(gControlPanelRect.GetPosition().x, gControlPanelRect.GetPosition().y, gControlPanelRect.getWidth(), gControlPanelRect.getHeight());
+	MyUserInterface->createRegion(gWorldBuilderControlPanelRect.GetPosition().x, gWorldBuilderControlPanelRect.GetPosition().y, "PANEL", gWorldBuilderControlPanelRect.getWidth(), gWorldBuilderControlPanelRect.getHeight());
 
 	//world panel
-	MyUserInterface->createRegion(gWorldPanelRect.GetPosition().x, gWorldPanelRect.GetPosition().y, gWorldPanelRect.getWidth(), gWorldPanelRect.getHeight(), _RGBA32BIT(200, 200, 200, 255));
+	MyUserInterface->createRegion(gWorldBuilderElementsRect.GetPosition().x, gWorldBuilderElementsRect.GetPosition().y, "ELEMENTS", gWorldBuilderElementsRect.getWidth(), gWorldBuilderElementsRect.getHeight(), _RGBA32BIT(200, 200, 200, 255));
 
-	
+
 	UIButton* b = MyUserInterface->createButton(ArrowBtnCB, 15, SoftwareRasterizer.clientRect.bottom - 45, "ARROW", 35, 35);
 	b->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "ArrowButton.bmp"));
 
 	UIButton* b2 = MyUserInterface->createButton(RegionBtnCB, 55, SoftwareRasterizer.clientRect.bottom - 45, "SELECT", 35, 35);
 	b2->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "RegionButton.bmp"));
 
-	UIButton* b3 = MyUserInterface->createButton(Land1CB, gWorldPanelRect.GetPosition().x + 10, gWorldPanelRect.GetPosition().y + 10, "LAND1", 35, 35);
+	UIButton* b3 = MyUserInterface->createButton(Land1CB, gWorldBuilderElementsRect.GetPosition().x + 10, gWorldBuilderElementsRect.GetPosition().y + 10, "LAND1", 35, 35);
 	b3->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "Land1.bmp"));
 
-	UIButton* b4 = MyUserInterface->createButton(Land2CB, gWorldPanelRect.GetPosition().x + 55, gWorldPanelRect.GetPosition().y + 10, "LAND2", 35, 35);
+	UIButton* b4 = MyUserInterface->createButton(Land2CB, gWorldBuilderElementsRect.GetPosition().x + 55, gWorldBuilderElementsRect.GetPosition().y + 10, "LAND2", 35, 35);
 	b4->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "Land2.bmp"));
 
-	UIButton* b5 = MyUserInterface->createButton(Land3CB, gWorldPanelRect.GetPosition().x + 10, gWorldPanelRect.GetPosition().y + 55, "LAND3", 35, 35);
+	UIButton* b5 = MyUserInterface->createButton(Land3CB, gWorldBuilderElementsRect.GetPosition().x + 10, gWorldBuilderElementsRect.GetPosition().y + 55, "LAND3", 35, 35);
 	b5->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "Land3.bmp"));
+
+	UIButton* b6 = MyUserInterface->createButton(Obstacle1CB, gWorldBuilderElementsRect.GetPosition().x + 55, gWorldBuilderElementsRect.GetPosition().y + 55, "OBS1", 35, 35);
+	b6->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "Obstacle1.bmp"));
+
+
+	land1.sprite = AnimatedBitmap(ResourceManager::GetImage("Land1.bmp"));
+	land1.isColliding = false;
+
+
+	land2.sprite = AnimatedBitmap(ResourceManager::GetImage("Land2.bmp"));
+	land2.isColliding = false;
+
+
+	land3.sprite = AnimatedBitmap(ResourceManager::GetImage("Land3.bmp"));
+	land3.isColliding = false;
+
+	land4.sprite = AnimatedBitmap(ResourceManager::GetImage("Obstacle1.bmp"));
+	land4.isColliding = true;
+}
+
+void CreateGUIBuilderUI()
+{
+	//clear previous UI
+	MyUserInterface->Clear();
+
+	//tool panel
+	MyUserInterface->createRegion(gGUIBuilderControlPanelRect.GetPosition().x, gGUIBuilderControlPanelRect.GetPosition().y,"PANEL", gGUIBuilderControlPanelRect.getWidth(), gGUIBuilderControlPanelRect.getHeight());
+
+	MyUserInterface->createText(gGUIBuilderControlPanelRect.GetPosition().x + 10, gGUIBuilderControlPanelRect.GetPosition().y + 10, 100, 20, "DIVISIONS");
+	gridSpacingTextField = MyUserInterface->createTextField(NULL, gGUIBuilderControlPanelRect.GetPosition().x + 100 + 20, gGUIBuilderControlPanelRect.GetPosition().y + 10, 2);
+	MyUserInterface->createButton(GridDivisionsCB, gGUIBuilderControlPanelRect.GetPosition().x + 100 + 20 + 50, gGUIBuilderControlPanelRect.GetPosition().y + 10, "OK", 30, 20);
+
+	UIButton* b = MyUserInterface->createButton(ArrowBtnCB, gGUIBuilderControlPanelRect.GetPosition().x + 205 + 10, gGUIBuilderControlPanelRect.GetPosition().y + 10, "ARROW", 35, 35);
+	b->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "ArrowButton.bmp"));
+	
+	
+	//world panel
+	MyUserInterface->createRegion(gGUIBuilderElementsRect.GetPosition().x, gGUIBuilderElementsRect.GetPosition().y, "WORLD", gGUIBuilderElementsRect.getWidth(), gGUIBuilderElementsRect.getHeight(), _RGBA32BIT(200, 200, 200, 255));
+
+	UIButton* btn;
+	btn = MyUserInterface->createButton(insertButtonCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 10, "BUTTON");
+	btn = MyUserInterface->createButton(insertRegionCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 30 + 10, "REGION");
+	btn = MyUserInterface->createButton(insertLableCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 60 + 10, "LABLE");
+	btn = MyUserInterface->createButton(insertTextCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 90 + 10, "TEXT");
+	btn = MyUserInterface->createButton(insertSelectionCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 120 + 10, "SELECTION");
+	btn = MyUserInterface->createButton(insertRadioCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 150 + 10, "RADIO");
+	btn = MyUserInterface->createButton(insertListCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 180 + 10, "LIST");
+	btn = MyUserInterface->createButton(insertCheckCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 210 + 10, "CHECK");
 
 
 }
@@ -410,6 +505,7 @@ void ArrowBtnCB()
 	CURRENT_CURSOR = ARROW_CURSOR;
 	SetCursor(CURRENT_CURSOR);
 	currentTool = TOOL_ARROW;
+	currentFunction = FUNCTION_NONE;
 }
 
 void RegionBtnCB()
@@ -424,8 +520,8 @@ void Land1CB()
 	CURRENT_CURSOR = LAND1_CURSOR;
 	SetCursor(CURRENT_CURSOR);
 	currentFunction = FUNCTION_LANDPLOT;
-	currentInsertElement = AnimatedBitmap::GetLoadedInstance("Land1.bmp");
-	int x = 9;
+	currentInsertElement = land1;
+	
 }
 
 void Land2CB()
@@ -433,8 +529,8 @@ void Land2CB()
 	CURRENT_CURSOR = LAND1_CURSOR;
 	SetCursor(CURRENT_CURSOR);
 	currentFunction = FUNCTION_LANDPLOT;
-	currentInsertElement = AnimatedBitmap::GetLoadedInstance("Land2.bmp");
-	int x = 9;
+	currentInsertElement = land2;
+	
 }
 
 void Land3CB()
@@ -442,10 +538,24 @@ void Land3CB()
 	CURRENT_CURSOR = LAND1_CURSOR;
 	SetCursor(CURRENT_CURSOR);
 	currentFunction = FUNCTION_LANDPLOT;
-	currentInsertElement = AnimatedBitmap::GetLoadedInstance("Land3.bmp");
-	int x = 9;
+	currentInsertElement = land3;
+	
 }
 
+void Obstacle1CB()
+{
+	CURRENT_CURSOR = LAND1_CURSOR;
+	SetCursor(CURRENT_CURSOR);
+	currentFunction = FUNCTION_LANDPLOT;
+	currentInsertElement = land4;
+
+}
+
+void GridDivisionsCB()
+{
+	backgroundGrid.SetSpacing(stoi(gridSpacingTextField->GetText()));
+	gridSpacingTextField->Clear();
+}
 
 void PlotParabola(float constant, int divisions)
 {
@@ -500,11 +610,23 @@ void DrawParabola(DWORD* vid, int lpitch32)
 }
 void DrawClipRectBorder()
 {
-	RECT cRect = gMarginRect.GetWINRECT();
+	RECT cRect;
+	if (currentMode == MODE_WORLD)
+	{
+		cRect = gWorldBuilderMarginRect.GetWINRECT();
+		cRect.right = gClientRect.right - gWorldBuilderMarginRect.right + 1;
+		cRect.bottom = gClientRect.bottom - gWorldBuilderMarginRect.bottom + 1;
+	}
+	else if (currentMode == MODE_GUI)
+	{
+		cRect = gGUIBuilderMarginRect.GetWINRECT();
+		cRect.right = gClientRect.right - gGUIBuilderMarginRect.right + 1;
+		cRect.bottom = gClientRect.bottom - gGUIBuilderMarginRect.bottom + 1;
+	}
+
 	cRect.left -= 1;
 	cRect.top -= 1;
-	cRect.right = gClientRect.right - gMarginRect.right + 1;
-	cRect.bottom = gClientRect.bottom - gMarginRect.bottom + 1;
+	
 
 	QueueRectangle(cRect, COLOR_WHITE);
 
@@ -590,7 +712,9 @@ WINDOWS_SETTINGS& UpdateSettings()
 	return LocalWindowsSettings;
 }
 
-
+UIElement* dragginElement = nullptr;
+UIElement* marginDraggingElement = nullptr;
+bool isDraggingLeftMargin = false, isDraggingRightMargin = false, isDraggingTopMargin = false, isDraggingBottomMargin = false;
 
 LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -598,9 +722,288 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 	PAINTSTRUCT		ps;		
 	HDC				hdc;
 
+	EventListener::_ProcessEvent(msg, wParam, lParam);
 		
 	switch (msg)
 	{
+		
+
+	case WM_LBUTTONDOWN:
+	{
+
+		float xPos = GET_X_LPARAM(lParam);
+		float yPos = GET_Y_LPARAM(lParam);
+
+		if (MyUserInterface->CheckLastProcessEventResults(GUI_MOUSEDOWN_NOHIT))
+		{
+			//see if any non active elements were hit and drag them
+			
+
+			UIElement* hitElement;
+			if (hitElement = MyUserInterface->GetHitElement(gMouseX, gMouseY))
+			{
+				
+				
+
+				//only drags border for disabled elements
+				if (hitElement->GetEnabledState() == false)
+				{
+					RECT2D reg = hitElement->GetRECT();
+					RECT2D leftBorderRegion, topBorderRegion, rightBorderRegion, bottomBorderRegion;
+					leftBorderRegion = RECT2D(reg.GetWINRECT().left, reg.GetWINRECT().top, reg.GetWINRECT().left + 5, reg.GetWINRECT().bottom);
+					rightBorderRegion = RECT2D(reg.GetWINRECT().right, reg.GetWINRECT().top, reg.GetWINRECT().right - 5, reg.GetWINRECT().bottom);
+					topBorderRegion = RECT2D(reg.GetWINRECT().left, reg.GetWINRECT().top, reg.GetWINRECT().right, reg.GetWINRECT().top + 5);
+					bottomBorderRegion = RECT2D(reg.GetWINRECT().left, reg.GetWINRECT().bottom - 5, reg.GetWINRECT().right, reg.GetWINRECT().bottom);
+					if (leftBorderRegion.isPointInRect(gMouseX, gMouseY))
+					{
+						isDraggingLeftMargin = true;
+						marginDraggingElement = hitElement;
+					}
+					else if(rightBorderRegion.isPointInRect(gMouseX, gMouseY))
+					{
+						isDraggingRightMargin = true;
+						marginDraggingElement = hitElement;
+
+					}
+					else if (topBorderRegion.isPointInRect(gMouseX, gMouseY))
+					{
+						isDraggingTopMargin = true;
+						marginDraggingElement = hitElement;
+
+					}
+					else if(bottomBorderRegion.isPointInRect(gMouseX, gMouseY))
+					{
+						isDraggingBottomMargin = true;
+						marginDraggingElement = hitElement;
+
+					}
+					else
+						//set element for dragging purpose if margins missed
+						dragginElement = MyUserInterface->GetHitElement(xPos, yPos);
+						
+				
+				}
+			}
+
+
+			if (currentTool == TOOL_REGION)
+			{
+				POINT snap = FindNearestSnapPoint({ int(xPos + 0.5f), int(yPos + 0.5f) });
+				selectionBoxPoints[0].x = snap.x;
+				selectionBoxPoints[0].y = snap.y;
+
+				//set both points so that were not drawing 0,0 -> pt1
+				selectionBoxPoints[1].x = snap.x;
+				selectionBoxPoints[1].y = snap.y;
+			}
+			
+
+			if (currentFunction == FUNCTION_LANDPLOT)
+			{
+				POINT corner = FindNearestSnapPoint({ int(xPos + 0.5f), int(yPos + 0.5f) });
+				//make sure that there is no other bitmap in that cell, if so delete it
+				auto vIter = LandSpriteList.begin();
+				for (vIter; vIter < LandSpriteList.end(); vIter++)
+				{
+					if (corner.x == vIter->sprite.GetPosition().x && corner.y == vIter->sprite.GetPosition().y)
+					{
+						LandSpriteList.erase(vIter);
+						break;
+					}
+				}
+
+				LandCell lc = currentInsertElement;
+				lc.sprite.SetPosition(corner.x, corner.y);
+
+				LandSpriteList.push_back(lc);
+			}
+			else if (currentFunction == FUNCTION_INSERT_BUTTON)
+			{
+				
+				if (MyUserInterface->GetHitElement(xPos, yPos) == 0)
+				{
+					POINT snapPoint = FindNearestSnapPoint({ int(xPos + 0.5f), int(yPos + 0.5f) });
+					UIButton* btn = MyUserInterface->createButton(NULL, snapPoint.x, snapPoint.y, "BTN", backgroundGrid.GetSpacing() * 2, backgroundGrid.GetSpacing());
+					btn->SetEnabledState(false);
+				}
+			}
+			else if (currentFunction == FUNCTION_INSERT_REGION)
+			{
+
+				if (MyUserInterface->GetHitElement(xPos, yPos) == 0)
+				{
+					POINT snapPoint = FindNearestSnapPoint({ int(xPos + 0.5f), int(yPos + 0.5f) });
+					UIRegion* reg = MyUserInterface->createRegion(snapPoint.x, snapPoint.y, "REGION", 200, 500, COLOR_GREY);
+					reg->SetEnabledState(false);
+				}
+			}
+
+
+		}
+		if (AppUserInterface->CheckLastProcessEventResults( GUI_MOUSEDOWN_NOHIT))
+		{
+
+		}
+	}break;
+
+	case WM_RBUTTONDOWN:
+	{
+		float xPos = GET_X_LPARAM(lParam);
+		float yPos = GET_Y_LPARAM(lParam);
+
+		if (currentFunction == FUNCTION_LANDPLOT)
+		{
+
+			POINT corner = FindNearestSnapPoint({ int(xPos + 0.5f), int(yPos + 0.5f) });
+
+			//erase sprite clicked on
+			vector<LandCell>::iterator vIter = LandSpriteList.begin();
+			for (vIter; vIter < LandSpriteList.end(); vIter++)
+			{
+				if (corner.x == vIter->sprite.GetPosition().x && corner.y == vIter->sprite.GetPosition().y)
+				{
+					vIter = LandSpriteList.erase(vIter);
+					break;
+				}
+			}
+
+			int x = 0;
+		}
+
+	}break;
+
+	case WM_LBUTTONUP:
+	{
+		float xPos = GET_X_LPARAM(lParam);
+		float yPos = GET_Y_LPARAM(lParam);
+
+		if (MyUserInterface->CheckLastProcessEventResults(GUI_MOUSEUP_NOHIT))
+		{
+			if (currentTool == TOOL_REGION)
+			{
+
+				//make sure the points are ordere in increasing order
+				if (selectionBoxPoints[1].x < selectionBoxPoints[0].x)
+				{
+					int temp = selectionBoxPoints[0].x;
+					selectionBoxPoints[0].x = selectionBoxPoints[1].x;
+					selectionBoxPoints[1].x = temp;
+
+					temp = selectionBoxPoints[0].y;
+					selectionBoxPoints[0].y = selectionBoxPoints[1].y;
+					selectionBoxPoints[1].y = temp;
+				}
+
+				MyUserInterface->createRegion(selectionBoxPoints[0].x, selectionBoxPoints[0].y, "SELBOX", selectionBoxPoints[1].x - selectionBoxPoints[0].x, selectionBoxPoints[1].y - selectionBoxPoints[0].y);
+			}
+		}
+
+	
+
+		//reset any elements that were being dragged
+		dragginElement = nullptr;
+		marginDraggingElement = nullptr;
+
+		isDraggingLeftMargin = isDraggingRightMargin = isDraggingTopMargin = isDraggingBottomMargin = false;
+
+	}break;
+
+
+
+
+	case WM_MOUSEMOVE:
+	{
+		gMouseX = GET_X_LPARAM(lParam);
+		gMouseY = GET_Y_LPARAM(lParam);
+
+		
+		UIElement* hitElement;
+		if (hitElement = MyUserInterface->GetHitElement(gMouseX, gMouseY))
+		{
+			//only draw arrows for disabled elements
+			if (hitElement->GetEnabledState() == false)
+			{
+				RECT2D reg = hitElement->GetRECT();
+				RECT2D leftBorderRegion, topBorderRegion, rightBorderRegion, bottomBorderRegion;
+				leftBorderRegion = RECT2D(reg.GetWINRECT().left, reg.GetWINRECT().top, reg.GetWINRECT().left + 5, reg.GetWINRECT().bottom);
+				rightBorderRegion = RECT2D(reg.GetWINRECT().right, reg.GetWINRECT().top, reg.GetWINRECT().right - 5, reg.GetWINRECT().bottom);
+				topBorderRegion = RECT2D(reg.GetWINRECT().left, reg.GetWINRECT().top, reg.GetWINRECT().right, reg.GetWINRECT().top + 5);
+				bottomBorderRegion = RECT2D(reg.GetWINRECT().left, reg.GetWINRECT().bottom - 5, reg.GetWINRECT().right, reg.GetWINRECT().bottom);
+				if (leftBorderRegion.isPointInRect(gMouseX, gMouseY) || rightBorderRegion.isPointInRect(gMouseX, gMouseY))
+				{
+					HCURSOR swarrowCur = LoadCursor(NULL, IDC_SIZEWE);
+					SetCursor(swarrowCur);
+				}
+				else if (topBorderRegion.isPointInRect(gMouseX, gMouseY) || bottomBorderRegion.isPointInRect(gMouseX, gMouseY))
+				{
+					HCURSOR swarrowCur = LoadCursor(NULL, IDC_SIZENS);
+					SetCursor(swarrowCur);
+				}
+				else
+					SetCursor(ARROW_CURSOR);
+			}
+		}
+
+		if (isDraggingLeftMargin)
+		{
+						
+			RECT origRect = marginDraggingElement->GetRECT().GetWINRECT();
+			origRect.left = gMouseX;
+			RECT2D newRect(origRect);
+			marginDraggingElement->SetPosition(newRect.GetPosition().x, newRect.GetPosition().y);
+			marginDraggingElement->SetDimension(newRect.getWidth(), newRect.getHeight());
+
+		}
+		else if (isDraggingRightMargin)
+		{
+			RECT origRect = marginDraggingElement->GetRECT().GetWINRECT();
+			origRect.right = gMouseX;
+			RECT2D newRect(origRect);
+			marginDraggingElement->SetPosition(newRect.GetPosition().x, newRect.GetPosition().y);
+			marginDraggingElement->SetDimension(newRect.getWidth(), newRect.getHeight());
+		}
+		else if (isDraggingTopMargin)
+		{
+			RECT origRect = marginDraggingElement->GetRECT().GetWINRECT();
+			origRect.top = gMouseY;
+			RECT2D newRect(origRect);
+			marginDraggingElement->SetPosition(newRect.GetPosition().x, newRect.GetPosition().y);
+			marginDraggingElement->SetDimension(newRect.getWidth(), newRect.getHeight());
+		}
+		else if (isDraggingBottomMargin)
+		{
+			RECT origRect = marginDraggingElement->GetRECT().GetWINRECT();
+			origRect.bottom = gMouseY;
+			RECT2D newRect(origRect);
+			marginDraggingElement->SetPosition(newRect.GetPosition().x, newRect.GetPosition().y);
+			marginDraggingElement->SetDimension(newRect.getWidth(), newRect.getHeight());
+		}
+
+		if (MyUserInterface->isLMD())
+		{
+			if (currentTool == TOOL_REGION)
+			{
+
+				POINT snap = FindNearestSnapPoint({ gMouseX, gMouseY });
+				POINT firstPos = { int(selectionBoxPoints[0].x + 0.5f), int(selectionBoxPoints[0].y + 0.5f) };
+				selectionBoxPoints[1].x = snap.x;
+				selectionBoxPoints[1].y = snap.y;
+			}
+			else if (currentTool == TOOL_ARROW)
+			{
+				if (dragginElement)
+				{
+					POINT snap = FindNearestSnapPoint({ gMouseX, gMouseY });
+					dragginElement->SetPosition(snap.x, snap.y);
+				}
+			}
+		}
+
+
+	}break;
+
+
+
 	case WM_CREATE: 
 	{
 		return(0);
@@ -646,136 +1049,13 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 
 	}break;
 
-	case WM_LBUTTONDOWN:
-	{
-
-		float xPos = GET_X_LPARAM(lParam);
-		float yPos = GET_Y_LPARAM(lParam);
-
-		if (MyUserInterface->ProcessMouseClick(0, true, xPos, yPos) == GUI_MOUSEDOWN_NOHIT)
-		{
-			if (currentTool == TOOL_REGION)
-			{
-				POINT snap = FindNearestSnapPoint({ int(xPos + 0.5f), int(yPos + 0.5f) });
-				selectionBoxPoints[0].x = snap.x;
-				selectionBoxPoints[0].y = snap.y;
-
-				//set both points so that were not drawing 0,0 -> pt1
-				selectionBoxPoints[1].x = snap.x;
-				selectionBoxPoints[1].y = snap.y;
-			}
-			
-			if (currentFunction == FUNCTION_LANDPLOT)
-			{
-				POINT corner = FindNearestSnapPoint({ int(xPos + 0.5f), int(yPos + 0.5f) });
-				//make sure that there is no other bitmap in that cell, if so delete it
-				auto vIter = LandSpriteList.begin();
-				for (vIter; vIter < LandSpriteList.end(); vIter++)
-				{
-					if (corner.x == vIter->sprite.GetPosition().x && corner.y == vIter->sprite.GetPosition().y)
-					{
-						LandSpriteList.erase(vIter);
-						break;
-					}
-				}
-
-				LandCell lc;
-				lc.sprite = *currentInsertElement;
-				lc.sprite.SetPosition( corner.x, corner.y);
-				
-				LandSpriteList.push_back(lc);
-			}
-
-			
-		}
-					
-	}break;
-
-	case WM_RBUTTONDOWN:
-	{
-		float xPos = GET_X_LPARAM(lParam);
-		float yPos = GET_Y_LPARAM(lParam);
-
-		if (currentFunction == FUNCTION_LANDPLOT)
-		{
-
-			POINT corner = FindNearestSnapPoint({ int(xPos + 0.5f), int(yPos + 0.5f) });
-			
-			//erase sprite clicked on
-			vector<AnimatedBitmap>::iterator vIter = LandSpriteList.begin();
-			for (vIter; vIter < LandSpriteList.end(); vIter++)
-			{
-				if (corner.x == vIter->GetPosition().x && corner.y == vIter->GetPosition().y)
-				{
-					vIter = LandSpriteList.erase(vIter);
-					break;
-				}
-			}
-
-			int x = 0;
-		}
-
-	}break;
 	
-	case WM_LBUTTONUP:
-	{
-		float xPos = GET_X_LPARAM(lParam);
-		float yPos = GET_Y_LPARAM(lParam);
-
-		if (MyUserInterface->ProcessMouseClick(0, false, xPos, yPos) == GUI_MOUSEUP_NOHIT)
-		{
-			if (currentTool == TOOL_REGION)
-			{
-				
-				//make sure the points are ordere in increasing order
-				if (selectionBoxPoints[1].x < selectionBoxPoints[0].x)
-				{
-					int temp = selectionBoxPoints[0].x;
-					selectionBoxPoints[0].x = selectionBoxPoints[1].x;
-					selectionBoxPoints[1].x = temp;
-
-					temp = selectionBoxPoints[0].y;
-					selectionBoxPoints[0].y = selectionBoxPoints[1].y;
-					selectionBoxPoints[1].y = temp;
-				}
-			
-				MyUserInterface->createRegion(selectionBoxPoints[0].x, selectionBoxPoints[0].y, selectionBoxPoints[1].x - selectionBoxPoints[0].x, selectionBoxPoints[1].y - selectionBoxPoints[0].y);
-			}
-		}
-
-		
-	}break;
 
 	case WM_MOUSEWHEEL:
 	{
 
 	}break;
 
-	case WM_MOUSEMOVE:
-	{
-		gMouseX = GET_X_LPARAM(lParam);
-		gMouseY = GET_Y_LPARAM(lParam);
-
-						
-		MyUserInterface->ProcessMousePosition(gMouseX, gMouseY);
-
-		if (currentTool == TOOL_REGION)
-		{
-			if (MyUserInterface->isLMD())
-			{
-				POINT snap = FindNearestSnapPoint({ gMouseX, gMouseY });
-				POINT firstPos = { int(selectionBoxPoints[0].x + 0.5f), int(selectionBoxPoints[0].y + 0.5f) };
-				selectionBoxPoints[1].x = snap.x;
-				selectionBoxPoints[1].y = snap.y;
-
-	
-
-
-			}
-		}
-
-
-	}break;
 
 	case WM_PAINT:
 	{
@@ -790,7 +1070,6 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 	case WM_KEYDOWN: //any keyboard press generates this message
 	{
 			int cam_speed_x = cam2d->GetMoveSpeed(), cam_speed_y = cam2d->GetMoveSpeed();
-			MyUserInterface->ProcessKeyboard(wParam);
 
 			if (MyUserInterface->UIHasFocus() == false)
 			{
@@ -816,6 +1095,10 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 					cam2d->SetPosition(cam2d->GetPosition().x + cam_speed_x, cam2d->GetPosition().y);
 
 				} 
+			}
+			if (AppUserInterface->UIHasFocus() == false)
+			{
+
 			}
 	}break; 
 
@@ -855,6 +1138,52 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 //Callbacks
 /////////////////////////////////////////////////////////////////////////////////////////
 
+void insertButtonCB()
+{
+	currentFunction = FUNCTION_INSERT_BUTTON;
+}
+
+void insertRegionCB()
+{
+	currentFunction = FUNCTION_INSERT_REGION;
+
+}
+
+void insertLableCB()
+{
+	currentFunction = FUNCTION_INSERT_LABLE;
+
+}
+
+void insertTextCB()
+{
+	currentFunction = FUNCTION_INSERT_TEXT;
+
+}
+
+void insertSelectionCB()
+{
+	currentFunction = FUNCTION_INSERT_SELECTION;
+
+}
+
+void insertRadioCB()
+{
+	currentFunction = FUNCTION_INSERT_RADIO;
+
+}
+
+void insertListCB()
+{
+	currentFunction = FUNCTION_INSERT_LIST;
+
+}
+
+void insertCheckCB()
+{
+	currentFunction = FUNCTION_INSERT_TEXT;
+
+}
 
 
 void myMouseCallBack(int x, int y)
@@ -891,14 +1220,15 @@ void editScaleCB()
 }
 void modeGUICB()
 {
-	currentMode = GUI_MODE;
+	currentMode = MODE_GUI;
 	cam2d->SetMovementConstraint(MOVE_CONSTRAINT_ALL);
-
+	CreateGUIBuilderUI();
 }
 void modeWorldCB()
 {
-	currentMode = WORLD_MODE;
+	currentMode = MODE_WORLD;
 	cam2d->SetMovementConstraint(MOVE_CONSTRAINT_NONE);
+	CreateWorldBuilderUI();
 }
 void newGUIOkCB()
 {

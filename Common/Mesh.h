@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "Vertex.h"
-#include "Bitmap.h"
+#include "ResourceManager.h"
 
 using namespace std;
 

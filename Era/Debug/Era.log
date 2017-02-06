@@ -1,10 +1,1 @@
-﻿  WindowsMain.cpp
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\math56.h(214): warning C4244: '=': conversion from 'LONG' to 'float', possible loss of data
-d:\users\tim\documents\visual studio projects\softwarerasterizer\era\windowsmain.cpp(49): warning C4101: 'hdc': unreferenced local variable
-d:\users\tim\documents\visual studio projects\softwarerasterizer\era\windowsmain.cpp(47): warning C4101: 'hwnd': unreferenced local variable
-  Generating Code...
-  Compiling...
-  Era.cpp
-d:\users\tim\documents\visual studio projects\softwarerasterizer\common\math56.h(214): warning C4244: '=': conversion from 'LONG' to 'float', possible loss of data
-  Generating Code...
-  Era.vcxproj -> D:\Users\Tim\Documents\Visual Studio Projects\SoftwareRasterizer\Debug\Era.exe
+﻿

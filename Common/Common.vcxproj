@@ -135,12 +135,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AnimatedBitmap.cpp" />
-    <ClCompile Include="Bitmap.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DebugView.cpp" />
+    <ClCompile Include="EventListener.cpp" />
     <ClCompile Include="GameEngine.cpp" />
-    <ClCompile Include="Math56.cpp" />
+    <ClCompile Include="SRMath.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Shapes.cpp" />
     <ClCompile Include="SoftwareRasterizer.cpp" />
@@ -149,13 +148,13 @@
     <ClCompile Include="Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AnimatedBitmap.h" />
-    <ClInclude Include="Bitmap.h" />
+    <ClInclude Include="BezzierCurve.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DebugView.h" />
+    <ClInclude Include="EventListener.h" />
     <ClInclude Include="GameEngine.h" />
     <ClInclude Include="MacrosAndDefines.h" />
-    <ClInclude Include="Math56.h" />
+    <ClInclude Include="SRMath.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="ProgramEngineInterface.h" />
     <ClInclude Include="ResourceManager.h" />

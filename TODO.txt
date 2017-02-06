@@ -1,6 +1,14 @@
 FORGE
+2/6/17
+Create an implementation of bezzier curves and rewrite the fonts using them
 
-1/24/2017
+1/28/2017
+Add grid divisions to tool box in gui mode ^
+All for GUI elements to be dropped unto the grid ^
+Allow elements to be moved and scaled ^
+Allow texture assignment to applicable elements
+Allow text change on elements
+
 
 
 11/20/2016

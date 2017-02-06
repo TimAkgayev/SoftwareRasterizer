@@ -92,28 +92,28 @@ Player::~Player()
 	
 }
 
-void Player::AddFrontAnimation(AnimatedBitmap anim)
+void Player::AddFrontAnimation(AnimatedBitmap* anim)
 {
 	frontAnim = anim;
-	frontAnim.SetPosition(position);
+	frontAnim->SetPosition(position);
 }
 
-void Player::AddLeftAnimation(AnimatedBitmap anim)
+void Player::AddLeftAnimation(AnimatedBitmap* anim)
 {
 	leftAnim = anim;
-	leftAnim.SetPosition(position);
+	leftAnim->SetPosition(position);
 }
 
-void Player::AddRightAnimation(AnimatedBitmap anim)
+void Player::AddRightAnimation(AnimatedBitmap* anim)
 {
 	rightAnim = anim;
-	rightAnim.SetPosition(position);
+	rightAnim->SetPosition(position);
 }
 
-void Player::AddBackAnimation(AnimatedBitmap anim)
+void Player::AddBackAnimation(AnimatedBitmap* anim)
 {
 	backAnim = anim;
-	backAnim.SetPosition(position);
+	backAnim->SetPosition(position);
 }
 
 void Player::SetPosition(float x, float y)
@@ -125,10 +125,10 @@ void Player::SetPosition(float x, float y)
 void Player::SetPosition(VECTOR2D& pos)
 {
 	position = pos;
-	backAnim.SetPosition(pos);
-	frontAnim.SetPosition(pos);
-	leftAnim.SetPosition(pos);
-	rightAnim.SetPosition(pos);
+	backAnim->SetPosition(pos);
+	frontAnim->SetPosition(pos);
+	leftAnim->SetPosition(pos);
+	rightAnim->SetPosition(pos);
 	isPositionUpdated = true;
 
 }
@@ -145,7 +145,7 @@ float Player::GetMoveSpeed() const
 
 void Player::GetBoundingRect(RECT2D& ret) 
 {
-	frontAnim.GetBoundingRectangle(ret);
+	frontAnim->GetBoundingRectangle(ret);
 	
 }
 
@@ -161,26 +161,26 @@ void Player::Draw(DWORD* vmem, int lpitch32)
 		if (facingDirection == "up")
 		{
 			RECT2D r;
-			backAnim.GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(backAnim.GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			backAnim->GetBoundingRectangle(r);
+			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(backAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 		else if (facingDirection == "down")
 		{
 			RECT2D r;
-			frontAnim.GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(frontAnim.GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			frontAnim->GetBoundingRectangle(r);
+			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(frontAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 		else if (facingDirection == "left")
 		{
 			RECT2D r;
-			leftAnim.GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(leftAnim.GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			leftAnim->GetBoundingRectangle(r);
+			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(leftAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 		else if (facingDirection == "right")
 		{
 			RECT2D r;
-			rightAnim.GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(rightAnim.GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			rightAnim->GetBoundingRectangle(r);
+			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(rightAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 
 		return;
@@ -188,19 +188,19 @@ void Player::Draw(DWORD* vmem, int lpitch32)
 
 	if (facingDirection == "up")
 	{
-		backAnim.Draw(vmem, lpitch32);
+		backAnim->Draw(vmem, lpitch32);
 	}
 	else if (facingDirection == "down")
 	{
-		frontAnim.Draw(vmem, lpitch32);
+		frontAnim->Draw(vmem, lpitch32);
 	}
 	else if (facingDirection == "left")
 	{
-		leftAnim.Draw(vmem, lpitch32);
+		leftAnim->Draw(vmem, lpitch32);
 	}
 	else if (facingDirection == "right")
 	{
-		rightAnim.Draw(vmem, lpitch32);
+		rightAnim->Draw(vmem, lpitch32);
 	}
 
 	isPositionUpdated = false;
@@ -393,10 +393,10 @@ int Game_Main_DX7()
 	DWORD *video_buffer = (DWORD *)softrest7_obj.ddSurfDesc.lpSurface;
 
 
-	//DrawMandelbrotSet(video_buffer, lpitch32, g_mndBrotCamX, g_mndBrotCamY, g_mndBrotZoom);
+	//DrawMandelbrotSet(video_*buffer, lpitch32, g_mndBrotCamX, g_mndBrotCamY, g_mndBrotZoom);
 
-	//	SnowGameMain(video_buffer, lpitch32, Time.deltaTime);
-	//	OceanMain(video_buffer, lpitch32, Time.deltaTime);
+	//	SnowGameMain(video_*buffer, lpitch32, Time.deltaTime);
+	//	OceanMain(video_*buffer, lpitch32, Time.deltaTime);
 	/***************************************all software blitting goes here*******************************************/
 
 	softrest7_obj.lpDDSurfBack->Unlock(NULL);
@@ -440,7 +440,7 @@ int Game_Main_DX12()
 	softrest12_obj.pD3D12CommandList->RSSetViewports(1, &softrest12_obj.d3d12Viewport);
 	softrest12_obj.pD3D12CommandList->RSSetScissorRects(1, &softrest12_obj.d3d12ScissorRect);
 
-	//Indicate that the back buffer will be used as a render target
+	//Indicate that the back *buffer will be used as a render target
 	D3D12_RESOURCE_BARRIER resBarrier = {};
 	resBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	resBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;

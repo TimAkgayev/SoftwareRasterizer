@@ -91,7 +91,7 @@ void DrawLineQueue(DWORD* mem, int lpitch32)
 
 
 		//line is already transformed and clipped and all points are already cast to integers during clipping
-		DrawLine(mem, lpitch32, vIter->point0.x, vIter->point0.y, vIter->point1.x, vIter->point1.y, (*vIter).color0, (*vIter).color1);
+		DrawLine(mem, lpitch32, SoftwareRasterizer.clientRect.bottom - SoftwareRasterizer.clientRect.top, vIter->point0.x, vIter->point0.y, vIter->point1.x, vIter->point1.y, (*vIter).color0, (*vIter).color1);
 	}
 
 	lineQueue.clear();
@@ -823,7 +823,7 @@ void CheckCollisions();
 
 
 
-void DrawLine(DWORD* buffer, int lpitch32, int x0, int y0, int x1, int y1, DWORD color0, DWORD color1, RECT* clipRect)
+void DrawLine(DWORD* buffer, int buffer_width, int buffer_height, int x0, int y0, int x1, int y1, DWORD color0, DWORD color1, RECT* clipRect)
 {
 	if (clipRect)
 	{
@@ -832,12 +832,15 @@ void DrawLine(DWORD* buffer, int lpitch32, int x0, int y0, int x1, int y1, DWORD
 
 		//line is invisible, don't draw
 		if (clipValue == 0)
-			return;
+			return; 
 	}
 
 	//which side is longer
 	int xLen = abs(x1 - x0);
 	int yLen = abs(y1 - y0);
+	
+	if (! ( (buffer_width > x1 && buffer_width > x0) && (buffer_height > y1 || buffer_height > y0) ) )
+		return;
 
 	if (xLen >= yLen)
 	{
@@ -873,7 +876,7 @@ void DrawLine(DWORD* buffer, int lpitch32, int x0, int y0, int x1, int y1, DWORD
 		{
 			DWORD color = _RGBA32BIT(int(outR + 0.5f), int(outG + 0.5f), int(outB + 0.5f), int(outA + 0.5f));
 			
-			buffer[x + int(y + 0.5f)*lpitch32] = color;
+			buffer[x + int(y + 0.5f)*buffer_width] = color;
 			y += deltaY*incTerm;
 			outR = (outR + deltaR);
 			outG = (outG + deltaG);
@@ -921,7 +924,7 @@ void DrawLine(DWORD* buffer, int lpitch32, int x0, int y0, int x1, int y1, DWORD
 		{
 
 			DWORD color = _RGBA32BIT(int(outR + 0.5f), int(outG + 0.5f), int(outB + 0.5f), int(outA + 0.5f));
-			buffer[int(x + 0.5) + y*lpitch32] = color;
+			buffer[int(x + 0.5) + y*buffer_width] = color;
 			x += deltaX*incTerm;
 			outR = (outR + deltaR);
 			outG = (outG + deltaG);
