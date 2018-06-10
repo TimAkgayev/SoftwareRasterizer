@@ -245,7 +245,7 @@ void InitializeSoftwareRasterizer()
 	//load the effects file to be used ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 
 	HRESULT hrFx;
-	if (FAILED(hrFx = D3DX10CreateEffectFromFile(TEXT("D:\\Users\\Tim\\Documents\\Visual Studio Projects\\SoftwareRasterizer\\Common\\DX10RendererEffect.fx"), NULL, NULL, "fx_4_0", D3D10_SHADER_DEBUG, 0, SoftwareRasterizer.pD3D10Device, NULL, NULL, &SoftwareRasterizer.pD3D10Effect, NULL, NULL)))
+	if (FAILED(hrFx = D3DX10CreateEffectFromFile(TEXT("..\\Common\\DX10RendererEffect.fx"), NULL, NULL, "fx_4_0", D3D10_SHADER_DEBUG, 0, SoftwareRasterizer.pD3D10Device, NULL, NULL, &SoftwareRasterizer.pD3D10Effect, NULL, NULL)))
 	{
 		return;
 	}

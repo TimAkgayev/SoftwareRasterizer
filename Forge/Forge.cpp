@@ -177,7 +177,7 @@ RECT2D gWorldBuilderElementsRect = { LocalWindowsSettings.clientDimX - gWorldBui
 
 RECT2D gGUIBuilderControlPanelRect = { gGUIBuilderMarginRect.left, LocalWindowsSettings.clientDimY - gGUIBuilderMarginRect.bottom + 10.0f, LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.right, LocalWindowsSettings.clientDimY - 5.0f };
 RECT2D gGUIBuilderElementsRect = { LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.right + 10.0f , gGUIBuilderMarginRect.top, LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.left, gGUIBuilderControlPanelRect.bottom };
-string gRootImageDirectory = "D:\\Users\\Tim\\Documents\\Visual Studio Projects\\SoftwareRasterizer\\Forge\\Images\\";
+string gRootImageDirectory = "..\\Forge\\Images\\";
 int world_gridspacing = 35;
 
 LandCell land1;

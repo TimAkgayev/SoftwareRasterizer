@@ -22,7 +22,7 @@
     <ProjectGuid>{D0935CBA-DC6E-4DCF-B54C-C06EF34B56A2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Era</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -96,7 +96,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\Users\Tim\Documents\Visual Studio Projects\SoftwareRasterizer\D3DX;D:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\winrt;D:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\shared;D:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10240.0\winrt;D:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10240.0\shared;D:\Program Files %28x86%29\Windows Kits\10\Include\10.0.10586.0\um;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>

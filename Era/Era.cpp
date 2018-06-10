@@ -9,7 +9,7 @@ AnimatedBitmap wigwam;
 AnimatedBitmap WigwamLarge;
 string playerMove = "none";
 SpriteLoader sloader;
-string rootImageDir = "D:\\Users\\Tim\\Documents\\era\\Source Images\\";
+string rootImageDir = "C:\\Users\\Tim\\Documents\\SoftwareRasterizer\\Era\\Source Images\\";
 WINDOWS_SETTINGS LocalWindowsSettings = { 960, 720, {0, 0}, TEXT("Era") };
 
 UIButton* baseBtn;
