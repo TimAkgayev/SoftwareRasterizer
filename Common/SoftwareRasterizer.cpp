@@ -939,11 +939,9 @@ void DrawLine(DWORD* buffer, int buffer_width, int buffer_height, int x0, int y0
 
 
 
-void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BitmapFile* source, int destPosX, int destPosY, RECT* sourceRegion)
+void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, Bitmap* source, int destPosX, int destPosY, RECT* sourceRegion)
 {
-//	destPosX += int(SoftwareRasterizer.drawOffsetX + 0.5f);
-//	destPosY += int(SoftwareRasterizer.drawOffsetY + 0.5f);
-
+	
 	int image_width = source->GetInfoHeader().biWidth;
 	int image_height = source->GetInfoHeader().biHeight;
 	int offsetX = 0;
@@ -966,7 +964,7 @@ void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BitmapFile* source, i
 		return;
 	if (destPosX > SoftwareRasterizer.clientRect.right)
 		return;
-	if (destPosY >  SoftwareRasterizer.clientRect.bottom)
+	if (destPosY > SoftwareRasterizer.clientRect.bottom)
 		return;
 
 
@@ -993,7 +991,7 @@ void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BitmapFile* source, i
 	if (byteCount == 4)
 	{
 		DWORD* sourceStartMem = ((DWORD*)source->GetData()) + ((offsetX + reg_offsetX) + ((offsetY + reg_offsetY) * image_width));
-		DWORD* destStartMem = (dest) + ( x1 +  y1*destLPitch32);
+		DWORD* destStartMem = (dest)+(x1 + y1*destLPitch32);
 
 		int numColumns = (x2 - x1);
 		int numRows = (y2 - y1);
@@ -1012,36 +1010,33 @@ void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, BitmapFile* source, i
 		}
 
 	}
-	else if (byteCount == 3)
+	else if (byteCount == 1)
 	{
-		UCHAR* sourceStartMem = source->GetData() + (((offsetX + reg_offsetX) * byteCount) + ((offsetY + reg_offsetY)* image_width * byteCount));
-		UCHAR* destStartMem = (UCHAR*) (dest)+ ( x1  + y1 *(destLPitch32 << 2));
 
-		int numColumns = (x2 - x1) + 1;
-		int numRows = (y2 - y1) + 1;
+		
+		UCHAR* sourceStartMem = (UCHAR*)source->GetData() + (offsetX + reg_offsetX) + (offsetY + reg_offsetY) * image_width;
+		DWORD* destStartMem = (dest)+(x1 + y1*destLPitch32);
+
+		int numColumns = (x2 - x1);
+		int numRows = (y2 - y1);
 
 		for (int row = 0; row < numRows; row++)
 		{
 			for (int column = 0; column < numColumns; column++)
 			{
-				UCHAR pixel[4];
-				pixel[0] = sourceStartMem[column * 3];
-				pixel[1] = sourceStartMem[column * 3 + 1];
-				pixel[2] = sourceStartMem[column * 3 + 2];
 
-				destStartMem[column * 3] = pixel[0];
-				destStartMem[column * 3 + 1] = pixel[1];
-				destStartMem[column * 3 + 2] = pixel[2];
-				destStartMem[column * 3 + 3] = 255;
-
+				if(sourceStartMem[column] != 0)
+					destStartMem[column] = _RGBA32BIT(int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), 255);
 
 			}
 
-			destStartMem += destLPitch32 << 2;
-			sourceStartMem += image_width * 3;
+			destStartMem += destLPitch32;
+			sourceStartMem += image_width;
 		}
+		
+	
+	
 	}
-
 
 
 }
@@ -1129,7 +1124,7 @@ void DrawCharBitmap(DWORD* mem_buffer, int lpitch32, char* bitmap, DWORD color, 
 	}
 }
 
-void _DrawFlatTopTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BitmapFile* texture, DWORD* video_mem, int lpitch32)
+void _DrawFlatTopTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, Bitmap* texture, DWORD* video_mem, int lpitch32)
 {
 	float xtranslate = transform.M[2][0];
 	float ytranslate = transform.M[2][1];
@@ -1200,7 +1195,7 @@ void _DrawFlatTopTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, Bit
 
 
 }
-void _DrawFlatBottomTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, BitmapFile* texture, DWORD* video_mem, int lpitch32)
+void _DrawFlatBottomTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, Bitmap* texture, DWORD* video_mem, int lpitch32)
 {
 	float dxdyL = (sortVerts[0].pos.x - sortVerts[2].pos.x)/abs(sortVerts[0].pos.y - sortVerts[2].pos.y);
 	float dudyL = (sortVerts[0].u - sortVerts[2].u) / abs(sortVerts[0].pos.y - sortVerts[2].pos.y);
@@ -1760,7 +1755,7 @@ void DrawMeshObject(MESHOBJECT& m, int flags, DWORD* video_mem, int lpitch32)
 }
 
 
-void DrawTriangle(DWORD* video_mem, int lpitch32, VERTEX2D triangle[3], MATRIX3D& transform, int drawOptions, BitmapFile* texture)
+void DrawTriangle(DWORD* video_mem, int lpitch32, VERTEX2D triangle[3], MATRIX3D& transform, int drawOptions, Bitmap* texture)
 {
 	if (drawOptions == DRAW_OPTIONS::DO_FLAT)
 	{

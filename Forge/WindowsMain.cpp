@@ -167,6 +167,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpCmdLine
 resetEntry:
 	
 	CreateEngineWindow();
+	CreateDebugWindow();
 
 	Initialization();
 

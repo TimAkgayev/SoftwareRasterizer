@@ -1,1 +1,174 @@
-﻿
+﻿  WindowsMain.cpp
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(12): warning C4005: 'DXGI_STATUS_OCCLUDED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52391): note: see previous definition of 'DXGI_STATUS_OCCLUDED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(13): warning C4005: 'DXGI_STATUS_CLIPPED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52400): note: see previous definition of 'DXGI_STATUS_CLIPPED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(14): warning C4005: 'DXGI_STATUS_NO_REDIRECTION': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52409): note: see previous definition of 'DXGI_STATUS_NO_REDIRECTION'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(15): warning C4005: 'DXGI_STATUS_NO_DESKTOP_ACCESS': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52418): note: see previous definition of 'DXGI_STATUS_NO_DESKTOP_ACCESS'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(16): warning C4005: 'DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52427): note: see previous definition of 'DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(17): warning C4005: 'DXGI_STATUS_MODE_CHANGED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52436): note: see previous definition of 'DXGI_STATUS_MODE_CHANGED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(18): warning C4005: 'DXGI_STATUS_MODE_CHANGE_IN_PROGRESS': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52445): note: see previous definition of 'DXGI_STATUS_MODE_CHANGE_IN_PROGRESS'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(21): warning C4005: 'DXGI_ERROR_INVALID_CALL': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52460): note: see previous definition of 'DXGI_ERROR_INVALID_CALL'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(22): warning C4005: 'DXGI_ERROR_NOT_FOUND': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52469): note: see previous definition of 'DXGI_ERROR_NOT_FOUND'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(23): warning C4005: 'DXGI_ERROR_MORE_DATA': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52478): note: see previous definition of 'DXGI_ERROR_MORE_DATA'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(24): warning C4005: 'DXGI_ERROR_UNSUPPORTED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52487): note: see previous definition of 'DXGI_ERROR_UNSUPPORTED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(25): warning C4005: 'DXGI_ERROR_DEVICE_REMOVED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52496): note: see previous definition of 'DXGI_ERROR_DEVICE_REMOVED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(26): warning C4005: 'DXGI_ERROR_DEVICE_HUNG': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52505): note: see previous definition of 'DXGI_ERROR_DEVICE_HUNG'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(27): warning C4005: 'DXGI_ERROR_DEVICE_RESET': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52515): note: see previous definition of 'DXGI_ERROR_DEVICE_RESET'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(28): warning C4005: 'DXGI_ERROR_WAS_STILL_DRAWING': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52524): note: see previous definition of 'DXGI_ERROR_WAS_STILL_DRAWING'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(29): warning C4005: 'DXGI_ERROR_FRAME_STATISTICS_DISJOINT': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52534): note: see previous definition of 'DXGI_ERROR_FRAME_STATISTICS_DISJOINT'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(30): warning C4005: 'DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52543): note: see previous definition of 'DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(31): warning C4005: 'DXGI_ERROR_DRIVER_INTERNAL_ERROR': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52553): note: see previous definition of 'DXGI_ERROR_DRIVER_INTERNAL_ERROR'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(32): warning C4005: 'DXGI_ERROR_NONEXCLUSIVE': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52562): note: see previous definition of 'DXGI_ERROR_NONEXCLUSIVE'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(33): warning C4005: 'DXGI_ERROR_NOT_CURRENTLY_AVAILABLE': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52571): note: see previous definition of 'DXGI_ERROR_NOT_CURRENTLY_AVAILABLE'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(34): warning C4005: 'DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52581): note: see previous definition of 'DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(35): warning C4005: 'DXGI_ERROR_REMOTE_OUTOFMEMORY': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52590): note: see previous definition of 'DXGI_ERROR_REMOTE_OUTOFMEMORY'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\d3d10.h(608): warning C4005: 'D3D10_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52771): note: see previous definition of 'D3D10_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\d3d10.h(609): warning C4005: 'D3D10_ERROR_FILE_NOT_FOUND': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52780): note: see previous definition of 'D3D10_ERROR_FILE_NOT_FOUND'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\common\math.h(214): warning C4244: '=': conversion from 'LONG' to 'float', possible loss of data
+c:\users\tim\documents\visual studio projects\softwarerasterizer\common\bitmapimage.h(4): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\windowsmain.cpp(49): warning C4101: 'hdc': unreferenced local variable
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\windowsmain.cpp(47): warning C4101: 'hwnd': unreferenced local variable
+  Era.cpp
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(12): warning C4005: 'DXGI_STATUS_OCCLUDED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52391): note: see previous definition of 'DXGI_STATUS_OCCLUDED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(13): warning C4005: 'DXGI_STATUS_CLIPPED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52400): note: see previous definition of 'DXGI_STATUS_CLIPPED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(14): warning C4005: 'DXGI_STATUS_NO_REDIRECTION': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52409): note: see previous definition of 'DXGI_STATUS_NO_REDIRECTION'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(15): warning C4005: 'DXGI_STATUS_NO_DESKTOP_ACCESS': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52418): note: see previous definition of 'DXGI_STATUS_NO_DESKTOP_ACCESS'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(16): warning C4005: 'DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52427): note: see previous definition of 'DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(17): warning C4005: 'DXGI_STATUS_MODE_CHANGED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52436): note: see previous definition of 'DXGI_STATUS_MODE_CHANGED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(18): warning C4005: 'DXGI_STATUS_MODE_CHANGE_IN_PROGRESS': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52445): note: see previous definition of 'DXGI_STATUS_MODE_CHANGE_IN_PROGRESS'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(21): warning C4005: 'DXGI_ERROR_INVALID_CALL': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52460): note: see previous definition of 'DXGI_ERROR_INVALID_CALL'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(22): warning C4005: 'DXGI_ERROR_NOT_FOUND': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52469): note: see previous definition of 'DXGI_ERROR_NOT_FOUND'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(23): warning C4005: 'DXGI_ERROR_MORE_DATA': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52478): note: see previous definition of 'DXGI_ERROR_MORE_DATA'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(24): warning C4005: 'DXGI_ERROR_UNSUPPORTED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52487): note: see previous definition of 'DXGI_ERROR_UNSUPPORTED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(25): warning C4005: 'DXGI_ERROR_DEVICE_REMOVED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52496): note: see previous definition of 'DXGI_ERROR_DEVICE_REMOVED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(26): warning C4005: 'DXGI_ERROR_DEVICE_HUNG': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52505): note: see previous definition of 'DXGI_ERROR_DEVICE_HUNG'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(27): warning C4005: 'DXGI_ERROR_DEVICE_RESET': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52515): note: see previous definition of 'DXGI_ERROR_DEVICE_RESET'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(28): warning C4005: 'DXGI_ERROR_WAS_STILL_DRAWING': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52524): note: see previous definition of 'DXGI_ERROR_WAS_STILL_DRAWING'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(29): warning C4005: 'DXGI_ERROR_FRAME_STATISTICS_DISJOINT': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52534): note: see previous definition of 'DXGI_ERROR_FRAME_STATISTICS_DISJOINT'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(30): warning C4005: 'DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52543): note: see previous definition of 'DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(31): warning C4005: 'DXGI_ERROR_DRIVER_INTERNAL_ERROR': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52553): note: see previous definition of 'DXGI_ERROR_DRIVER_INTERNAL_ERROR'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(32): warning C4005: 'DXGI_ERROR_NONEXCLUSIVE': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52562): note: see previous definition of 'DXGI_ERROR_NONEXCLUSIVE'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(33): warning C4005: 'DXGI_ERROR_NOT_CURRENTLY_AVAILABLE': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52571): note: see previous definition of 'DXGI_ERROR_NOT_CURRENTLY_AVAILABLE'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(34): warning C4005: 'DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52581): note: see previous definition of 'DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\dxgitype.h(35): warning C4005: 'DXGI_ERROR_REMOTE_OUTOFMEMORY': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52590): note: see previous definition of 'DXGI_ERROR_REMOTE_OUTOFMEMORY'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\d3d10.h(608): warning C4005: 'D3D10_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52771): note: see previous definition of 'D3D10_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS'
+c:\program files (x86)\microsoft directx sdk (june 2010)\include\d3d10.h(609): warning C4005: 'D3D10_ERROR_FILE_NOT_FOUND': macro redefinition
+  c:\program files (x86)\windows kits\10\include\10.0.14393.0\shared\winerror.h(52780): note: see previous definition of 'D3D10_ERROR_FILE_NOT_FOUND'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\common\math.h(214): warning C4244: '=': conversion from 'LONG' to 'float', possible loss of data
+c:\users\tim\documents\visual studio projects\softwarerasterizer\common\bitmapimage.h(4): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(11): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(11): error C2146: syntax error: missing ';' before identifier 'sloader'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(96): error C2661: 'BitmapImage::AddFrame': no overloaded function takes 2 arguments
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(97): error C2661: 'BitmapImage::AddFrame': no overloaded function takes 2 arguments
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(99): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(99): error C2228: left of '.LoadSprite' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(99): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(101): error C2661: 'BitmapImage::AddFrame': no overloaded function takes 2 arguments
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(103): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(103): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(103): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(104): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(104): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(104): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(105): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(105): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(105): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(108): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(108): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(108): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(109): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(109): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(109): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(110): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(110): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(110): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(113): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(113): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(113): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(114): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(114): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(114): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(115): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(115): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(115): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(116): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(116): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(116): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(119): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(119): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(119): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(120): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(120): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(120): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(121): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(121): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(121): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(122): error C2065: 'sloader': undeclared identifier
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(122): error C2228: left of '.GetCell' must have class/struct/union
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(122): note: type is 'unknown-type'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(125): error C2664: 'void BitmapImage::AddFrame(int)': cannot convert argument 1 from 'std::basic_string<char,std::char_traits<char>,std::allocator<char>>' to 'BitmapFile *'
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(125): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(127): error C2664: 'void Player::AddFrontAnimation(BitmapImage *)': cannot convert argument 1 from 'BitmapImage' to 'BitmapImage *'
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(127): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(128): error C2664: 'void Player::AddBackAnimation(BitmapImage *)': cannot convert argument 1 from 'BitmapImage' to 'BitmapImage *'
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(128): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(129): error C2664: 'void Player::AddLeftAnimation(BitmapImage *)': cannot convert argument 1 from 'BitmapImage' to 'BitmapImage *'
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(129): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(130): error C2664: 'void Player::AddRightAnimation(BitmapImage *)': cannot convert argument 1 from 'BitmapImage' to 'BitmapImage *'
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(130): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(172): error C2660: 'UserInterface::createRegion': function does not take 4 arguments
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(338): error C2039: 'ProcessMouseClick': is not a member of 'UserInterface'
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.h(488): note: see declaration of 'UserInterface'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(349): error C2039: 'ProcessMouseClick': is not a member of 'UserInterface'
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.h(488): note: see declaration of 'UserInterface'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(367): error C2039: 'ProcessMousePosition': is not a member of 'UserInterface'
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.h(488): note: see declaration of 'UserInterface'
+c:\users\tim\documents\visual studio projects\softwarerasterizer\era\era.cpp(388): error C2039: 'ProcessKeyboard': is not a member of 'UserInterface'
+  c:\users\tim\documents\visual studio projects\softwarerasterizer\common\userinterface.h(488): note: see declaration of 'UserInterface'
+  Generating Code...

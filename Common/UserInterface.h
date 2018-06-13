@@ -3,8 +3,9 @@
 #include "SoftwareRasterizer.h"
 #include "stdinclude.h"
 #include "MacrosAndDefines.h"
-#include "SRMath.h"
+#include "Math.h"
 #include "EventListener.h"
+#include "Font.h"
 
 #define UI_CHAR_WIDTH_PIXELS 8
 #define UI_CHAR_SPACING_PIXELS 2
@@ -37,7 +38,9 @@ typedef unsigned char uchar;
 void RenderTextToRegion(DWORD* buffer, int lpitch32, string text, RECT region, DWORD bgColor, DWORD color);
 void RenderTextToRegion(DWORD* buffer, int lpitch32, char letter, RECT region, DWORD bgColor, DWORD color);
 
-class TextRenderer {
+
+/*
+class Font {
 public:
 
 	static void RenderTextAt(DWORD* buffer, int lpitch32, string text, int x, int y, float scale, DWORD color);
@@ -49,7 +52,7 @@ private:
 
 };
 
-
+*/
 
 struct ImageResource
 {
@@ -145,7 +148,7 @@ private:
 	int mFrameSize;
 	int screen_w, screen_h;
 	string mText;
-	AnimatedBitmap* mImage;
+	BitmapImage* mImage;
 
 
 };
@@ -301,6 +304,7 @@ public:
 	void SetTitle(string title);
 	std::string GetTitle() const;
 	void AddItem(string name, void(*cb)());
+	
 
 private:
 
@@ -319,7 +323,7 @@ private:
 	int mFrameSize;
 	int mItemFrameSize;
 	int mRegionHoverIndex;
-
+	Font* mFont;
 
 };
 
@@ -395,7 +399,7 @@ private:
 
 	struct cDropItem
 	{
-		BitmapFile* image;
+		Bitmap* image;
 		void(*actionFunction)();
 		RECT2D localRegion;
 		UINT uiType;
@@ -553,7 +557,7 @@ private:
 	int xpos;
 	int ypos;
 	vector<string> mImageLoadList;
-	vector<BitmapFile*> mImageData;
+	vector<Bitmap*> mImageData;
 	bool mIsLButtonDown;
 	VECTOR2D mLMouseDownPosition;
 	double m_LMouseDownTimeStamp;

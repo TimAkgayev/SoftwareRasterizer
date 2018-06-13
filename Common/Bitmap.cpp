@@ -1,8 +1,9 @@
 #include "Bitmap.h"
+#include "SoftwareRasterizer.h"
 
 
 
-int BitmapFile::LoadBitmapFromDisk(string szFileName)
+int Bitmap::LoadBitmapFromDisk(std::string szFileName)
 {
 
 	// Open the bitmap file
@@ -20,7 +21,7 @@ int BitmapFile::LoadBitmapFromDisk(string szFileName)
 		CloseHandle(hFile);
 		return 0;
 	}
-	 
+
 
 	// Read the bitmap info head
 	bOK = ReadFile(hFile, &infoHeader, sizeof(BITMAPINFOHEADER), &dwBytesRead, NULL);
@@ -64,7 +65,7 @@ int BitmapFile::LoadBitmapFromDisk(string szFileName)
 
 }
 
-int BitmapFile::Unload_Bitmap_File()
+int Bitmap::Unload_Bitmap_File()
 {
 	// this function releases all memory associated with the bitmap
 	if (data)
@@ -79,23 +80,23 @@ int BitmapFile::Unload_Bitmap_File()
 	return 1;
 }
 
-void BitmapFile::FlipBitmap()
+void Bitmap::FlipBitmap()
 {
 	if (infoHeader.biBitCount == 32)
 	{
 		DWORD* workingBuffer = (DWORD*) new UCHAR[infoHeader.biSizeImage];
 		DWORD* workingBufferStart = workingBuffer;
 		DWORD* sourceBuffer = (DWORD*)data;
-		
+
 		//go to the end of the source and go backwards
 		sourceBuffer += infoHeader.biWidth * (infoHeader.biHeight - 1);
 
 		for (int row = infoHeader.biHeight - 1; row >= 0; row--)
 		{
 			memcpy(workingBuffer, sourceBuffer, infoHeader.biWidth * (infoHeader.biBitCount / 8));
- 
+
 			workingBuffer += infoHeader.biWidth;
-			sourceBuffer -= infoHeader.biWidth; 
+			sourceBuffer -= infoHeader.biWidth;
 		}
 
 		memcpy(data, workingBufferStart, infoHeader.biSizeImage);
@@ -104,13 +105,122 @@ void BitmapFile::FlipBitmap()
 	}
 
 
+
 }
 
-void BitmapFile::ResizeBitmap(RECT resizeRectangle)
+
+void Bitmap::Draw(DWORD* dest, int destLPitch32, int destPosX, int destPosY, DWORD* color, RECT* sourceRegion)
 {
-	//only works for 32 bit bitmaps for now
-	if (infoHeader.biBitCount != 32)
+
+	int image_width = infoHeader.biWidth;
+	int image_height = infoHeader.biHeight;
+	int offsetX = 0;
+	int offsetY = 0;
+	UINT byteCount = infoHeader.biBitCount / 8;
+
+	//use whole source image unless region is specified
+	if (sourceRegion)
+	{
+		image_width = sourceRegion->right - sourceRegion->left;
+		image_height = sourceRegion->bottom - sourceRegion->top;
+		offsetX = sourceRegion->left;
+		offsetY = sourceRegion->top;
+	}
+
+	//reject off screen bitmap
+	if (destPosX + image_width < 0)
 		return;
+	if (destPosY + image_height < 0)
+		return;
+	if (destPosX > SoftwareRasterizer.clientRect.right)
+		return;
+	if (destPosY > SoftwareRasterizer.clientRect.bottom)
+		return;
+
+
+	//destination region
+	int x1 = destPosX;
+	int y1 = destPosY;
+	int x2 = x1 + image_width;
+	int y2 = y1 + image_height;
+
+	if (x1 < 0)
+		x1 = 0;
+	if (y1 < 0)
+		y1 = 0;
+	if (x2 >= SoftwareRasterizer.clientRect.right)
+		x2 = SoftwareRasterizer.clientRect.right - 1;
+	if (y2 >= SoftwareRasterizer.clientRect.bottom)
+		y2 = SoftwareRasterizer.clientRect.bottom - 1;
+
+	//compute offset into region if clipped by window
+	int reg_offsetX = x1 - destPosX;
+	int reg_offsetY = y1 - destPosY;
+
+	//establish starting points in memory for 32 bit bitmap
+	if (byteCount == 4)
+	{
+		DWORD* sourceStartMem = ((DWORD*)data) + ((offsetX + reg_offsetX) + ((offsetY + reg_offsetY) * image_width));
+		DWORD* destStartMem = (dest)+(x1 + y1*destLPitch32);
+
+		int numColumns = (x2 - x1);
+		int numRows = (y2 - y1);
+
+		for (int row = 0; row < numRows; row++)
+		{
+			for (int column = 0; column < numColumns; column++)
+			{
+
+				destStartMem[column] = sourceStartMem[column];
+
+			}
+
+			destStartMem += destLPitch32;
+			sourceStartMem += image_width;
+		}
+
+	}
+	else if (byteCount == 1)
+	{
+
+
+		UCHAR* sourceStartMem = (UCHAR*)data + (offsetX + reg_offsetX) + (offsetY + reg_offsetY) * image_width;
+		DWORD* destStartMem = (dest)+(x1 + y1*destLPitch32);
+
+		int numColumns = (x2 - x1);
+		int numRows = (y2 - y1);
+
+
+	
+
+
+		for (int row = 0; row < numRows; row++)
+		{
+			for (int column = 0; column < numColumns; column++)
+			{
+
+				if (sourceStartMem[column] != 0)
+					if (color)
+						destStartMem[column] = *color;
+					else
+						destStartMem[column] = _RGBA32BIT(int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), 255);
+
+			}
+
+			destStartMem += destLPitch32;
+			sourceStartMem += image_width;
+		}
+
+
+
+	}
+
+
+}
+
+void Bitmap::ResizeBitmap(RECT resizeRectangle)
+{
+	
 
 	int newXDimension = resizeRectangle.right - resizeRectangle.left;
 	int newYDimension = resizeRectangle.bottom - resizeRectangle.top;
@@ -118,6 +228,9 @@ void BitmapFile::ResizeBitmap(RECT resizeRectangle)
 
 
 	int newDataSize = (infoHeader.biBitCount / 8) * newXDimension * newYDimension;
+
+
+
 
 	//layout of bmp
 	//file header
@@ -128,7 +241,7 @@ void BitmapFile::ResizeBitmap(RECT resizeRectangle)
 	//everything is the same as the old bitmap except the file size
 	BITMAPFILEHEADER newFH = fileHeader;
 	newFH.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + newFH.bfOffBits + newDataSize;
-	
+
 
 	//create a new info header
 	BITMAPINFOHEADER newIH = infoHeader;
@@ -137,41 +250,79 @@ void BitmapFile::ResizeBitmap(RECT resizeRectangle)
 	newIH.biWidth = newXDimension;
 	newIH.biSizeImage = newDataSize;
 
-	//allocate the data (this is only for 32 bit bitmap)
-	DWORD* newData = (DWORD*) new DWORD[newXDimension * newYDimension];
-
 
 	//calculate the resize ratio in x dimension
 	float ratioX = float(newXDimension) / infoHeader.biWidth;
 	float ratioY = float(newYDimension) / infoHeader.biHeight;
 
-	DWORD* newDataOffset = newData;
-	DWORD* origDataOffset = (DWORD*)data;
-
-	//iterate throught the original bitmap and write to the new one
-	for (int row = 0; row < infoHeader.biHeight; row++)
+	UCHAR* newData = 0;
+	if (infoHeader.biBitCount == 32)
 	{
-		for (int column = 0; column < infoHeader.biWidth; column++)
+		//allocate the data (this is only for 32 bit bitmap)
+		DWORD* tempData;
+		tempData = (DWORD*) new DWORD[newXDimension * newYDimension];
+	
+
+		DWORD* newDataOffset = tempData;
+		DWORD* origDataOffset = (DWORD*)data;
+
+		//iterate throught the original bitmap and write to the new one
+		for (int row = 0; row < infoHeader.biHeight; row++)
 		{
-			int destinationRow = int(ratioY * row);
-			int destinationPixel = int(ratioX * column);
-			newDataOffset[destinationRow* newXDimension + destinationPixel] = origDataOffset[column];
+			for (int column = 0; column < infoHeader.biWidth; column++)
+			{
+				int destinationRow = int(ratioY * row);
+				int destinationPixel = int(ratioX * column);
+				newDataOffset[destinationRow* newXDimension + destinationPixel] = origDataOffset[column];
+			}
+
+			//newDataOffset += newXDimension;
+			origDataOffset += infoHeader.biWidth;
 		}
 
-		//newDataOffset += newXDimension;
-		origDataOffset += infoHeader.biWidth;
+		newData = (UCHAR*)tempData;
+	}
+	else if (infoHeader.biBitCount == 8)
+	{
+		//allocate the data 
+		UCHAR* tempData;
+		tempData =  new UCHAR[newXDimension * newYDimension];
+
+		UCHAR* newDataOffset = tempData;
+		UCHAR* origDataOffset = (UCHAR*)data;
+
+		//iterate throught the original bitmap and write to the new one
+		for (int y = 0; y < infoHeader.biHeight; y++)
+		{
+			for (int x = 0; x < infoHeader.biWidth; x++)
+			{
+				int destinationRow = int(ratioY * y);
+				int destinationPixel = int(ratioX * x);
+				newDataOffset[destinationRow* newXDimension + destinationPixel] = origDataOffset[x];
+			}
+
+			//newDataOffset += newXDimension;
+			origDataOffset += infoHeader.biWidth;
+		}
+
+		newData = (UCHAR*)tempData;
 	}
 
 	//delete the old data
 	delete data;
 
+
 	//copy everything back to the output bitmap
 	fileHeader = newFH;
 	infoHeader = newIH;
 	data = (unsigned char*)newData;
-	
+
+
+
+
+
 }
-void BitmapFile::ResizeBitmap(float xscale, float yscale)
+void Bitmap::ResizeBitmap(float xscale, float yscale)
 {
 	//calculate the size based on percentage
 	int newXDim = int(infoHeader.biWidth * xscale + 0.5f);
@@ -185,7 +336,7 @@ void BitmapFile::ResizeBitmap(float xscale, float yscale)
 	ResizeBitmap(rc);
 }
 
-void BitmapFile::RotateBitmapLeft()
+void Bitmap::RotateBitmapLeft()
 {
 	//allocate temporary data
 	DWORD* tempData = (DWORD*) new char[infoHeader.biSizeImage];
@@ -199,9 +350,9 @@ void BitmapFile::RotateBitmapLeft()
 	//iterate throught the original bitmap and write to the new one
 	for (int row = 0; row < infoHeader.biHeight; row++)
 	{
-		for (int columnOld = 0, columnNew = infoHeader.biWidth - 1; columnOld < infoHeader.biWidth, columnNew >= 0 ; columnOld++, columnNew--)
+		for (int columnOld = 0, columnNew = infoHeader.biWidth - 1; columnOld < infoHeader.biWidth, columnNew >= 0; columnOld++, columnNew--)
 		{
-			
+
 			tempData[columnNew*newXDim + row] = origData[columnOld];
 		}
 
@@ -215,18 +366,20 @@ void BitmapFile::RotateBitmapLeft()
 	infoHeader.biHeight = newYDim;
 
 	delete tempData;
+
+
 }
 
-BitmapFile::BitmapFile(string filename)
+Bitmap::Bitmap(std::string filename)
 {
 	LoadBitmapFromDisk(filename);
 	size_t pos = filename.find_last_of('\\');
-	name = filename.substr(pos+1);
+	name = filename.substr(pos + 1);
 	int x = 0;
 
 }
 
-BitmapFile::BitmapFile(int width, int height)
+Bitmap::Bitmap(int width, int height)
 {
 	memset(&fileHeader, 0, sizeof(BITMAPFILEHEADER));
 	memset(&infoHeader, 0, sizeof(BITMAPINFOHEADER));
@@ -240,7 +393,7 @@ BitmapFile::BitmapFile(int width, int height)
 	infoHeader.biWidth = width;
 	infoHeader.biPlanes = 1;
 	infoHeader.biSize = sizeof(BITMAPINFOHEADER);
-	infoHeader.biSizeImage = width*height*sizeof(DWORD);
+	infoHeader.biSizeImage = width*height * sizeof(DWORD);
 	infoHeader.biXPelsPerMeter = 2835;
 	infoHeader.biYPelsPerMeter = 2835;
 
@@ -254,7 +407,37 @@ BitmapFile::BitmapFile(int width, int height)
 
 }
 
-BitmapFile::~BitmapFile()
+Bitmap::Bitmap(int width, int height, unsigned char* buffer)
+{
+	memset(&fileHeader, 0, sizeof(BITMAPFILEHEADER));
+	memset(&infoHeader, 0, sizeof(BITMAPINFOHEADER));
+
+	//set up info
+	infoHeader.biBitCount = 8;
+	infoHeader.biClrImportant = 0;
+	infoHeader.biClrUsed = 0;
+	infoHeader.biCompression = BI_RLE8;
+	infoHeader.biHeight = height;
+	infoHeader.biWidth = width;
+	infoHeader.biPlanes = 1;
+	infoHeader.biSize = sizeof(BITMAPINFOHEADER);
+	infoHeader.biSizeImage = width*height;
+	infoHeader.biXPelsPerMeter = 2835;
+	infoHeader.biYPelsPerMeter = 2835;
+
+	//allocate space
+	data = new UCHAR[infoHeader.biSizeImage];
+
+	//now set up file header last
+	fileHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + (sizeof(RGBQUAD) * 1024);
+	fileHeader.bfSize = infoHeader.biSize + sizeof(BITMAPFILEHEADER) + infoHeader.biSizeImage;
+	fileHeader.bfType = 'BM';
+
+	memcpy(data, buffer, infoHeader.biSizeImage);
+}
+
+
+Bitmap::~Bitmap()
 {
 	if (data)
 		delete data;
@@ -263,7 +446,7 @@ BitmapFile::~BitmapFile()
 
 }
 
-BitmapFile& BitmapFile::operator=(const BitmapFile& rhv)
+Bitmap& Bitmap::operator=(const Bitmap& rhv)
 {
 	if (data)
 		delete data;
@@ -282,50 +465,54 @@ BitmapFile& BitmapFile::operator=(const BitmapFile& rhv)
 }
 
 
-void BitmapFile::SetResourceManagerKey(int key)
+void Bitmap::SetImageManagerKey(int key)
 {
 	resource_manager_key = key;
 }
 
-void BitmapFile::SetName(string n)
+void Bitmap::SetName(std::string n)
 {
 	name = n;
 }
 
-const PALETTEENTRY* BitmapFile::GetPalette() const
+const PALETTEENTRY* Bitmap::GetPalette() const
 {
 	return palette;
 }
 
-POINT BitmapFile::GetDimensions() const
+POINT Bitmap::GetDimensions() const
 {
 	POINT p = { infoHeader.biWidth, infoHeader.biHeight };
 	return p;
 }
-int   BitmapFile::GetDataSize() const
+int   Bitmap::GetDataSize() const
 {
 	return infoHeader.biSizeImage;
 }
-const BITMAPFILEHEADER& BitmapFile::GetFileHeader() const
+const BITMAPFILEHEADER& Bitmap::GetFileHeader() const
 {
 	return fileHeader;
 }
-const BITMAPINFOHEADER& BitmapFile::GetInfoHeader() const
+const BITMAPINFOHEADER& Bitmap::GetInfoHeader() const
 {
 	return infoHeader;
 }
-UCHAR* BitmapFile::GetData() const
+UCHAR* Bitmap::GetData() const
 {
 	return data;
 }
 
 
-int BitmapFile::GetResouceManagerKey() const
+int Bitmap::GetResouceManagerKey() const
 {
 	return resource_manager_key;
 }
 
-string BitmapFile::GetName() const
+std::string Bitmap::GetName() const
 {
 	return name;
 }
+
+
+
+

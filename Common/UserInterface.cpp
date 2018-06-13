@@ -195,12 +195,12 @@ void UIButton::SetOnLClickCallback(void(*cb)())
 
 void UIButton::SetImage(int RMKey)
 {
-	BitmapFile* bmp = ResourceManager::GetImage(RMKey);
+	Bitmap* bmp = ImageManager::GetImage(RMKey);
 	
 
 	//scale the image to button size
 	bmp->ResizeBitmap(region.GetWINRECT());
-	mImage = new AnimatedBitmap(bmp);
+	mImage = new BitmapImage(bmp);
 
 
 	
@@ -620,7 +620,7 @@ void UIRegion::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	int titlePitch;
 	int titleHeight;
 	VECTOR2D titlePos(region.GetPosition().x + region.getWidth() / 2, region.GetPosition().y - 10);
-	TextRenderer::RenderTextAt(mem, lpitch32, mElementName, titlePos.x, titlePos.y, 10.0f, COLOR_GREY);
+//	Font::RenderTextAt(mem, lpitch32, mElementName, titlePos.x, titlePos.y, 10.0f, COLOR_GREY);
 
 
 	//blit main frame to screen
@@ -1071,22 +1071,17 @@ UIDropdownMenu::UIDropdownMenu()
 	mRegionHoverIndex = -1;
 	bgColor = COLOR_BLACK;
 	mTitle = "";
+	mFont = new Font("../Resource/Fonts/arial.ttf", 12);
 }
 
-UIDropdownMenu::UIDropdownMenu(int xPos, int yPos, string title)
+UIDropdownMenu::UIDropdownMenu(int xPos, int yPos, string title) :UIDropdownMenu()
 {
-	typeID = UITYPE_DROPDOWNMENU;
-	stateID = UISTATE_NORMAL;
-	isInFocus = false;
+	
 	region.setPos(xPos, yPos);
 	region.setWidth(70);
 	region.setHeight(20);
 	mFrameSize = int(region.getWidth()) * int(region.getHeight()) * sizeof(DWORD);
 	mFrameMem = new DWORD[region.getWidth() * region.getHeight()];
-	mItemFrameMem = NULL;
-	mItemFrameSize = 0;
-	mRegionHoverIndex = -1;
-	bgColor = COLOR_BLACK;
 	mTitle = title;
 }
 
@@ -1168,7 +1163,9 @@ void UIDropdownMenu::Draw(DWORD* mem, int lpitch32, float timeDelta)
 			borderColor = COLOR_BLUE;
 
 		//draw the title by itself
-		RenderTextToRegion(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT(), bgColor, COLOR_RED);
+	//	RenderTextToRegion(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT(), bgColor, COLOR_RED);
+		DWORD col = COLOR_RED;
+		mFont->Draw(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT().left, region.GetWINRECT().top, &col);
 		
 
 		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
@@ -1485,7 +1482,7 @@ void UIDropContainer::AddItem(int RMKey, UINT uitype, void(*func)())
 {
 	cDropItem item;
 	item.actionFunction = func;
-	item.image = ResourceManager::GetImage(RMKey);
+	item.image = ImageManager::GetImage(RMKey);
 	item.localRegion.setHeight(item.image->GetInfoHeader().biHeight);
 	item.localRegion.setWidth(item.image->GetInfoHeader().biWidth);
 	item.uiType = uitype;
@@ -2721,12 +2718,13 @@ void RenderTextToRegion(DWORD* buffer, int lpitch32, char letter, RECT region, D
 	RenderTextToRegion(buffer, lpitch32, s, region, bckgColor, color);
 }
 
+/*
 
-DWORD* TextRenderer::mBuffer;
-int TextRenderer::mBufferPitch;
-int TextRenderer::mFontHeight;
+DWORD* Font::mBuffer;
+int Font::mBufferPitch;
+int Font::mFontHeight;
 
-void TextRenderer::RenderTextAt(DWORD* buffer, int lpitch32, string text, int x, int y, float scale, DWORD color)
+void Font::RenderTextAt(DWORD* buffer, int lpitch32, string text, int x, int y, float scale, DWORD color)
 {
 
 
@@ -3065,8 +3063,9 @@ void TextRenderer::RenderTextAt(DWORD* buffer, int lpitch32, string text, int x,
 		}
 		
 		cursorPos += pxCharWidth + pxCharSpacing;
-		*/
+	
 	} //end for string iterator
+	
 	
 
 	//draw to screen
@@ -3086,7 +3085,7 @@ void TextRenderer::RenderTextAt(DWORD* buffer, int lpitch32, string text, int x,
 	
 	
 }
-
+*/
 
 bool UIDropContainer::OnLUp(int mouseX, int mouseY)
 {

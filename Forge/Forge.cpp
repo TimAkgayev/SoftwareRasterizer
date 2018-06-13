@@ -2,7 +2,7 @@
 
 struct LandCell
 {
-	AnimatedBitmap sprite;
+	BitmapImage sprite;
 	bool isColliding;
 };
   
@@ -200,9 +200,14 @@ VECTOR2D v;
 
 BezierCurve b;
 
-
+#include "../Common/Font.h"
+Font* f;
 void ApplicationInitialization()
 {
+
+	
+	f = new Font("../Resource/Fonts/arial.ttf", 6);
+	
 
 	//attach debug window
 	debugger->AddVariableView((void*)&gWorldBuilderMarginRect.left);
@@ -321,6 +326,8 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch32)
 	{
 		vIter->sprite.Draw(video_mem, lpitch32);
 	}
+
+	f->Draw(video_mem, lpitch32, "Hello World", 100, 100);
 }
 
 void ApplicationHardwareRender()
@@ -434,36 +441,36 @@ void CreateWorldBuilderUI()
 
 
 	UIButton* b = MyUserInterface->createButton(ArrowBtnCB, 15, SoftwareRasterizer.clientRect.bottom - 45, "ARROW", 35, 35);
-	b->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "ArrowButton.bmp"));
+	b->SetImage(ImageManager::LoadImageFromFile(gRootImageDirectory + "ArrowButton.bmp"));
 
 	UIButton* b2 = MyUserInterface->createButton(RegionBtnCB, 55, SoftwareRasterizer.clientRect.bottom - 45, "SELECT", 35, 35);
-	b2->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "RegionButton.bmp"));
+	b2->SetImage(ImageManager::LoadImageFromFile(gRootImageDirectory + "RegionButton.bmp"));
 
 	UIButton* b3 = MyUserInterface->createButton(Land1CB, gWorldBuilderElementsRect.GetPosition().x + 10, gWorldBuilderElementsRect.GetPosition().y + 10, "LAND1", 35, 35);
-	b3->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "Land1.bmp"));
+	b3->SetImage(ImageManager::LoadImageFromFile(gRootImageDirectory + "Land1.bmp"));
 
 	UIButton* b4 = MyUserInterface->createButton(Land2CB, gWorldBuilderElementsRect.GetPosition().x + 55, gWorldBuilderElementsRect.GetPosition().y + 10, "LAND2", 35, 35);
-	b4->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "Land2.bmp"));
+	b4->SetImage(ImageManager::LoadImageFromFile(gRootImageDirectory + "Land2.bmp"));
 
 	UIButton* b5 = MyUserInterface->createButton(Land3CB, gWorldBuilderElementsRect.GetPosition().x + 10, gWorldBuilderElementsRect.GetPosition().y + 55, "LAND3", 35, 35);
-	b5->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "Land3.bmp"));
+	b5->SetImage(ImageManager::LoadImageFromFile(gRootImageDirectory + "Land3.bmp"));
 
 	UIButton* b6 = MyUserInterface->createButton(Obstacle1CB, gWorldBuilderElementsRect.GetPosition().x + 55, gWorldBuilderElementsRect.GetPosition().y + 55, "OBS1", 35, 35);
-	b6->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "Obstacle1.bmp"));
+	b6->SetImage(ImageManager::LoadImageFromFile(gRootImageDirectory + "Obstacle1.bmp"));
 
 
-	land1.sprite = AnimatedBitmap(ResourceManager::GetImage("Land1.bmp"));
+	land1.sprite = BitmapImage(ImageManager::GetImage("Land1.bmp"));
 	land1.isColliding = false;
 
 
-	land2.sprite = AnimatedBitmap(ResourceManager::GetImage("Land2.bmp"));
+	land2.sprite = BitmapImage(ImageManager::GetImage("Land2.bmp"));
 	land2.isColliding = false;
 
 
-	land3.sprite = AnimatedBitmap(ResourceManager::GetImage("Land3.bmp"));
+	land3.sprite = BitmapImage(ImageManager::GetImage("Land3.bmp"));
 	land3.isColliding = false;
 
-	land4.sprite = AnimatedBitmap(ResourceManager::GetImage("Obstacle1.bmp"));
+	land4.sprite = BitmapImage(ImageManager::GetImage("Obstacle1.bmp"));
 	land4.isColliding = true;
 }
 
@@ -480,7 +487,7 @@ void CreateGUIBuilderUI()
 	MyUserInterface->createButton(GridDivisionsCB, gGUIBuilderControlPanelRect.GetPosition().x + 100 + 20 + 50, gGUIBuilderControlPanelRect.GetPosition().y + 10, "OK", 30, 20);
 
 	UIButton* b = MyUserInterface->createButton(ArrowBtnCB, gGUIBuilderControlPanelRect.GetPosition().x + 205 + 10, gGUIBuilderControlPanelRect.GetPosition().y + 10, "ARROW", 35, 35);
-	b->SetImage(ResourceManager::LoadImage(gRootImageDirectory + "ArrowButton.bmp"));
+	b->SetImage(ImageManager::LoadImageFromFile(gRootImageDirectory + "ArrowButton.bmp"));
 	
 	
 	//world panel

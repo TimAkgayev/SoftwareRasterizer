@@ -1,1 +1,7 @@
 .vs/
+*.pdb
+*.idb
+*.tlog
+*.log
+*Debug/
+*Release/

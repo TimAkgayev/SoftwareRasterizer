@@ -1,4 +1,4 @@
-#include "SRMath.h"
+#include "Math.h"
 
 
 VECTOR2D::VECTOR2D(float inX, float inY) : x(inX), y(inY) {}

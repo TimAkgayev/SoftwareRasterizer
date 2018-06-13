@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
-#include "SRMath.h"
-#include "SRMath.h"
+#include "Math.h"
+#include "Math.h"
 
 enum {MOVE_CONSTRAINT_NONE, MOVE_CONSTRAINT_ALL, MOVE_CONSTRAINT_X, MOVE_CONSTRAINT_Y};
 

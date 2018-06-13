@@ -3,10 +3,10 @@
 
 UserInterface* DefaultUserInterface;
 
-AnimatedBitmap backAnim, frontAnim, leftAnim, rightAnim;
-AnimatedBitmap brickWall, brickWallRotated;
-AnimatedBitmap wigwam;
-AnimatedBitmap WigwamLarge;
+BitmapImage backAnim, frontAnim, leftAnim, rightAnim;
+BitmapImage brickWall, brickWallRotated;
+BitmapImage wigwam;
+BitmapImage WigwamLarge;
 string playerMove = "none";
 SpriteLoader sloader;
 string rootImageDir = "C:\\Users\\Tim\\Documents\\SoftwareRasterizer\\Era\\Source Images\\";
@@ -260,7 +260,7 @@ int ApplicationUpdate()
 		if (isPlayerPosUpdated)
 		{
 			bool isCollisionDetected = false;
-			vector<AnimatedBitmap>::iterator vIter = inGame.collisionObjects.begin();
+			vector<BitmapImage>::iterator vIter = inGame.collisionObjects.begin();
 			RECT2D colObjRect;
 			RECT winRect;
 			for (vIter; vIter < inGame.collisionObjects.end(); vIter++)

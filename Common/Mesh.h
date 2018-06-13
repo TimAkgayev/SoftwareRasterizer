@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "Vertex.h"
-#include "ResourceManager.h"
+#include "ImageManager.h"
 
 using namespace std;
 
@@ -15,7 +15,7 @@ typedef struct MESHOBJECT_TYP
 	MATRIX3D     worldTransform;
 	vector<VERTEX2D> vertexBuffer;
 	vector<int>      indexBuffer;
-	BitmapFile*   texture;
+	Bitmap*   texture;
 
 
 }MESHOBJECT, *MESHOBJECT_PTR;

@@ -92,25 +92,25 @@ Player::~Player()
 	
 }
 
-void Player::AddFrontAnimation(AnimatedBitmap* anim)
+void Player::AddFrontAnimation(BitmapImage* anim)
 {
 	frontAnim = anim;
 	frontAnim->SetPosition(position);
 }
 
-void Player::AddLeftAnimation(AnimatedBitmap* anim)
+void Player::AddLeftAnimation(BitmapImage* anim)
 {
 	leftAnim = anim;
 	leftAnim->SetPosition(position);
 }
 
-void Player::AddRightAnimation(AnimatedBitmap* anim)
+void Player::AddRightAnimation(BitmapImage* anim)
 {
 	rightAnim = anim;
 	rightAnim->SetPosition(position);
 }
 
-void Player::AddBackAnimation(AnimatedBitmap* anim)
+void Player::AddBackAnimation(BitmapImage* anim)
 {
 	backAnim = anim;
 	backAnim->SetPosition(position);
@@ -162,25 +162,25 @@ void Player::Draw(DWORD* vmem, int lpitch32)
 		{
 			RECT2D r;
 			backAnim->GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(backAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			DrawBitmapWithClipping(vmem, lpitch32, ImageManager::GetImage(backAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 		else if (facingDirection == "down")
 		{
 			RECT2D r;
 			frontAnim->GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(frontAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			DrawBitmapWithClipping(vmem, lpitch32, ImageManager::GetImage(frontAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 		else if (facingDirection == "left")
 		{
 			RECT2D r;
 			leftAnim->GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(leftAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			DrawBitmapWithClipping(vmem, lpitch32, ImageManager::GetImage(leftAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 		else if (facingDirection == "right")
 		{
 			RECT2D r;
 			rightAnim->GetBoundingRectangle(r);
-			DrawBitmapWithClipping(vmem, lpitch32, ResourceManager::GetImage(rightAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
+			DrawBitmapWithClipping(vmem, lpitch32, ImageManager::GetImage(rightAnim->GetFrame(0)), int(r.GetPosition().x + 0.5f), int(r.GetPosition().y + 0.5f), NULL);
 		}
 
 		return;
@@ -218,7 +218,7 @@ void World::SoftwareDraw(DWORD* mem, int lpitch32)
 	if(player)
 		player->Draw(mem, lpitch32);
 
- 	vector<AnimatedBitmap>::iterator vIter = collisionObjects.begin();
+ 	vector<BitmapImage>::iterator vIter = collisionObjects.begin();
 	for (vIter; vIter < collisionObjects.end(); vIter++)
 	{
 		vIter->Draw(mem, lpitch32);

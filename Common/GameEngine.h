@@ -5,7 +5,7 @@
 #include "UserInterface.h"
 #include "Camera.h"
 #include "Timer.h"
-#include "SRMath.h"
+#include "Math.h"
 
 
 int Initialization();
@@ -20,10 +20,10 @@ public:
 	Player();
 	~Player();
 
-	void AddFrontAnimation(AnimatedBitmap* anim);
-	void AddLeftAnimation(AnimatedBitmap* anim);
-	void AddRightAnimation(AnimatedBitmap* anim);
-	void AddBackAnimation(AnimatedBitmap* anim);
+	void AddFrontAnimation(BitmapImage* anim);
+	void AddLeftAnimation(BitmapImage* anim);
+	void AddRightAnimation(BitmapImage* anim);
+	void AddBackAnimation(BitmapImage* anim);
 
 	void SetPosition(VECTOR2D& pos);
 	void SetPosition(float x, float y);
@@ -39,7 +39,7 @@ private:
 	VECTOR2D position;
 	string facingDirection;
 	float moveSpeed;
-	AnimatedBitmap *frontAnim, *leftAnim, *rightAnim, *backAnim;
+	BitmapImage *frontAnim, *leftAnim, *rightAnim, *backAnim;
 	bool isPositionUpdated;
 
 };
@@ -50,7 +50,7 @@ public:
 
 	UserInterface* userInterface;
 	Player* player;
-	vector<AnimatedBitmap> collisionObjects;
+	vector<BitmapImage> collisionObjects;
 
 	void SoftwareDraw(DWORD*, int);
 	void HardwareDraw(double);
