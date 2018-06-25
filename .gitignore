@@ -9,5 +9,7 @@
 *.vcxproj
 *.filters
 *.db
+TODO.txt
+*.props
 *Debug/
 *Release/
