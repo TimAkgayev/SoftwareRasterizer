@@ -149,6 +149,7 @@ private:
 	int screen_w, screen_h;
 	string mText;
 	BitmapImage* mImage;
+	Font* mFont;
 
 
 };
@@ -467,7 +468,7 @@ class UIText : public UIElement
 {
 public:
 	UIText();
-	UIText(int xpos, int ypos, int width, int height, std::string s, DWORD bColor, DWORD fColor);
+	UIText(int xpos, int ypos, int height, std::string s, DWORD fColor, DWORD bColor);
 	~UIText();
 
 	void Draw(DWORD* mem, int lpitch32, float deltaTime) override;
@@ -482,6 +483,7 @@ private:
 
 	DWORD* mFrameMem;
 	int mFrameSize;
+	Font* mFont;
 };
 
 
@@ -506,7 +508,7 @@ public:
 	UIRegion* createRegion(int xPos, int yPos, string title, int width, int height, DWORD color = COLOR_BLUE);
 	UIDropdownMenu* createDropdownMenu(int xPos, int yPos, string title);
 	UIWindow* createWindow(int xPos, int yPos, int width, int height, string Title, DWORD color = COLOR_BLUE); 
-	UIText* createText(int xPos, int yPos, int width, int height, string text, DWORD bColor = COLOR_BLACK, DWORD fColor = COLOR_RED);
+	UIText* createText(int xPos, int yPos, int height, string text, DWORD fColor = COLOR_RED, DWORD bColor = COLOR_BLACK);
 	UIList* createList(int xPos, int yPos, int width);
 
 	bool isLMD();

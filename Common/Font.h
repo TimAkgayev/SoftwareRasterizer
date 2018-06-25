@@ -13,13 +13,17 @@ public:
 	Font(std::string, int);
 	void Draw(DWORD* video_mem, int lpitch32, std::string outText, int xpos, int ypos, DWORD* color = NULL);
 
-
+	int GetFontHieght() const;
 	int GetCharKey(char);
+
+	int GetStringPixelLength(std::string str);
 
 
 private:
 	FT_Library mFTLib;
 	FT_Face mFTFace;
 	std::map<char, int> mCharImageMap;
+
+	int mHeight;
 
 };

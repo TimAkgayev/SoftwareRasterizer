@@ -246,7 +246,7 @@ int LoadGUIFromFile(string filename, UserInterface* ui)
 		{
 			UIText* uiText = new UIText();
 			inGUIFile.read((char*)uiText, sizeof(UIText));
-			ui->createText(uiText->GetPosition().x, uiText->GetPosition().y, uiText->GetRECT().getWidth(), uiText->GetRECT().getHeight(), uiText->GetText());
+			ui->createText(uiText->GetPosition().x, uiText->GetPosition().y, uiText->GetRECT().getHeight() - 2, uiText->GetText());
 			delete uiText;
 		}	break;
 

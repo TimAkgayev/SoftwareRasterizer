@@ -206,7 +206,7 @@ void ApplicationInitialization()
 {
 
 	
-	f = new Font("../Resource/Fonts/arial.ttf", 6);
+	f = new Font("../Resource/Fonts/arial.ttf", 18);
 	
 
 	//attach debug window
@@ -242,6 +242,7 @@ void ApplicationInitialization()
 
 	//set up grid
 	backgroundGrid.SetSpacing(35);
+
 
 
 
@@ -327,7 +328,7 @@ void ApplicationSoftwareRender(DWORD* video_mem, int lpitch32)
 		vIter->sprite.Draw(video_mem, lpitch32);
 	}
 
-	f->Draw(video_mem, lpitch32, "Hello World", 100, 100);
+	
 }
 
 void ApplicationHardwareRender()
@@ -404,20 +405,22 @@ void CreateUserInterface()
 	//UITextField* f = MyUserInterface->createTextField(textFieldCallback, 1, SoftwareRasterizer.clientRect.bottom - 21);
 	//f->SetCellCount(40);
 
-	UIDropdownMenu* fileMenu = AppUserInterface->createDropdownMenu(5, 5, "FILE");
-	fileMenu->AddItem("NEW GUI", fileNewGUICB);
-	fileMenu->AddItem("LOAD", NULL);
-	fileMenu->AddItem("SAVE", NULL);
-	fileMenu->AddItem("EXIT", NULL);
+	UIDropdownMenu* fileMenu = AppUserInterface->createDropdownMenu(5, 5, "File");
+	fileMenu->AddItem("New GUI", fileNewGUICB);
+	fileMenu->AddItem("Load", NULL);
+	fileMenu->AddItem("Save", NULL);
+	fileMenu->AddItem("Exit", NULL);
 
-	UIDropdownMenu* editMenu = AppUserInterface->createDropdownMenu(85, 5, "EDIT");
-	editMenu->AddItem("MOVE", NULL);
-	editMenu->AddItem("SCALE", NULL);
+	UIDropdownMenu* editMenu = AppUserInterface->createDropdownMenu(85, 5, "Edit");
+	editMenu->AddItem("Move", NULL);
+	editMenu->AddItem("Scale", NULL);
 
 
-	UIDropdownMenu* modeMenu = AppUserInterface->createDropdownMenu(165, 5, "MODE");
+	UIDropdownMenu* modeMenu = AppUserInterface->createDropdownMenu(165, 5, "Mode");
 	modeMenu->AddItem("GUI", modeGUICB);
-	modeMenu->AddItem("WORLD", modeWorldCB);
+	modeMenu->AddItem("World", modeWorldCB);
+
+	AppUserInterface->createText(100, 100, 16, "Sec MODE",COLOR_RED, COLOR_WHITE);
 
 
 	if (currentMode == MODE_WORLD)
@@ -482,7 +485,7 @@ void CreateGUIBuilderUI()
 	//tool panel
 	MyUserInterface->createRegion(gGUIBuilderControlPanelRect.GetPosition().x, gGUIBuilderControlPanelRect.GetPosition().y,"PANEL", gGUIBuilderControlPanelRect.getWidth(), gGUIBuilderControlPanelRect.getHeight());
 
-	MyUserInterface->createText(gGUIBuilderControlPanelRect.GetPosition().x + 10, gGUIBuilderControlPanelRect.GetPosition().y + 10, 100, 20, "DIVISIONS");
+	MyUserInterface->createText(gGUIBuilderControlPanelRect.GetPosition().x + 10, gGUIBuilderControlPanelRect.GetPosition().y + 10, 12, "DIVISIONS");
 	gridSpacingTextField = MyUserInterface->createTextField(NULL, gGUIBuilderControlPanelRect.GetPosition().x + 100 + 20, gGUIBuilderControlPanelRect.GetPosition().y + 10, 2);
 	MyUserInterface->createButton(GridDivisionsCB, gGUIBuilderControlPanelRect.GetPosition().x + 100 + 20 + 50, gGUIBuilderControlPanelRect.GetPosition().y + 10, "OK", 30, 20);
 
@@ -491,12 +494,12 @@ void CreateGUIBuilderUI()
 	
 	
 	//world panel
-	MyUserInterface->createRegion(gGUIBuilderElementsRect.GetPosition().x, gGUIBuilderElementsRect.GetPosition().y, "WORLD", gGUIBuilderElementsRect.getWidth(), gGUIBuilderElementsRect.getHeight(), _RGBA32BIT(200, 200, 200, 255));
+	MyUserInterface->createRegion(gGUIBuilderElementsRect.GetPosition().x, gGUIBuilderElementsRect.GetPosition().y, "WORLD", gGUIBuilderElementsRect.getWidth(), gGUIBuilderElementsRect.getHeight(), COLOR_WHITE);
 
 	UIButton* btn;
 	btn = MyUserInterface->createButton(insertButtonCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 10, "BUTTON");
 	btn = MyUserInterface->createButton(insertRegionCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 30 + 10, "REGION");
-	btn = MyUserInterface->createButton(insertLableCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 60 + 10, "LABLE");
+	btn = MyUserInterface->createButton(insertLableCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 60 + 10, "Lable");
 	btn = MyUserInterface->createButton(insertTextCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 90 + 10, "TEXT");
 	btn = MyUserInterface->createButton(insertSelectionCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 120 + 10, "SELECTION");
 	btn = MyUserInterface->createButton(insertRadioCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 150 + 10, "RADIO");
@@ -1267,8 +1270,8 @@ void fileNewGUICB()
 	{
 		newGUIWindow = MyUserInterface->createWindow(100, 100, 400, 300, "NEW GUI");
 
-		UIText* widthText = MyUserInterface->createText(100, 100, 70, 18, "WIDTH", COLOR_BLUE);
-		UIText* heightText = MyUserInterface->createText(100, 170, 70, 18, "HEIGHT", COLOR_BLUE);
+		UIText* widthText = MyUserInterface->createText(100, 100, 12, "WIDTH", COLOR_BLUE);
+		UIText* heightText = MyUserInterface->createText(100, 170, 12, "HEIGHT", COLOR_BLUE);
 
 
 		UITextField* widthTxtField = MyUserInterface->createTextField(widthTextCB, 200, 100, 4);

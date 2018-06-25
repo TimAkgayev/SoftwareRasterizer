@@ -199,11 +199,24 @@ void Bitmap::Draw(DWORD* dest, int destLPitch32, int destPosX, int destPosY, DWO
 			for (int column = 0; column < numColumns; column++)
 			{
 
-				if (sourceStartMem[column] != 0)
-					if (color)
-						destStartMem[column] = *color;
-					else
-						destStartMem[column] = _RGBA32BIT(int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), 255);
+				
+				if (color) {
+					int r, g, b, a;
+					GetRGBA32FromDWORD(r, g, b, a, *color);
+					int intensity = sourceStartMem[column];
+
+					float mod_intensity = intensity / 255.0f;
+					r *= mod_intensity;
+					b *= mod_intensity;
+					g *= mod_intensity;
+						
+					destStartMem[column] = _RGBA32BIT(r, g, b, intensity);
+						
+				}
+				else {
+					destStartMem[column] = _RGBA32BIT(int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f));
+				}
+				
 
 			}
 

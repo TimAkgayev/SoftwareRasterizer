@@ -105,23 +105,21 @@ UIButton::UIButton()
 	mFrameSize = 0;
 	mFrameMem = NULL;
 	memset(mFrameMem, 0, mFrameSize);
-	mText = "";
+	mText = "Button";
 	screen_h = 0;
 	screen_w = 0;
 	bgColor = COLOR_BLACK;
+	mFont = new Font("../Resource/Fonts/arial.ttf", 8);
 	
 }
 
-UIButton::UIButton(int width, int height) {
-	typeID = UITYPE_BUTTON;
-	stateID = UISTATE_NORMAL;
+UIButton::UIButton(int width, int height): UIButton() {
+
 	region.setWidth(width);
 	region.setHeight(height);
 	mFrameSize = region.getWidth() * region.getHeight() * sizeof(DWORD);
 	mFrameMem = new DWORD[region.getWidth() * region.getHeight()];
 	memset(mFrameMem, 0, mFrameSize);
-	mText = "None";
-	bgColor = COLOR_BLACK;
 
 }
 
@@ -214,16 +212,18 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 {
 
 	ZeroMemory(mFrameMem, mFrameSize);
+	DWORD col = COLOR_RED;
 
 
 
 	if (mImage)
 	{
-		if(mImage->GetNumFrames())
-			mImage->Draw(mFrameMem, region.getWidth());
+		//if (mImage->GetNumFrames())
+		//	mImage->Draw(mFrameMem, region.getWidth());
 	}
 	else
-		RenderTextToRegion(mFrameMem, region.getWidth(), mText, region.GetWINRECT(), bgColor, COLOR_RED);
+		mFont->Draw(mFrameMem, (int)region.getWidth(), mText, int(((region.getWidth() - mFont->GetStringPixelLength(mText)) / 2.0) + 0.5f), 5, &col);
+	
 
 	DWORD colorState = 0;
 	if (stateID == UISTATE_PRESSED)
@@ -234,8 +234,6 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 		colorState = COLOR_RED;
 
 	
-	
-		
 	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, colorState, colorState);
 	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, colorState, colorState);
 	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, region.getHeight() - 1, 0, region.getHeight() - 1, colorState, colorState);
@@ -250,9 +248,11 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	tempMainMem += int(pos.x + pos.y*lpitch32);
 
 
-	for (int i = 0; i < dim.y; i++)
+
+	for (int i = 0; i < region.getHeight(); i++)
 	{
-		memcpy(tempMainMem, tempMem, sizeof(DWORD)*int(dim.x));
+		memcpy(tempMainMem, tempMem, sizeof(DWORD)*int(region.getWidth()));
+
 		tempMainMem += lpitch32;
 		tempMem += int(region.getWidth());
 	}
@@ -1071,7 +1071,7 @@ UIDropdownMenu::UIDropdownMenu()
 	mRegionHoverIndex = -1;
 	bgColor = COLOR_BLACK;
 	mTitle = "";
-	mFont = new Font("../Resource/Fonts/arial.ttf", 12);
+	mFont = new Font("../Resource/Fonts/arial.ttf", 10);
 }
 
 UIDropdownMenu::UIDropdownMenu(int xPos, int yPos, string title) :UIDropdownMenu()
@@ -1165,7 +1165,7 @@ void UIDropdownMenu::Draw(DWORD* mem, int lpitch32, float timeDelta)
 		//draw the title by itself
 	//	RenderTextToRegion(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT(), bgColor, COLOR_RED);
 		DWORD col = COLOR_RED;
-		mFont->Draw(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT().left, region.GetWINRECT().top, &col);
+		mFont->Draw(mFrameMem, (int)region.getWidth(), mTitle, int(((region.getWidth() - mFont->GetStringPixelLength(mTitle))/2.0)+0.5f), 5, &col);
 		
 
 		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
@@ -1184,7 +1184,11 @@ void UIDropdownMenu::Draw(DWORD* mem, int lpitch32, float timeDelta)
 			borderColor = COLOR_BLUE;
 
 		//draw title
-		RenderTextToRegion(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT(), bgColor, COLOR_RED);
+	//	RenderTextToRegion(mFrameMem, (int)region.getWidth(), mTitle, region.GetWINRECT(), bgColor, COLOR_RED);
+
+		DWORD text_col = COLOR_RED;
+		mFont->Draw(mFrameMem, (int)region.getWidth(), mTitle, int(((region.getWidth() - mFont->GetStringPixelLength(mTitle)) / 2.0) + 0.5f), 5, &text_col);
+
 
 		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
 		DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
@@ -1201,7 +1205,13 @@ void UIDropdownMenu::Draw(DWORD* mem, int lpitch32, float timeDelta)
 			else
 				borderColor = COLOR_BLUE;
 
-			RenderTextToRegion(tempItemMem, (int)region.getWidth(), mItems[i].title, mItemRegions[i].GetWINRECT(), bgColor, COLOR_RED);
+			for (int r = 0; r < region.bottom - region.top; r++)
+				for (int c = 0; c < region.right - region.left; c++)
+					tempItemMem[int(c + r*(region.getWidth()))] = bgColor;
+
+	//	RenderTextToRegion(tempItemMem, (int)region.getWidth(), mItems[i].title, mItemRegions[i].GetWINRECT(), bgColor, COLOR_RED);
+			mFont->Draw(tempItemMem, (int)region.getWidth(), mItems[i].title, int(((region.getWidth() - mFont->GetStringPixelLength(mItems[i].title)) / 2.0) + 0.5f), 5, &text_col);
+
 
 			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, borderColor, borderColor);
 			DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  region.getWidth() - 1, 0, region.getWidth() - 1, region.getHeight() - 1, borderColor, borderColor);
@@ -1217,13 +1227,15 @@ void UIDropdownMenu::Draw(DWORD* mem, int lpitch32, float timeDelta)
 
 	//blit main frame to screen
 	DWORD* tempMem = mFrameMem;
-	VECTOR2D pos = region.GetPosition();
 	DWORD* tempVidBuffer = mem;
+
+	VECTOR2D pos = region.GetPosition();
 	tempVidBuffer += int(pos.x + pos.y*lpitch32);
 
 	for (int i = 0; i < region.getHeight(); i++)
 	{
 		memcpy(tempVidBuffer, tempMem, sizeof(DWORD)*int(region.getWidth()));
+
 		tempVidBuffer += lpitch32;
 		tempMem += int(region.getWidth());
 	}
@@ -1792,21 +1804,27 @@ UIText::UIText()
 	mFrameSize = 0;
 	mFrameMem = NULL;
 	mText = "";
+	mFont = new Font("../Resource/Fonts/arial.ttf", 16);
 }
 
-UIText::UIText(int xpos, int ypos, int width, int height, std::string s, DWORD bColor, DWORD fColor)
+UIText::UIText(int xpos, int ypos, int height, std::string s, DWORD fColor, DWORD bColor): UIText()
 {
-	typeID = UITYPE_TEXT;
-	stateID = UISTATE_NORMAL;
+
 	region.setPos(xpos, ypos);
-	region.setWidth(width);
-	region.setHeight(height);
 	mBackgroundColor = bColor;
 	mTextColor = fColor;
+	mText = s;
+
+	if (mFont)
+		delete mFont;
+
+	mFont = new Font("../Resource/Fonts/arial.ttf", height);
+
+	region.setHeight(height);
+	region.setWidth(mFont->GetStringPixelLength(s));
+
 	mFrameSize = region.getWidth() * region.getHeight() * sizeof(DWORD);
 	mFrameMem = new DWORD[region.getWidth() * region.getHeight()];
-	memset(mFrameMem, 0, mFrameSize);
-	mText = s;
 
 }
 
@@ -1821,22 +1839,31 @@ UIText::~UIText()
 
 void UIText::Draw(DWORD* mem, int lpitch32, float deltaTime)
 {
+	
 	ZeroMemory(mFrameMem, mFrameSize);
-	RenderTextToRegion(mFrameMem, region.getWidth(), mText, region.GetWINRECT(), mBackgroundColor, mTextColor);
+
+	/*
+	for (int r = 0; r < region.bottom - region.top; r++)
+		for (int c = 0; c < region.right - region.left; c++)
+			mFrameMem[int(c + r*(region.getWidth()))] = mBackgroundColor;*/
+
+	//RenderTextToRegion(mFrameMem, region.getWidth(), mText, region.GetWINRECT(), mBackgroundColor, mTextColor);
+	mFont->Draw(mFrameMem, (int)region.getWidth(), mText, 0, 0, &mTextColor);
 
 
-	//blit to screen
+
+	//blit main frame to screen
 	DWORD* tempMem = mFrameMem;
-	DWORD* tempMainMem = mem;
+	DWORD* tempVidBuffer = mem;
+
 	VECTOR2D pos = region.GetPosition();
-	VECTOR2D dim(region.getWidth(), region.getHeight());
-	tempMainMem += int(pos.x + pos.y*lpitch32);
+	tempVidBuffer += int(pos.x + pos.y*lpitch32);
 
-
-	for (int i = 0; i < dim.y; i++)
+	for (int i = 0; i < region.getHeight(); i++)
 	{
-		memcpy(tempMainMem, tempMem, sizeof(DWORD)*int(dim.x));
-		tempMainMem += lpitch32;
+		memcpy(tempVidBuffer, tempMem, sizeof(DWORD)*int(region.getWidth()));
+
+		tempVidBuffer += lpitch32;
 		tempMem += int(region.getWidth());
 	}
 
@@ -2182,9 +2209,9 @@ UIWindow* UserInterface::createWindow(int xPos, int yPos, int width, int height,
 	return win;
 }
 
-UIText* UserInterface::createText(int xPos, int yPos, int width, int height, string text, DWORD bColor, DWORD fColor)
+UIText* UserInterface::createText(int xPos, int yPos, int height, string text, DWORD fColor, DWORD bColor)
 {
-	UIText* newText = new UIText(xPos, yPos, width, height, text, bColor, fColor);
+	UIText* newText = new UIText(xPos, yPos, height, text, fColor, bColor);
 	mUIElements.push_back((UIElement*)newText);
 	return newText;
 }
