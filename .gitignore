@@ -3,5 +3,11 @@
 *.idb
 *.tlog
 *.log
+*.user
+*.sdf
+*.ncb
+*.vcxproj
+*.filters
+*.db
 *Debug/
 *Release/
