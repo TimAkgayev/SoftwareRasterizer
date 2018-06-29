@@ -161,7 +161,7 @@ enum { MODE_GUI, MODE_WORLD};
 enum { TOOL_ARROW, TOOL_REGION};
 enum { FUNCTION_NONE, FUNCTION_LANDPLOT, FUNCTION_INSERT_BUTTON, FUNCTION_INSERT_REGION, FUNCTION_INSERT_LABLE, FUNCTION_INSERT_TEXT, FUNCTION_INSERT_SELECTION, FUNCTION_INSERT_RADIO, FUNCTION_INSERT_LIST, FUNCTION_INSERT_CHECK };
 
-WINDOWS_SETTINGS LocalWindowsSettings = { 1500, 1080,{ 0, 0 }, TEXT("Forge") };
+WINDOWS_SETTINGS LocalWindowsSettings = { 1500, 1070,{ 0, 0 }, TEXT("Forge") };
 RECT gClientRect;
 int currentTool = TOOL_ARROW;
 int currentFunction = FUNCTION_NONE;
@@ -169,14 +169,14 @@ bool isResetRequested = false;
 
 
 UIWindow* newGUIWindow = NULL;
-RECT2D gWorldBuilderMarginRect = { 10, 30, 400, 60 }; //invsere area of a clip rect, contains margin offsets
-RECT2D gGUIBuilderMarginRect = { 10, 30, 150, 60 }; //invsere area of a clip rect, contains margin offsets
+RECT2D gWorldBuilderMarginRect;
+RECT2D gGUIBuilderMarginRect;
 
-RECT2D gWorldBuilderControlPanelRect = {gWorldBuilderMarginRect.left, LocalWindowsSettings.clientDimY - gWorldBuilderMarginRect.bottom + 10.0f, LocalWindowsSettings.clientDimX - gWorldBuilderMarginRect.right, LocalWindowsSettings.clientDimY -5.0f };
-RECT2D gWorldBuilderElementsRect = { LocalWindowsSettings.clientDimX - gWorldBuilderMarginRect.right + 10.0f , gWorldBuilderMarginRect.top, LocalWindowsSettings.clientDimX - gWorldBuilderMarginRect.left, gWorldBuilderControlPanelRect.bottom};
+RECT2D gWorldBuilderControlPanelRect;
+RECT2D gWorldBuilderElementsRect;
 
-RECT2D gGUIBuilderControlPanelRect = { gGUIBuilderMarginRect.left, LocalWindowsSettings.clientDimY - gGUIBuilderMarginRect.bottom + 10.0f, LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.right, LocalWindowsSettings.clientDimY - 5.0f };
-RECT2D gGUIBuilderElementsRect = { LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.right + 10.0f , gGUIBuilderMarginRect.top, LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.left, gGUIBuilderControlPanelRect.bottom };
+RECT2D gGUIBuilderControlPanelRect;
+RECT2D gGUIBuilderElementsRect;
 string gRootImageDirectory = "..\\Forge\\Images\\";
 int world_gridspacing = 35;
 
@@ -202,12 +202,23 @@ BezierCurve b;
 
 #include "../Common/Font.h"
 Font* f;
+
+
+
 void ApplicationInitialization()
 {
 
 	
-	f = new Font("../Resource/Fonts/arial.ttf", 18);
+	f = new Font("../Resource/Fonts/arial.ttf", 0, 18);
 	
+	gWorldBuilderMarginRect = { 10, 30, 400, 60 }; //invsere area of a clip rect, contains margin offsets
+	gGUIBuilderMarginRect = { 10, 30, 150, 60 }; //invsere area of a clip rect, contains margin offsets
+
+	gWorldBuilderControlPanelRect = { gWorldBuilderMarginRect.left, LocalWindowsSettings.clientDimY - gWorldBuilderMarginRect.bottom + 10.0f, LocalWindowsSettings.clientDimX - gWorldBuilderMarginRect.right, LocalWindowsSettings.clientDimY - 5.0f };
+	gWorldBuilderElementsRect = { LocalWindowsSettings.clientDimX - gWorldBuilderMarginRect.right + 10.0f , gWorldBuilderMarginRect.top, LocalWindowsSettings.clientDimX - gWorldBuilderMarginRect.left, gWorldBuilderControlPanelRect.bottom };
+
+	gGUIBuilderControlPanelRect = { gGUIBuilderMarginRect.left, LocalWindowsSettings.clientDimY - gGUIBuilderMarginRect.bottom + 10.0f, LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.right, LocalWindowsSettings.clientDimY - 5.0f };
+	gGUIBuilderElementsRect = { LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.right + 10.0f , gGUIBuilderMarginRect.top, LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.left, gGUIBuilderControlPanelRect.bottom };
 
 	//attach debug window
 	debugger->AddVariableView((void*)&gWorldBuilderMarginRect.left);
@@ -253,8 +264,9 @@ void ApplicationInitialization()
 int ApplicationUpdate()
 {
 
-	if(isResetRequested)
+	if (isResetRequested)
 		return APPUPDATE_RESET;
+
 	
 	float deltaTime = timer.Stop();
 	parabolaAnimTime +=  deltaTime ;
@@ -373,7 +385,29 @@ void ApplicationHardwareRender()
 
 void ApplicationShutdown()
 {
-	
+	if (f)
+	{
+		delete f;
+		f = NULL;
+	}
+
+	if (cam2d)
+	{
+		delete cam2d;
+		cam2d = NULL;
+	}
+
+	if (AppUserInterface)
+	{
+		delete AppUserInterface;
+		AppUserInterface = NULL;
+	}
+
+	if (MyUserInterface)
+	{
+		delete MyUserInterface;
+		MyUserInterface = NULL;
+	}
 }
 
 
@@ -420,7 +454,7 @@ void CreateUserInterface()
 	modeMenu->AddItem("GUI", modeGUICB);
 	modeMenu->AddItem("World", modeWorldCB);
 
-	AppUserInterface->createText(100, 100, 16, "Sec MODE",COLOR_RED, COLOR_WHITE);
+	AppUserInterface->createText(100, 100, 0, 16, "Sec MODE",COLOR_RED, COLOR_WHITE);
 
 
 	if (currentMode == MODE_WORLD)
@@ -437,10 +471,10 @@ void CreateWorldBuilderUI()
 	MyUserInterface->Clear();
 
 	//tool panel
-	MyUserInterface->createRegion(gWorldBuilderControlPanelRect.GetPosition().x, gWorldBuilderControlPanelRect.GetPosition().y, "PANEL", gWorldBuilderControlPanelRect.getWidth(), gWorldBuilderControlPanelRect.getHeight());
+	MyUserInterface->createRegion(gWorldBuilderControlPanelRect.GetPosition().x, gWorldBuilderControlPanelRect.GetPosition().y, "PANEL", gWorldBuilderControlPanelRect.getWidth(), gWorldBuilderControlPanelRect.getHeight(), COLOR_BLACK);
 
 	//world panel
-	MyUserInterface->createRegion(gWorldBuilderElementsRect.GetPosition().x, gWorldBuilderElementsRect.GetPosition().y, "ELEMENTS", gWorldBuilderElementsRect.getWidth(), gWorldBuilderElementsRect.getHeight(), _RGBA32BIT(200, 200, 200, 255));
+	MyUserInterface->createRegion(gWorldBuilderElementsRect.GetPosition().x, gWorldBuilderElementsRect.GetPosition().y, "ELEMENTS", gWorldBuilderElementsRect.getWidth(), gWorldBuilderElementsRect.getHeight(),COLOR_BLACK);
 
 
 	UIButton* b = MyUserInterface->createButton(ArrowBtnCB, 15, SoftwareRasterizer.clientRect.bottom - 45, "ARROW", 35, 35);
@@ -483,10 +517,10 @@ void CreateGUIBuilderUI()
 	MyUserInterface->Clear();
 
 	//tool panel
-	MyUserInterface->createRegion(gGUIBuilderControlPanelRect.GetPosition().x, gGUIBuilderControlPanelRect.GetPosition().y,"PANEL", gGUIBuilderControlPanelRect.getWidth(), gGUIBuilderControlPanelRect.getHeight());
+	MyUserInterface->createRegion(gGUIBuilderControlPanelRect.GetPosition().x, gGUIBuilderControlPanelRect.GetPosition().y,"PANEL", gGUIBuilderControlPanelRect.getWidth(), gGUIBuilderControlPanelRect.getHeight(), COLOR_BLACK);
 
-	MyUserInterface->createText(gGUIBuilderControlPanelRect.GetPosition().x + 10, gGUIBuilderControlPanelRect.GetPosition().y + 10, 12, "DIVISIONS");
-	gridSpacingTextField = MyUserInterface->createTextField(NULL, gGUIBuilderControlPanelRect.GetPosition().x + 100 + 20, gGUIBuilderControlPanelRect.GetPosition().y + 10, 2);
+	MyUserInterface->createText(gGUIBuilderControlPanelRect.GetPosition().x + 10, gGUIBuilderControlPanelRect.GetPosition().y + 10, 0, 12, "DIVISIONS");
+//	gridSpacingTextField = MyUserInterface->createTextField(NULL, gGUIBuilderControlPanelRect.GetPosition().x + 100 + 20, gGUIBuilderControlPanelRect.GetPosition().y + 10, 100, 50, 2);
 	MyUserInterface->createButton(GridDivisionsCB, gGUIBuilderControlPanelRect.GetPosition().x + 100 + 20 + 50, gGUIBuilderControlPanelRect.GetPosition().y + 10, "OK", 30, 20);
 
 	UIButton* b = MyUserInterface->createButton(ArrowBtnCB, gGUIBuilderControlPanelRect.GetPosition().x + 205 + 10, gGUIBuilderControlPanelRect.GetPosition().y + 10, "ARROW", 35, 35);
@@ -494,7 +528,7 @@ void CreateGUIBuilderUI()
 	
 	
 	//world panel
-	MyUserInterface->createRegion(gGUIBuilderElementsRect.GetPosition().x, gGUIBuilderElementsRect.GetPosition().y, "WORLD", gGUIBuilderElementsRect.getWidth(), gGUIBuilderElementsRect.getHeight(), COLOR_WHITE);
+	MyUserInterface->createRegion(gGUIBuilderElementsRect.GetPosition().x, gGUIBuilderElementsRect.GetPosition().y, "WORLD", gGUIBuilderElementsRect.getWidth(), gGUIBuilderElementsRect.getHeight(), COLOR_BLACK);
 
 	UIButton* btn;
 	btn = MyUserInterface->createButton(insertButtonCB, gGUIBuilderElementsRect.GetPosition().x + 30, gGUIBuilderElementsRect.GetPosition().y + 10, "BUTTON");
@@ -1128,8 +1162,13 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 
 	case WM_DESTROY: //window is destoyed
 	{
+		//check if the window was destroyed due to a pending reset, then don't quit and set deflag the reset
+		if (isResetRequested == false)
 			PostQuitMessage(0);
-			return(0);
+		else
+			isResetRequested = false;
+
+		return(0);
 	} break;
 
 
@@ -1270,13 +1309,13 @@ void fileNewGUICB()
 	{
 		newGUIWindow = MyUserInterface->createWindow(100, 100, 400, 300, "NEW GUI");
 
-		UIText* widthText = MyUserInterface->createText(100, 100, 12, "WIDTH", COLOR_BLUE);
-		UIText* heightText = MyUserInterface->createText(100, 170, 12, "HEIGHT", COLOR_BLUE);
+		UIText* widthText = MyUserInterface->createText(100, 100, 0, 12, "Width");
+		UIText* heightText = MyUserInterface->createText(100, 170, 0, 12, "Height");
 
 
-		UITextField* widthTxtField = MyUserInterface->createTextField(widthTextCB, 200, 100, 4);
+		UITextField* widthTxtField = MyUserInterface->createTextField(widthTextCB, 200, 100, 100, 25, 4);
 		widthTxtField->SetName("widthField");
-		UITextField* heightTxtField = MyUserInterface->createTextField(heightTextCB, 200, 170, 4);
+		UITextField* heightTxtField = MyUserInterface->createTextField(heightTextCB, 200, 170, 100, 25, 4);
 		heightTxtField->SetName("heightField");
 		UIButton* okBtn = MyUserInterface->createButton(newGUIOkCB, 140, 250, "OK");
 		UIButton* canBtn = MyUserInterface->createButton(newGUICancelCB, 220, 250, "CANCEL");

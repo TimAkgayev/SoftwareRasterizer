@@ -5,6 +5,7 @@ class EventListener
 {
 public:
 	EventListener(EventListener* ObjectThis);
+	~EventListener();
 
 	virtual void ProcessEvent(UINT, WPARAM, LPARAM) = 0;
 

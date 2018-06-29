@@ -262,10 +262,10 @@ void InitializeSoftwareRasterizer()
 	SoftwareRasterizer.pD3D10EffectTechnique = SoftwareRasterizer.pD3D10Effect->GetTechniqueByName("Render");
 	SoftwareRasterizer.pD3D10EffectTechnique->GetPassByIndex(0)->GetDesc(&PassDesc);
 
-	ID3D10InputLayout* pInputLayout;
-	if (FAILED(SoftwareRasterizer.pD3D10Device->CreateInputLayout(DX10VertexLayout, numVertexElements, PassDesc.pIAInputSignature, PassDesc.IAInputSignatureSize, &pInputLayout))) return;
+	
+	if (FAILED(SoftwareRasterizer.pD3D10Device->CreateInputLayout(DX10VertexLayout, numVertexElements, PassDesc.pIAInputSignature, PassDesc.IAInputSignatureSize, &SoftwareRasterizer.pInputLayout))) return;
 
-	SoftwareRasterizer.pD3D10Device->IASetInputLayout(pInputLayout);
+	SoftwareRasterizer.pD3D10Device->IASetInputLayout(SoftwareRasterizer.pInputLayout);
 
 	//create the VERTEX BUFFER for the plane that we'll be drawing on ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 	SoftwareRasterizer.numVertices = 4;
@@ -399,7 +399,6 @@ void InitializeSoftwareRasterizer()
 
 
 	//set up alpha blending for transparent textures ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-	ID3D10BlendState* pBlendState = NULL;
 
 	D3D10_BLEND_DESC BlendState;
 	ZeroMemory(&BlendState, sizeof(D3D10_BLEND_DESC));
@@ -413,8 +412,8 @@ void InitializeSoftwareRasterizer()
 	BlendState.BlendOpAlpha = D3D10_BLEND_OP_ADD;
 	BlendState.RenderTargetWriteMask[0] = D3D10_COLOR_WRITE_ENABLE_ALL;
 
-	SoftwareRasterizer.pD3D10Device->CreateBlendState(&BlendState, &pBlendState);
-	SoftwareRasterizer.pD3D10Device->OMSetBlendState(pBlendState, 0, 0xffffffff);
+	SoftwareRasterizer.pD3D10Device->CreateBlendState(&BlendState, &SoftwareRasterizer.pBlendState);
+	SoftwareRasterizer.pD3D10Device->OMSetBlendState(SoftwareRasterizer.pBlendState, 0, 0xffffffff);
 
 
 	//Local pipeline intializations
@@ -438,17 +437,27 @@ void InitializeSoftwareRasterizer()
 }
 void ShutdownSoftwareRasterizer()
 {
-	if (SoftwareRasterizer.pD3D10Effect) SoftwareRasterizer.pD3D10Effect->Release();
+	if (SoftwareRasterizer.pBlendState) SoftwareRasterizer.pBlendState->Release();
+	if (SoftwareRasterizer.textureSRV) SoftwareRasterizer.textureSRV->Release();
+	if (SoftwareRasterizer.texture) SoftwareRasterizer.texture->Release();
 	if (SoftwareRasterizer.pD3D10IndexBuffer) SoftwareRasterizer.pD3D10IndexBuffer->Release();
 	if (SoftwareRasterizer.pD3D10VertexBuffer) SoftwareRasterizer.pD3D10VertexBuffer->Release();
+	if (SoftwareRasterizer.pInputLayout) SoftwareRasterizer.pInputLayout->Release();
+	if (SoftwareRasterizer.pD3D10Effect) SoftwareRasterizer.pD3D10Effect->Release();
 	if (SoftwareRasterizer.pD3D10RenderTargetView) SoftwareRasterizer.pD3D10RenderTargetView->Release();
+	if (SoftwareRasterizer.pD3D10InfoQueue) SoftwareRasterizer.pD3D10InfoQueue->Release();
 	if (SoftwareRasterizer.pD3D10SwapChain) SoftwareRasterizer.pD3D10SwapChain->Release();
 	if (SoftwareRasterizer.pD3D10Device) SoftwareRasterizer.pD3D10Device->Release();
 
-	SoftwareRasterizer.pD3D10Effect = NULL;
+	SoftwareRasterizer.pBlendState = NULL;
+	SoftwareRasterizer.textureSRV = NULL;
+	SoftwareRasterizer.texture = NULL;
 	SoftwareRasterizer.pD3D10IndexBuffer = NULL;
 	SoftwareRasterizer.pD3D10VertexBuffer = NULL;
+	SoftwareRasterizer.pInputLayout = NULL;
+	SoftwareRasterizer.pD3D10Effect = NULL;
 	SoftwareRasterizer.pD3D10RenderTargetView = NULL;
+	SoftwareRasterizer.pD3D10InfoQueue = NULL;
 	SoftwareRasterizer.pD3D10SwapChain = NULL;
 	SoftwareRasterizer.pD3D10Device = NULL;
 }

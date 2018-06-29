@@ -32,12 +32,14 @@ struct SOFTWARERASTERIZER_DX10_OBJECTS
 	ID3D10Device*				pD3D10Device;
 	IDXGISwapChain*				pD3D10SwapChain;
 	ID3D10RenderTargetView*     pD3D10RenderTargetView;
+	ID3D10InputLayout*			pInputLayout;
 	ID3D10Effect*				pD3D10Effect;
 	ID3D10EffectTechnique*      pD3D10EffectTechnique;
 	ID3D10Buffer*				pD3D10VertexBuffer;
 	ID3D10Buffer*				pD3D10IndexBuffer;
 	ID3D10InfoQueue*			pD3D10InfoQueue;
 	ID3D10SamplerState*			pD3D10TextureSampler;
+	ID3D10BlendState*			pBlendState;
 	DXGI_SWAP_CHAIN_DESC		D3D10SwapChainDesc;
 	D3D10_VIEWPORT				D3D10Viewport;
 

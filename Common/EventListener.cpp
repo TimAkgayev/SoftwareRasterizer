@@ -7,6 +7,11 @@ EventListener::EventListener(EventListener* ObjectThis)
 	objects.push_back(ObjectThis);
 }
 
+EventListener::~EventListener()
+{
+	objects.clear();
+}
+
 
 void EventListener::_ProcessEvent(UINT u, WPARAM w , LPARAM l)
 {

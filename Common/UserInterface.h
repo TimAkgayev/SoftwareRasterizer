@@ -100,6 +100,8 @@ public:
 	virtual std::string GetName() const;
 	virtual bool GetEnabledState() const;
 
+	virtual void DrawForeground(DWORD* mem, int lpitch32, float timeDelta);
+	virtual void DrawBackground(DWORD* mem, int lpitch32, float timeDelta);
 	virtual void Draw(DWORD* mem, int lpitch32, float timeDelta);
 	virtual bool IsInRegion(int mouseX, int mouseY);
 	
@@ -114,6 +116,9 @@ protected:
 	bool isEnabled;
 	int depthIndex;
 	std::string mElementName;
+	DWORD mForegroundFrameMem;
+	DWORD mBackgroundFrameMem;
+	int mFrameSize;
 
 };
 
@@ -159,6 +164,7 @@ class UITextField : public UIElement
 public:
 
 	UITextField();
+	UITextField(int xpos, int ypos, int width, int height, int maxcharcount =-1);
 	~UITextField();
 
 
@@ -166,33 +172,38 @@ public:
 	bool OnLDown(int xPos, int yPos) override;
 	bool OnLUp(int xPos, int yPos) override;
 	void Draw(DWORD* mem, int lpitch32, float timeDelta) override;
+	void DrawForeground(DWORD* mem, int lpitch32, float timeDelta) override;
+	void DrawBackground(DWORD* mem, int lpitch32, float timeDelta) override;
+
+	void SetMaxCharCount(int count);
+	int GetMaxCharCount() const;
 
 	void SetOnLClickCallback(void(*cb)());
-	void SetCellCount(int cellcount);
-	void SetFontSize(int pxWidth);
+	void SetFontSize(int pxWidth, int pxHeight);
 	void AddCharacter(char c, int pos = -1);
 	void RemoveCharacter(int pos = -1);
 	void Clear();
 	std::string GetText();
-	int GetCellCount() const;
-
+	
 
 private:
 	vector<bool>  mCellSelectionList;
 	vector<char>  mText;
-	map<int, DWORD*> mCharFramesMap;
+	Font* mFont;
 	void(*mCallbackLClick)();
-	DWORD* mFrameMem;
+	DWORD* mForegroundFrameMem;
+	DWORD* mBackgroundFrameMem;
+	int mFrameSize;
+
 	DWORD* mSelectionColor;
 	DWORD bckgColor;
+
 	float mBlinkTimeElapsed;
 	bool mIsCursorOn;
-	int mCellSpacing;
-	int mCellCount;
-	int mFrameSize;
-	int mCellWidthPx;
+
+	int mMaxCharCount;
 	int mCursorPos;
-	int mCellSizeBy;
+
 };
 
 class UIRegion : public UIElement
@@ -299,6 +310,8 @@ public:
 	void OnHover(int xPos, int yPos) override;
 	bool OnLDown(int xPos, int yPos) override;
 	bool OnLUp(int xPos, int yPos) override;
+	void DrawForeground(DWORD* mem, int lpitch32, float timeDelta) override;
+	void DrawBackground(DWORD* mem, int lpitch32, float timeDelta) override;
 	void Draw(DWORD* mem, int lpitch32, float timeDelta) override;
 	void SetFocus(bool state) override;
 
@@ -318,7 +331,8 @@ private:
 	string mTitle;
 	vector<_item> mItems;
 	vector<RECT2D> mItemRegions;
-	DWORD* mFrameMem;
+	DWORD* mForegroundFrameMem;
+	DWORD* mBackgroundFrameMem;
 	DWORD* mItemFrameMem;
 	DWORD bgColor;
 	int mFrameSize;
@@ -385,6 +399,9 @@ public:
 	void OnHover(int xPos, int yPos) override;
 	bool OnLDown(int mouseX, int mouseY) override;
 	bool OnLUp(int mouseX, int mouseY) override;
+
+
+
 	void Draw(DWORD* mem, int lpitch32, float timeDelta) override;
 	
 
@@ -443,6 +460,8 @@ public:
 	bool OnLUp(int mouseX, int mouseY) override;
 	bool OnLDown(int mouseX, int mouseY) override;
 	void Draw(DWORD* mem, int lpitch32, float timeDelta) override;
+	void DrawBackground(DWORD* mem, int lpitch32, float timeDelta) override;
+	void DrawForeground(DWORD* mem, int lpitch32, float timeDelta) override;
 	void SetVisibility(bool state) override;
 
 	void AddChild(UIElement* child);
@@ -456,7 +475,8 @@ private:
 	DWORD mTitleBarColor;
 
 	int mFrameSize;
-	DWORD* mFrameMem;
+	DWORD* mForegroundFrameMem;
+	DWORD* mBackgroundFrameMem;
 	int titleBarWidth;
 
 	bool mIsDragged;
@@ -468,7 +488,7 @@ class UIText : public UIElement
 {
 public:
 	UIText();
-	UIText(int xpos, int ypos, int height, std::string s, DWORD fColor, DWORD bColor);
+	UIText(int xpos, int ypos, int width, int height, std::string s, DWORD fColor, DWORD bColor);
 	~UIText();
 
 	void Draw(DWORD* mem, int lpitch32, float deltaTime) override;
@@ -500,7 +520,7 @@ public:
 	bool CheckLastProcessEventResults(int code);
 
 	UIButton* createButton(void(*lbCallback)(), int xPos, int yPos, string text, int width = UI_BUTTONWIDTH, int height = UI_BUTTONHEIGHT);
-	UITextField* createTextField(void(*tfCallback)(), int xPos, int yPos, int numChars);
+	UITextField* createTextField(void(*tfCallback)(), int xPos, int yPos, int width, int height, int numChars);
 	UISelectionBox* createSelectionBox(int xPos, int yPos, string title);
 	UICheckBox* createCheckBox(int xPos, int yPos, bool isChecked);
 	UIRadioGroup* createRadioGroup(int xPos, int yPos, int numButtons);
@@ -508,7 +528,7 @@ public:
 	UIRegion* createRegion(int xPos, int yPos, string title, int width, int height, DWORD color = COLOR_BLUE);
 	UIDropdownMenu* createDropdownMenu(int xPos, int yPos, string title);
 	UIWindow* createWindow(int xPos, int yPos, int width, int height, string Title, DWORD color = COLOR_BLUE); 
-	UIText* createText(int xPos, int yPos, int height, string text, DWORD fColor = COLOR_RED, DWORD bColor = COLOR_BLACK);
+	UIText* createText(int xPos, int yPos, int charWidth, int charHeight, string text, DWORD fColor = COLOR_RED, DWORD bColor = COLOR_BLACK);
 	UIList* createList(int xPos, int yPos, int width);
 
 	bool isLMD();
@@ -556,8 +576,8 @@ private:
 	int m_screenW, m_screenH;
 	int mElementInFocus;
 	bool isUIVisible;
-	int xpos;
-	int ypos;
+	int mXpos;
+	int mYpos;
 	vector<string> mImageLoadList;
 	vector<Bitmap*> mImageData;
 	bool mIsLButtonDown;

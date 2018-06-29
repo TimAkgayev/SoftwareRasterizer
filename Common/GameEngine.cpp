@@ -27,6 +27,7 @@ int Update()
 		//release window
 		DestroyWindow(SoftwareRasterizer.mainWindow);
 
+		
 		return APPUPDATE_RESET;
 	}
 	//clear render target

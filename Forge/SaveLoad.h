@@ -164,7 +164,7 @@ int LoadGUIFromFile(string filename, UserInterface* ui)
 		{
 			UITextField* txtField = new UITextField();
 			inGUIFile.read((char*)txtField, sizeof(UITextField));
-			ui->createTextField(NULL, txtField->GetPosition().x, txtField->GetPosition().y, txtField->GetCellCount());
+			ui->createTextField(NULL, txtField->GetPosition().x, txtField->GetPosition().y, 100, 50, txtField->GetMaxCharCount());
 			delete txtField;
 
 		}break;
@@ -246,7 +246,7 @@ int LoadGUIFromFile(string filename, UserInterface* ui)
 		{
 			UIText* uiText = new UIText();
 			inGUIFile.read((char*)uiText, sizeof(UIText));
-			ui->createText(uiText->GetPosition().x, uiText->GetPosition().y, uiText->GetRECT().getHeight() - 2, uiText->GetText());
+			ui->createText(uiText->GetPosition().x, uiText->GetPosition().y, 0, uiText->GetRECT().getHeight() - 2, uiText->GetText());
 			delete uiText;
 		}	break;
 

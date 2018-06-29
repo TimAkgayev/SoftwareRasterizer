@@ -191,7 +191,8 @@ resetEntry:
 			int code = Update();
 			if (code == APPUPDATE_RESET)
 			{
-				UpdateSettings();
+				//allow the program to set it's window settings
+				Windows_Settings = UpdateSettings();
 				Shutdown();
 				goto resetEntry;
 			}

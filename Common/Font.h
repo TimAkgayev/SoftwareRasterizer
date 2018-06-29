@@ -10,10 +10,11 @@
 class Font
 {
 public: 
-	Font(std::string, int);
-	void Draw(DWORD* video_mem, int lpitch32, std::string outText, int xpos, int ypos, DWORD* color = NULL);
+	Font(std::string fontPath, int fontWidth,  int fontHeight);
+	int Draw(DWORD* video_mem, int lpitch32, std::string outText, int xpos, int ypos, DWORD* color = NULL);
 
 	int GetFontHieght() const;
+	int GetFontWidth() const;
 	int GetCharKey(char);
 
 	int GetStringPixelLength(std::string str);
@@ -24,6 +25,8 @@ private:
 	FT_Face mFTFace;
 	std::map<char, int> mCharImageMap;
 
-	int mHeight;
+	int mCharWidth;
+	int mCharHeight;
+	
 
 };

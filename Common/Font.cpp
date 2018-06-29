@@ -2,7 +2,7 @@
 #include "ImageManager.h"
 #include "SoftwareRasterizer.h"
 
-Font::Font(std::string fontPath, int fontSize)
+Font::Font(std::string fontPath, int fontWidth, int fontHeight)
 {
 	std::string CharList = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,;'~!@#$%^&*()_+-=\\/";
 
@@ -25,8 +25,13 @@ Font::Font(std::string fontPath, int fontSize)
 		int x = 0;
 	}
 
-	FT_Set_Char_Size(mFTFace, 0, fontSize * 64, 100, 100);
-	mHeight = fontSize;
+	FT_Set_Char_Size(mFTFace, fontWidth * 64, fontHeight * 64, 100, 100);
+	mCharWidth = fontWidth;
+	
+	//get char height of a standard letter A (should be the tallest character)
+	FT_UInt heightindex = FT_Get_Char_Index(mFTFace, 'A');
+	FT_Load_Glyph(mFTFace, heightindex, FT_LOAD_DEFAULT);
+	mCharHeight = mFTFace->glyph->bitmap.rows;
 	
 
 	for (char& c : CharList)
@@ -59,7 +64,7 @@ Font::Font(std::string fontPath, int fontSize)
 
 }
 
-void Font::Draw(DWORD* video_mem,  int lpitch32, std::string outText, int xpos, int ypos, DWORD* color)
+int Font::Draw(DWORD* video_mem,  int lpitch32, std::string outText, int xpos, int ypos, DWORD* color)
 {
 	FT_GlyphSlot slot = mFTFace->glyph;
 	bool use_kerning = FT_HAS_KERNING(mFTFace);
@@ -87,23 +92,14 @@ void Font::Draw(DWORD* video_mem,  int lpitch32, std::string outText, int xpos, 
 
 		FT_Load_Glyph(mFTFace, glyph_index, FT_LOAD_DEFAULT);
 
-		int pen_x_offset = slot->bitmap_left;
-		int pen_y_offset = 0;
-
-		if (slot->bitmap_top < mHeight)
-			pen_y_offset =  slot->bitmap_top;
-
-		if (outText == "Sec MODE")
-			int x = 0;
-
-		ImageManager::GetImage(GetCharKey(c))->Draw(video_mem, lpitch32, pen_x + slot->bitmap_left , pen_y - slot->bitmap_top + mHeight, color);
-	//	ImageManager::GetImage(GetCharKey(c))->Draw(video_mem, lpitch32, pen_x + pen_x_offset, pen_y + pen_y_offset, color);
-	//	ImageManager::GetImage(GetCharKey(c))->Draw(video_mem, lpitch32, pen_x, pen_y, color);
-
+		ImageManager::GetImage(GetCharKey(c))->Draw(video_mem, lpitch32, pen_x + slot->bitmap_left , pen_y - slot->bitmap_top + mCharHeight, color);
 
 		pen_x += slot->advance.x >> 6;
 		previous = glyph_index;
 	}
+
+	//return the length of the string we just drew in pixels
+	return pen_x - xpos;
 
 
 }
@@ -146,8 +142,14 @@ int Font::GetStringPixelLength(std::string str)
 
 int Font::GetFontHieght() const
 {
-	return mHeight;
+	return mCharHeight;
 }
+
+int Font::GetFontWidth() const
+{
+	return mCharWidth;
+}
+
 
 int Font::GetCharKey(char c)
 {
