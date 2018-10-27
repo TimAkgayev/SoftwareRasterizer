@@ -168,6 +168,7 @@ void UIButton::SetDimension(int w, int h)
 	if (mFrameMem)
 		delete mFrameMem;
 	mFrameMem = new DWORD[w * h];
+
 	region.setWidth(w);
 	region.setHeight(h);
 }
