@@ -226,6 +226,10 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	DWORD col = COLOR_RED;
 
 
+	//draw background
+	for (int y = 0; y < region.getHeight() - 1; y++)
+		DrawLine(mFrameMem, region.getWidth(), region.getHeight(), 0, y, region.getWidth() - 1, y, bgColor, bgColor);
+
 
 	if (mImage)
 	{
@@ -243,6 +247,8 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 		colorState = COLOR_WHITE;
 	else if (stateID == UISTATE_HOVER)
 		colorState = COLOR_RED;
+
+
 
 	
 	DrawLine(mFrameMem, region.getWidth(), region.getHeight(),  0, 0, region.getWidth() - 1, 0, colorState, colorState);
