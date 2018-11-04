@@ -269,7 +269,6 @@ void UIButton::Draw(DWORD* mem, int lpitch32, float timeDelta)
 	for (int i = 0; i < region.getHeight(); i++)
 	{
 		memcpy(tempMainMem, tempMem, sizeof(DWORD)*int(region.getWidth()));
-
 		tempMainMem += lpitch32;
 		tempMem += int(region.getWidth());
 	}

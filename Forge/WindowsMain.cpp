@@ -33,6 +33,10 @@ void CreateEngineWindow()
 
 	//save the client rectangle
 	GetClientRect(hwnd, &SoftwareRasterizer.clientRect);
+
+	WINDOWS_SETTINGS* localSettings = UpdateSettings();
+	localSettings->clientDimX = SoftwareRasterizer.clientRect.right;
+	localSettings->clientDimY = SoftwareRasterizer.clientRect.bottom;
 }
 
 
@@ -135,7 +139,7 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hprevinstance, LPSTR lpCmdLine
 	SetThreadAffinityMask(GetCurrentThread(), mask);
 	
 	//allow the program to set it's window settings
-	Windows_Settings = UpdateSettings();
+	Windows_Settings = *UpdateSettings();
 
 	AttachDebugger(&debugView);
 
@@ -192,7 +196,7 @@ resetEntry:
 			if (code == APPUPDATE_RESET)
 			{
 				//allow the program to set it's window settings
-				Windows_Settings = UpdateSettings();
+				Windows_Settings = *UpdateSettings();
 				Shutdown();
 				goto resetEntry;
 			}

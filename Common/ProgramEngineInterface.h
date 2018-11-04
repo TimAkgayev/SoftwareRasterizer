@@ -17,7 +17,7 @@ void ApplicationShutdown();
 int  ApplicationUpdate();
 
 //allows program to set intial settings, this is called even before the main initialization
-WINDOWS_SETTINGS& UpdateSettings(); 
+WINDOWS_SETTINGS* UpdateSettings(); 
 
 LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 

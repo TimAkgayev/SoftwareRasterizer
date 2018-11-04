@@ -218,7 +218,7 @@ void ApplicationInitialization()
 	gWorldBuilderElementsRect = { LocalWindowsSettings.clientDimX - gWorldBuilderMarginRect.right + 10.0f , gWorldBuilderMarginRect.top, LocalWindowsSettings.clientDimX - gWorldBuilderMarginRect.left, gWorldBuilderControlPanelRect.bottom };
 
 	gGUIBuilderControlPanelRect = { gGUIBuilderMarginRect.left, LocalWindowsSettings.clientDimY - gGUIBuilderMarginRect.bottom + 10.0f, LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.right, LocalWindowsSettings.clientDimY - 5.0f };
-	gGUIBuilderElementsRect = { LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.right + 10.0f , gGUIBuilderMarginRect.top, LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.left, gGUIBuilderControlPanelRect.bottom };
+	gGUIBuilderElementsRect = { LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.right + 10.0f , gGUIBuilderMarginRect.top, LocalWindowsSettings.clientDimX - gGUIBuilderMarginRect.left, LocalWindowsSettings.clientDimY - gGUIBuilderMarginRect.bottom };
 
 	//attach debug window
 	debugger->AddVariableView((void*)&gWorldBuilderMarginRect.left);
@@ -517,7 +517,9 @@ void CreateGUIBuilderUI()
 	MyUserInterface->Clear();
 
 	//tool panel
-	MyUserInterface->createRegion(gGUIBuilderControlPanelRect.GetPosition().x, gGUIBuilderControlPanelRect.GetPosition().y,"PANEL", gGUIBuilderControlPanelRect.getWidth(), gGUIBuilderControlPanelRect.getHeight(), COLOR_BLACK);
+	int toolPanelPosX = gGUIBuilderControlPanelRect.GetPosition().x;
+	int toolPanelPosY = gGUIBuilderControlPanelRect.GetPosition().y;
+	MyUserInterface->createRegion(toolPanelPosX, toolPanelPosY,"PANEL", gGUIBuilderControlPanelRect.getWidth(), gGUIBuilderControlPanelRect.getHeight(), COLOR_BLACK);
 
 	MyUserInterface->createText(gGUIBuilderControlPanelRect.GetPosition().x + 10, gGUIBuilderControlPanelRect.GetPosition().y + 10, 0, 12, "DIVISIONS");
 //	gridSpacingTextField = MyUserInterface->createTextField(NULL, gGUIBuilderControlPanelRect.GetPosition().x + 100 + 20, gGUIBuilderControlPanelRect.GetPosition().y + 10, 100, 50, 2);
@@ -751,9 +753,9 @@ void AttachDebugger(DebugView* dbg)
 	debugger = dbg;
 }
 
-WINDOWS_SETTINGS& UpdateSettings()
+WINDOWS_SETTINGS* UpdateSettings()
 {
-	return LocalWindowsSettings;
+	return &LocalWindowsSettings;
 }
 
 UIElement* dragginElement = nullptr;
@@ -770,7 +772,8 @@ LRESULT CALLBACK ApplicationWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		
 	switch (msg)
 	{
-		
+
+
 
 	case WM_LBUTTONDOWN:
 	{
