@@ -84,21 +84,14 @@ RECT2D   SetClipRectangle(RECT2D);
 
 //software rast initializing functions
 ////////////////////////////////////////////////////////////////////////////////
-
-
 void InitializeSoftwareRasterizer();
-
 void ShutdownSoftwareRasterizer();
-
-
 void IncrementDrawOffset(float x, float y);
 
 //helpers
 //////////////////////////////////////////////////////////////////////////////////
 void SortVerticesByY(VERTEX2D verts[], int num);
-
 void SplitTriangle(VERTEX2D sortVerts[], VERTEX2D topTriangle[], VERTEX2D bottomTriangle[]);
-
 void GetRGBA32FromDWORD(int& r, int& g, int& b, int& a, DWORD color);
 
 

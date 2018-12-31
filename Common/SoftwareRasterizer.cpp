@@ -230,7 +230,6 @@ void InitializeSoftwareRasterizer()
 
 
 	//compute the ratio of screen dimensions
-
 	float aspectRatio = float(SoftwareRasterizer.clientRect.left) / float(SoftwareRasterizer.clientRect.bottom);
 	float planeXOrig = -1.0f, planeYOrig = -1.0f;
 	float planeWidth = 2.0f;
@@ -243,7 +242,6 @@ void InitializeSoftwareRasterizer()
 
 
 	//load the effects file to be used ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-
 	HRESULT hrFx;
 	if (FAILED(hrFx = D3DX10CreateEffectFromFile(TEXT("..\\Common\\DX10RendererEffect.fx"), NULL, NULL, "fx_4_0", D3D10_SHADER_DEBUG, 0, SoftwareRasterizer.pD3D10Device, NULL, NULL, &SoftwareRasterizer.pD3D10Effect, NULL, NULL)))
 	{

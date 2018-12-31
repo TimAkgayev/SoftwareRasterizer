@@ -56,7 +56,7 @@ void CreateDebugWindow()
 		SoftwareRasterizer.hInstance,	// instance of this application
 		NULL)))	// extra creation parms
 	{
-
+		 
 	}
 
 	int viewHeight = 25;
