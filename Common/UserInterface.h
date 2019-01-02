@@ -3,7 +3,7 @@
 #include "SoftwareRasterizer.h"
 #include "stdinclude.h"
 #include "MacrosAndDefines.h"
-#include "Math.h"
+#include "SMath.h"
 #include "EventListener.h"
 #include "Font.h"
 

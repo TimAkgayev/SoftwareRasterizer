@@ -1,6 +1,6 @@
 #pragma once
 #include "Bitmap.h"
-#include "Math.h"
+#include "SMath.h"
 #include <vector>;
 
 class BitmapImage

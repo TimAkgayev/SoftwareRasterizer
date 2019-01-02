@@ -191,7 +191,7 @@ void Bitmap::Draw(DWORD* dest, int destLPitch32, int destPosX, int destPosY, DWO
 		int numRows = (y2 - y1);
 
 
-	
+
 
 
 		for (int row = 0; row < numRows; row++)
@@ -199,7 +199,7 @@ void Bitmap::Draw(DWORD* dest, int destLPitch32, int destPosX, int destPosY, DWO
 			for (int column = 0; column < numColumns; column++)
 			{
 
-				
+
 				if (color) {
 					int r, g, b, a;
 					GetRGBA32FromDWORD(r, g, b, a, *color);
@@ -209,14 +209,14 @@ void Bitmap::Draw(DWORD* dest, int destLPitch32, int destPosX, int destPosY, DWO
 					r *= mod_intensity;
 					b *= mod_intensity;
 					g *= mod_intensity;
-						
+
 					destStartMem[column] = _RGBA32BIT(r, g, b, intensity);
-						
+
 				}
 				else {
 					destStartMem[column] = _RGBA32BIT(int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f));
 				}
-				
+
 
 			}
 
@@ -233,7 +233,7 @@ void Bitmap::Draw(DWORD* dest, int destLPitch32, int destPosX, int destPosY, DWO
 
 void Bitmap::ResizeBitmap(RECT resizeRectangle)
 {
-	
+
 
 	int newXDimension = resizeRectangle.right - resizeRectangle.left;
 	int newYDimension = resizeRectangle.bottom - resizeRectangle.top;
@@ -274,7 +274,7 @@ void Bitmap::ResizeBitmap(RECT resizeRectangle)
 		//allocate the data (this is only for 32 bit bitmap)
 		DWORD* tempData;
 		tempData = (DWORD*) new DWORD[newXDimension * newYDimension];
-	
+
 
 		DWORD* newDataOffset = tempData;
 		DWORD* origDataOffset = (DWORD*)data;
@@ -299,7 +299,7 @@ void Bitmap::ResizeBitmap(RECT resizeRectangle)
 	{
 		//allocate the data 
 		UCHAR* tempData;
-		tempData =  new UCHAR[newXDimension * newYDimension];
+		tempData = new UCHAR[newXDimension * newYDimension];
 
 		UCHAR* newDataOffset = tempData;
 		UCHAR* origDataOffset = (UCHAR*)data;

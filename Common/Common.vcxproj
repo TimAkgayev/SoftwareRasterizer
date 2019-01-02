@@ -148,7 +148,7 @@
     <ClCompile Include="EventListener.cpp" />
     <ClCompile Include="GameEngine.cpp" />
     <ClCompile Include="Font.cpp" />
-    <ClCompile Include="Math.cpp" />
+    <ClCompile Include="SMath.cpp" />
     <ClCompile Include="ImageManager.cpp" />
     <ClCompile Include="Shapes.cpp" />
     <ClCompile Include="SoftwareRasterizer.cpp" />
@@ -165,7 +165,7 @@
     <ClInclude Include="EventListener.h" />
     <ClInclude Include="GameEngine.h" />
     <ClInclude Include="MacrosAndDefines.h" />
-    <ClInclude Include="Math.h" />
+    <ClInclude Include="SMath.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="ProgramEngineInterface.h" />
     <ClInclude Include="ImageManager.h" />
@@ -179,6 +179,11 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\TODO.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DX10RendererEffect.fx">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,11 +3,12 @@
 #include <Windows.h>
 
 
+
 class Bitmap
 {
 public:
 
-	
+
 	Bitmap(int rows, int pitch, unsigned char* buffer);
 	Bitmap(int width, int height);
 	Bitmap(std::string fileName);

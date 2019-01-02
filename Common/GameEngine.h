@@ -5,7 +5,7 @@
 #include "UserInterface.h"
 #include "Camera.h"
 #include "Timer.h"
-#include "Math.h"
+#include "SMath.h"
 
 
 int Initialization();
