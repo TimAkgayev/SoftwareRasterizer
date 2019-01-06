@@ -13,7 +13,7 @@
 #include <wrl.h>
 #include <DirectXMath.h>
 
-#include "Math.h"
+#include "SMath.h"
 #include "Vertex.h"
 #include "Mesh.h"
 #include "MacrosAndDefines.h"
@@ -74,6 +74,8 @@ struct LinePrimitive
 	DWORD color0;
 	DWORD color1;
 };
+
+
 
 //pipeline manipulation
 ////////////////////////////////////////////////////////////////////////////////

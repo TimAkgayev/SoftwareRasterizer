@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
 #include <d3d10.h>
-#include "Math.h"
+#include "SMath.h"
 #include <DirectXMath.h>
 
 using namespace DirectX;

@@ -722,6 +722,7 @@ void ShutdownSoftwareRasterizer(SOFTWARERASTERIZER_DX12_OBJECTS* softObjPtr)
 }
 
 
+
 void IncrementDrawOffset(float x, float y)
 {
 	SoftwareRasterizer.drawOffsetX += x;
@@ -828,8 +829,220 @@ void CheckHighlightMouseHover();
 void CheckCollisions();
 
 
+void DrawCharBitmap(DWORD* mem_buffer, int lpitch32, char* bitmap, DWORD color, int xpos, int ypos, int rows, int columns, float scale)
+{
 
 
+	if (scale == 1.0f)
+	{
+		for (int y = 0; y < rows; y++)
+		{
+			for (int x = 0; x < columns; x++)
+			{
+				if (bitmap[x + y*columns])
+					mem_buffer[x + xpos + (y + ypos)*lpitch32] = color;
+				else
+					mem_buffer[x + xpos + (y + ypos)*lpitch32] = COLOR_BLACK;
+
+			}
+		}
+	}
+	else
+	{
+		float newXDimension = scale * columns;
+		float newYDimension = scale * rows;
+		float ratio = 1 / scale;
+		float overflowY = 0.0f;
+		float overflowX = 0.0f;
+
+
+		//	int txpos = xpos, typos = ypos;
+		int bmpXpos = 0, bmpYpos = 0;
+
+		int row = 0, col = 0;
+		for (row; row < (int)newYDimension; row++)
+		{
+			if (bmpYpos > rows - 1)
+			{
+				break;
+			}
+
+			col = 0;
+			for (col; col < (int)newXDimension; col++)
+			{
+				if (bitmap[bmpXpos + bmpYpos*columns])
+				{
+					mem_buffer[xpos + col + (ypos + row)*lpitch32] = color;
+				}
+				else
+				{
+					mem_buffer[xpos + col + (ypos + row)*lpitch32] = COLOR_BLACK;
+				}
+
+
+
+				overflowY += ratio;
+				if (overflowY >= 1.0f)
+				{
+					bmpXpos++;
+					overflowY = 0.0f;
+				}
+
+
+
+
+
+			}
+
+			overflowX += ratio;
+			if (overflowX > 1.0f)
+			{
+				overflowX = 0.0f;
+				bmpYpos++;
+			}
+
+			bmpXpos = 0;
+
+
+		}
+
+	}
+}
+
+
+
+void DrawTriangle(DWORD* video_mem, int lpitch32, VERTEX2D triangle[3], MATRIX3D& transform, int drawOptions, Bitmap* texture)
+{
+	if (drawOptions == DRAW_OPTIONS::DO_FLAT)
+	{
+
+		VERTEX2D sortVerts[3];
+		sortVerts[0] = triangle[0];
+		sortVerts[1] = triangle[1];
+		sortVerts[2] = triangle[2];
+
+		SortVerticesByY(sortVerts, 3);
+
+		//check if sides are equal, means tri doesn't have to be split, draw right away
+		if (sortVerts[0].pos.y == sortVerts[1].pos.y)
+		{
+			_DrawFlatBottomTriangleConstant(sortVerts, transform, video_mem, lpitch32);
+			return;
+		}
+		if (sortVerts[1].pos.y == sortVerts[2].pos.y)
+		{
+			_DrawFlatTopTriangleConstant(sortVerts, transform, video_mem, lpitch32);
+			return;
+		}
+
+		//split triangle
+		VERTEX2D topTri[3];
+		VERTEX2D bottomTri[3];
+		SplitTriangle(sortVerts, topTri, bottomTri);
+
+		_DrawFlatBottomTriangleConstant(topTri, transform, video_mem, lpitch32);
+		_DrawFlatTopTriangleConstant(bottomTri, transform, video_mem, lpitch32);
+
+	}
+	else if (drawOptions == DRAW_OPTIONS::DO_LINELIST)
+	{
+
+		int lastIndex = 0;
+		int xOffset = transform.M[2][0];
+		int yOffset = transform.M[2][1];
+
+		//draw a flipped polygon (-1 flips the y axis)
+		for (int i = 0; i < 3; i++)
+		{
+			QueueTransformClipLine(
+				triangle[i].pos.x + xOffset,
+				triangle[i].pos.y + yOffset,
+				triangle[i + 1].pos.x + xOffset,
+				triangle[i + 1].pos.y + yOffset,
+				COLOR_BLUE,
+				COLOR_BLUE);
+
+			//save which vertex was last
+			lastIndex = i;
+		}
+
+		//close polygon
+		QueueTransformClipLine(
+			triangle[0].pos.x + xOffset,
+			triangle[0].pos.y + yOffset,
+			triangle[lastIndex + 1].pos.x + xOffset,
+			triangle[lastIndex + 1].pos.y + yOffset,
+			COLOR_BLUE,
+			COLOR_BLUE);
+
+	}
+	else if (drawOptions == DRAW_OPTIONS::DO_GOURAUD)
+	{
+
+		VERTEX2D sortVerts[3];
+		sortVerts[0] = triangle[0];
+		sortVerts[1] = triangle[1];
+		sortVerts[2] = triangle[2];
+
+
+		SortVerticesByY(sortVerts, 3);
+
+
+		if (sortVerts[0].pos.y == sortVerts[1].pos.y)
+		{
+			_DrawFlatBottomTriangleGouraud(sortVerts, transform, video_mem, lpitch32);
+			return;
+		}
+		if (sortVerts[1].pos.y == sortVerts[2].pos.y)
+		{
+			_DrawFlatTopTriangleGouraud(sortVerts, transform, video_mem, lpitch32);
+			return;
+		}
+
+		VERTEX2D topTri[3];
+		VERTEX2D bottomTri[3];
+		SplitTriangle(sortVerts, topTri, bottomTri);
+
+
+
+		_DrawFlatBottomTriangleGouraud(topTri, transform, video_mem, lpitch32);
+		_DrawFlatTopTriangleGouraud(bottomTri, transform, video_mem, lpitch32);
+	}
+	else if (drawOptions == DRAW_OPTIONS::DO_TEXTURED)
+	{
+		VERTEX2D sortVerts[3];
+		sortVerts[0] = triangle[0];
+		sortVerts[1] = triangle[1];
+		sortVerts[2] = triangle[2];
+
+		SortVerticesByY(sortVerts, 3);
+
+
+		if (sortVerts[0].pos.y == sortVerts[1].pos.y)
+		{
+			_DrawFlatBottomTriangleTextured(sortVerts, transform, texture, video_mem, lpitch32);
+			return;
+		}
+		if (sortVerts[1].pos.y == sortVerts[2].pos.y)
+		{
+			_DrawFlatTopTriangleTextured(sortVerts, transform, texture, video_mem, lpitch32);
+			return;
+		}
+
+
+		VERTEX2D topTri[3];
+		VERTEX2D bottomTri[3];
+		SplitTriangle(sortVerts, topTri, bottomTri);
+
+		float offX = transform.M[2][0];
+		float offY = transform.M[2][1];
+
+
+		_DrawFlatBottomTriangleTextured(topTri, transform, texture, video_mem, lpitch32);
+		_DrawFlatTopTriangleTextured(bottomTri, transform, texture, video_mem, lpitch32);
+
+	}
+}
 void DrawLine(DWORD* buffer, int buffer_width, int buffer_height, int x0, int y0, int x1, int y1, DWORD color0, DWORD color1, RECT* clipRect)
 {
 	if (clipRect)
@@ -943,9 +1156,6 @@ void DrawLine(DWORD* buffer, int buffer_width, int buffer_height, int x0, int y0
 		
 	}
 }
-
-
-
 void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, Bitmap* source, int destPosX, int destPosY, RECT* sourceRegion)
 {
 	
@@ -1047,90 +1257,6 @@ void DrawBitmapWithClipping(DWORD* dest, int destLPitch32, Bitmap* source, int d
 
 
 }
-
-
-
-
-void DrawCharBitmap(DWORD* mem_buffer, int lpitch32, char* bitmap, DWORD color, int xpos, int ypos, int rows, int columns, float scale)
-{
-
-	
-	if(scale == 1.0f)
-	{
-		for(int y = 0; y < rows; y++)
-		{
-			for(int x = 0; x < columns; x++)
-			{
-				if(bitmap[x + y*columns])
-					mem_buffer[x + xpos + (y + ypos)*lpitch32] = color;
-				else
-					mem_buffer[x + xpos + (y + ypos)*lpitch32] = COLOR_BLACK;
-
-			}
-		}
-	}
-	else
-	{
-		float newXDimension = scale * columns;
-		float newYDimension = scale * rows;
-		float ratio = 1/scale;
-		float overflowY = 0.0f;
-		float overflowX = 0.0f;
-
-
-	//	int txpos = xpos, typos = ypos;
-		int bmpXpos = 0, bmpYpos = 0;
-		
-		int row = 0, col = 0;
-		for(row; row < (int)newYDimension; row++)
-		{
-			if(bmpYpos > rows - 1)
-			{
-				break;		
-			}
-
-			col = 0;
-			for(col; col < (int)newXDimension; col++)
-			{
-				if(bitmap[bmpXpos + bmpYpos*columns])
-				{
-					mem_buffer[xpos + col + (ypos + row)*lpitch32] = color;
-				}
-				else
-				{
-					mem_buffer[xpos + col + (ypos + row)*lpitch32] = COLOR_BLACK;
-				}
-
-	
-
- 				overflowY += ratio;
-				if(overflowY >= 1.0f)
-				{
-					bmpXpos++;
-					overflowY = 0.0f;
-				}
-
-
-				
-
-
-			}
-
-			overflowX += ratio;
-			if(overflowX > 1.0f)
-			{
-				overflowX = 0.0f;
-				bmpYpos++;
-			}
-
-			bmpXpos=0;
-
-		
-		}
-
-	}
-}
-
 void _DrawFlatTopTriangleTextured(VERTEX2D sortVerts[], MATRIX3D& transform, Bitmap* texture, DWORD* video_mem, int lpitch32)
 {
 	float xtranslate = transform.M[2][0];
@@ -1762,140 +1888,6 @@ void DrawMeshObject(MESHOBJECT& m, int flags, DWORD* video_mem, int lpitch32)
 }
 
 
-void DrawTriangle(DWORD* video_mem, int lpitch32, VERTEX2D triangle[3], MATRIX3D& transform, int drawOptions, Bitmap* texture)
-{
-	if (drawOptions == DRAW_OPTIONS::DO_FLAT)
-	{
-
-		VERTEX2D sortVerts[3];
-		sortVerts[0] = triangle[0];
-		sortVerts[1] = triangle[1];
-		sortVerts[2] = triangle[2];
-
-		SortVerticesByY(sortVerts, 3);
-
-		//check if sides are equal, means tri doesn't have to be split, draw right away
-		if (sortVerts[0].pos.y == sortVerts[1].pos.y)
-		{
-			_DrawFlatBottomTriangleConstant(sortVerts, transform, video_mem, lpitch32);
-			return;
-		}
-		if (sortVerts[1].pos.y == sortVerts[2].pos.y)
-		{
-			_DrawFlatTopTriangleConstant(sortVerts, transform, video_mem, lpitch32);
-			return;
-		}
-
-		//split triangle
-		VERTEX2D topTri[3];
-		VERTEX2D bottomTri[3];
-		SplitTriangle(sortVerts, topTri, bottomTri);
-
-		_DrawFlatBottomTriangleConstant(topTri, transform, video_mem, lpitch32);
-		_DrawFlatTopTriangleConstant(bottomTri, transform, video_mem, lpitch32);
-
-	}
-	else if (drawOptions == DRAW_OPTIONS::DO_LINELIST)
-	{
-
-		int lastIndex = 0;
-		int xOffset = transform.M[2][0];
-		int yOffset = transform.M[2][1];
-
-		//draw a flipped polygon (-1 flips the y axis)
-		for (int i = 0; i < 3; i++)
-		{
-			QueueTransformClipLine(
-				triangle[i].pos.x + xOffset,
-				triangle[i].pos.y + yOffset,
-				triangle[i + 1].pos.x + xOffset,
-				triangle[i + 1].pos.y + yOffset,
-				COLOR_BLUE,
-				COLOR_BLUE);
-
-			//save which vertex was last
-			lastIndex = i;
-		}
-
-		//close polygon
-		QueueTransformClipLine(
-			triangle[0].pos.x + xOffset,
-			triangle[0].pos.y + yOffset,
-			triangle[lastIndex + 1].pos.x + xOffset,
-			triangle[lastIndex + 1].pos.y + yOffset,
-			COLOR_BLUE,
-			COLOR_BLUE);
-
-	}
-	else if (drawOptions == DRAW_OPTIONS::DO_GOURAUD)
-	{
-
-		VERTEX2D sortVerts[3];
-		sortVerts[0] = triangle[0];
-		sortVerts[1] = triangle[1];
-		sortVerts[2] = triangle[2];
-
-
-		SortVerticesByY(sortVerts, 3);
-
-
-		if (sortVerts[0].pos.y == sortVerts[1].pos.y)
-		{
-			_DrawFlatBottomTriangleGouraud(sortVerts, transform, video_mem, lpitch32);
-			return;
-		}
-		if (sortVerts[1].pos.y == sortVerts[2].pos.y)
-		{
-			_DrawFlatTopTriangleGouraud(sortVerts, transform, video_mem, lpitch32);
-			return;
-		}
-
-		VERTEX2D topTri[3];
-		VERTEX2D bottomTri[3];
-		SplitTriangle(sortVerts, topTri, bottomTri);
-
-
-
-		_DrawFlatBottomTriangleGouraud(topTri, transform, video_mem, lpitch32);
-		_DrawFlatTopTriangleGouraud(bottomTri, transform, video_mem, lpitch32);
-	}
-	else if (drawOptions == DRAW_OPTIONS::DO_TEXTURED)
-	{
-		VERTEX2D sortVerts[3];
-		sortVerts[0] = triangle[0];
-		sortVerts[1] = triangle[1];
-		sortVerts[2] = triangle[2];
-
-		SortVerticesByY(sortVerts, 3);
-
-
-		if (sortVerts[0].pos.y == sortVerts[1].pos.y)
-		{
-			_DrawFlatBottomTriangleTextured(sortVerts, transform, texture, video_mem, lpitch32);
-			return;
-		}
-		if (sortVerts[1].pos.y == sortVerts[2].pos.y)
-		{
-			_DrawFlatTopTriangleTextured(sortVerts, transform, texture, video_mem, lpitch32);
-			return;
-		}
-
-
-		VERTEX2D topTri[3];
-		VERTEX2D bottomTri[3];
-		SplitTriangle(sortVerts, topTri, bottomTri);
-
-		float offX = transform.M[2][0];
-		float offY = transform.M[2][1];
-
-	
-		_DrawFlatBottomTriangleTextured(topTri, transform, texture, video_mem, lpitch32);
-		_DrawFlatTopTriangleTextured(bottomTri, transform, texture, video_mem, lpitch32);
-
-	}
-}
-
-
 
 
 //---------------------System---------------------------------------
@@ -1926,4 +1918,7 @@ void SystemHotKeys(HWND window)
 
 
 }
+
+
+
 
