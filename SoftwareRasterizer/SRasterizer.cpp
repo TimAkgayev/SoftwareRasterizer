@@ -96,7 +96,7 @@ namespace SoftwareRasterizer
 		//load the effects file to be used 
 
 		HRESULT hrFx;
-		if (FAILED(hrFx = D3DX10CreateEffectFromFile(TEXT("..\\Common\\DX10RendererEffect.fx"), NULL, NULL, "fx_4_0", D3D10_SHADER_DEBUG, 0, pD3D10Device, NULL, NULL, &pD3D10Effect, NULL, NULL)))
+		if (FAILED(hrFx = D3DX10CreateEffectFromFile(TEXT("C:\\Users\\Tim\\Documents\\Visual Studio Projects\\SoftwareRasterizer\\SoftwareRasterizer\\DX10RendererEffect.fx"), NULL, NULL, "fx_4_0", D3D10_SHADER_DEBUG, 0, pD3D10Device, NULL, NULL, &pD3D10Effect, NULL, NULL)))
 		{
 			return;
 		}
@@ -411,7 +411,7 @@ namespace SoftwareRasterizer
 	{
 
 		//clear render target
-		pD3D10Device->ClearRenderTargetView(pD3D10RenderTargetView, D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f));
+		pD3D10Device->ClearRenderTargetView(pD3D10RenderTargetView, D3DXCOLOR(0.0f, 0.0f, 1.0f, 1.0f));
 
 		//Lock the texture and draw
 		D3D10_MAPPED_TEXTURE2D mappedTex;
@@ -441,7 +441,7 @@ namespace SoftwareRasterizer
 			offsetX = sourceRegion->left;
 			offsetY = sourceRegion->top;
 		}
-
+/*
 		//reject off screen bitmap
 		if (destPosX + image_width < 0)
 			return;
@@ -451,7 +451,7 @@ namespace SoftwareRasterizer
 			return;
 		if (destPosY > clientRect.bottom)
 			return;
-
+*/
 
 		//destination region
 		int x1 = destPosX;
@@ -536,7 +536,7 @@ namespace SoftwareRasterizer
 
 		//end of frame
 		pD3D10SwapChain->Present(0, 0);
-
+		 
 
 	}
 
