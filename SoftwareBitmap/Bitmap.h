@@ -16,7 +16,7 @@ namespace SoftwareBitmap
 
 		Bitmap(int rows, int pitch, unsigned char* buffer);
 		Bitmap(int width, int height);
-		Bitmap(std::string fileName);
+		Bitmap(std::wstring fileName);
 		~Bitmap();
 		Bitmap& operator=(const Bitmap& rhv);
 
@@ -25,20 +25,22 @@ namespace SoftwareBitmap
 		void ResizeBitmap(float xscale, float yscale);
 		void RotateBitmapLeft();
 
-		void SetName(std::string);
+		void SetName(std::wstring);
 
-		POINT GetDimensions() const;
+		int GetWidth() const;
+		int GetHeight() const;
 		int   GetDataSize() const;
 		const BITMAPFILEHEADER& GetFileHeader() const;
 		const BITMAPINFOHEADER& GetInfoHeader() const;
 		UCHAR* GetData() const;
 		const PALETTEENTRY* GetPalette() const;
-		std::string GetName() const;
+		std::wstring GetName() const;
+		int GetPitch() const;
 
 		void Draw(DWORD* dest, int destLPitch32, int destPosX, int destPosY, DWORD* color = NULL, RECT* sourceRegion = NULL);
 
 	private:
-		int LoadBitmapFromDisk(std::string szFileName);
+		int LoadBitmapFromDisk(std::wstring szFileName);
 		int Unload_Bitmap_File();
 
 		BITMAPFILEHEADER fileHeader;
@@ -46,7 +48,8 @@ namespace SoftwareBitmap
 		PALETTEENTRY	 palette[256];
 		UCHAR*			 data;
 
-		std::string name;
+		std::wstring name;
+		int mPitch;
 	
 
 

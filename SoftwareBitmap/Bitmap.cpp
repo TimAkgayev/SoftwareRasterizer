@@ -5,11 +5,11 @@ namespace SoftwareBitmap
 
 
 
-	int Bitmap::LoadBitmapFromDisk(std::string szFileName)
+	int Bitmap::LoadBitmapFromDisk(std::wstring szFileName)
 	{
 
 		// Open the bitmap file
-		HANDLE hFile = CreateFileA(szFileName.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		HANDLE hFile = CreateFile(szFileName.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hFile == INVALID_HANDLE_VALUE)
 			return 0;
 
@@ -37,6 +37,30 @@ namespace SoftwareBitmap
 		int m_iWidth = (int)infoHeader.biWidth;
 		int m_iHeight = (int)infoHeader.biHeight;
 
+		if (infoHeader.biBitCount == 8)
+		{
+			
+			bOK = ReadFile(hFile, &palette, 256 * sizeof(PALETTEENTRY), &dwBytesRead, NULL);
+			if (!bOK || (dwBytesRead != sizeof(PALETTEENTRY)*256))
+			{
+				CloseHandle(hFile);
+				return 0;
+			}
+
+			// now set all the flags in the palette correctly
+			// and fix the reversed
+			// BGR RGBQUAD data format
+			for (int index = 0; index < 256; index++)
+			{
+				// reverse the red and green fields
+				int temp_color = palette[index].peRed;
+				palette[index].peRed = palette[index].peBlue;
+				palette[index].peBlue = temp_color;
+				// always set the flags word to this
+				palette[index].peFlags = PC_NOCOLLAPSE;
+			} 
+			
+		}
 
 		unsigned int sz;
 		SetFilePointer(hFile, fileHeader.bfOffBits, NULL, FILE_BEGIN);
@@ -44,17 +68,20 @@ namespace SoftwareBitmap
 		bOK = ReadFile(hFile, data, infoHeader.biSizeImage, &dwBytesRead, NULL);
 
 		//flip the bytes to little endian
-		DWORD* temp = (DWORD*)data;
-		for (int i = 0; i < infoHeader.biSizeImage / 4; i++)
+		if (infoHeader.biBitCount == 32)
 		{
-			//photoshop saves a,r,g,b into little endian b,g,r,a
-			//this engine is expecting r,g,b,a so all that's needed is to flip 1st and 3rd bytes
-			//be careful with this code if the image source program is working in r,g,b,a instead of a,r,g,b
-			char* byteMem = (char*)&temp[i];
-			char btemp = byteMem[0];
-			byteMem[0] = byteMem[2];
-			byteMem[2] = btemp;
+			DWORD* temp = (DWORD*)data;
+			for (int i = 0; i < infoHeader.biSizeImage / 4; i++)
+			{
+				//photoshop saves a,r,g,b into little endian b,g,r,a
+				//this engine is expecting r,g,b,a so all that's needed is to flip 1st and 3rd bytes
+				//be careful with this code if the image source program is working in r,g,b,a instead of a,r,g,b
+				char* byteMem = (char*)&temp[i];
+				char btemp = byteMem[0];
+				byteMem[0] = byteMem[2];
+				byteMem[2] = btemp;
 
+			}
 		}
 
 		if (bOK)
@@ -176,9 +203,6 @@ namespace SoftwareBitmap
 			int numRows = (y2 - y1);
 
 
-
-
-
 			for (int row = 0; row < numRows; row++)
 			{
 				for (int column = 0; column < numColumns; column++)
@@ -199,7 +223,7 @@ namespace SoftwareBitmap
 
 					}
 					else {
-						destStartMem[column] = _RGBA32BIT(int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f));
+						destStartMem[column] = _RGBA32BIT(int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), 255);
 					}
 
 
@@ -365,16 +389,15 @@ namespace SoftwareBitmap
 
 		delete tempData;
 
-
 	}
 
-	Bitmap::Bitmap(std::string filename)
+	Bitmap::Bitmap(std::wstring filename)
 	{
 		LoadBitmapFromDisk(filename);
 		size_t pos = filename.find_last_of('\\');
 		name = filename.substr(pos + 1);
-		int x = 0;
-
+		mPitch = int(float(infoHeader.biBitCount * infoHeader.biWidth) / 32 + 0.5f) * 4;
+	  
 	}
 
 	Bitmap::Bitmap(int width, int height)
@@ -463,9 +486,19 @@ namespace SoftwareBitmap
 	}
 
 
-	void Bitmap::SetName(std::string n)
+	void Bitmap::SetName(std::wstring n)
 	{
 		name = n;
+	}
+
+	int Bitmap::GetWidth() const
+	{
+		return infoHeader.biWidth;
+	}
+
+	int Bitmap::GetHeight() const
+	{
+		return infoHeader.biHeight;
 	}
 
 	const PALETTEENTRY* Bitmap::GetPalette() const
@@ -473,11 +506,6 @@ namespace SoftwareBitmap
 		return palette;
 	}
 
-	POINT Bitmap::GetDimensions() const
-	{
-		POINT p = { infoHeader.biWidth, infoHeader.biHeight };
-		return p;
-	}
 	int   Bitmap::GetDataSize() const
 	{
 		return infoHeader.biSizeImage;
@@ -495,9 +523,14 @@ namespace SoftwareBitmap
 		return data;
 	}
 
-	std::string Bitmap::GetName() const
+	std::wstring Bitmap::GetName() const
 	{
 		return name;
+	}
+
+	int Bitmap::GetPitch() const
+	{
+		return mPitch;
 	}
 
 

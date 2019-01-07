@@ -4,6 +4,10 @@
 #include <D3D10.h>
 #include <DirectXMath.h>
 #include "..\D3DX\D3DX10.h"
+#include <gdiplus.h>
+#include <Gdipluspixelformats.h>
+#include "Shlwapi.h"
+
 using namespace DirectX;
 
 
@@ -287,7 +291,8 @@ namespace SoftwareRasterizer
 
 
 		void DrawLine(DWORD* buffer, int lpitch32, int height, int x0, int y0, int x1, int y1, DWORD color0, DWORD color1, RECT* clipRect = NULL);
-		void DrawBitmapWithClipping(SoftwareBitmap::Bitmap* bitmap, int destPosX, int destPosY, RECT* sourceRegion = NULL);
+		void DrawBitmapWithClipping(SoftwareBitmap::Bitmap* bitmap, int destPosX, int destPosY, RECT& clientRect, RECT* sourceRegion = NULL);
+		void DrawTestBmp();
 
 	private:
 		int mCohenSutherlandLineClip(int& x1, int& y1, int& x2, int& y2, RECT clipRect);
@@ -326,12 +331,13 @@ namespace SoftwareRasterizer
 
 		HWND		mainWindow;
 		HINSTANCE	hInstance;
-		RECT		clientRect;
-		float		drawOffsetX, drawOffsetY;
 
 		MATRIX2D cameraTransform;
 		MATRIX2D projectionTransform;
 		RECT2D   clipRectangle;
+
+		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+		ULONG_PTR           gdiplusToken;
 	};
 
 }

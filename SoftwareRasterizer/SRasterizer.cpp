@@ -2,7 +2,7 @@
 
 namespace SoftwareRasterizer
 {
-
+	
 	UINT numVertexElements = 3;
 	D3D10_INPUT_ELEMENT_DESC DX10VertexLayout[] =
 	{
@@ -82,7 +82,7 @@ namespace SoftwareRasterizer
 
 		//compute the ratio of screen dimensions
 
-		float aspectRatio = float(clientRect.left) / float(clientRect.bottom);
+		float aspectRatio = float(clientRegion.left - clientRegion.right) / float(clientRegion.bottom - clientRegion.top);
 		float planeXOrig = -1.0f, planeYOrig = -1.0f;
 		float planeWidth = 2.0f;
 		float planeHeight = 2.0f;
@@ -261,11 +261,15 @@ namespace SoftwareRasterizer
 
 		//default clip region set to whole window
 		clipRectangle.setPos(0, 0);
-		clipRectangle.setWidth(clientRect.right);
-		clipRectangle.setHeight(clientRect.bottom);
+		clipRectangle.setWidth(clientRegion.right - clientRegion.left);
+		clipRectangle.setHeight(clientRegion.bottom - clientRegion.top);
 
 
-		drawOffsetX = drawOffsetY = 0.0f;
+		
+
+	
+
+
 	}
 
 	SRasterizer::~SRasterizer()
@@ -407,7 +411,72 @@ namespace SoftwareRasterizer
 
 		}
 	}
-	void SRasterizer::DrawBitmapWithClipping(SoftwareBitmap::Bitmap* source, int destPosX, int destPosY, RECT* sourceRegion)
+
+	void SRasterizer::DrawTestBmp()
+	{
+		if (PathFileExists(L"C:\\Users\\Tim\\Documents\\Visual Studio 2017\\Projects\\HardwareRasterizer\\HardwareRasterizer\\Heightmaps\\TestFloor.bmp"))
+		{
+			int x = 0;
+		}
+
+		Gdiplus::Bitmap bitmap(L"C:\\Users\\Tim\\Documents\\Visual Studio 2017\\Projects\\HardwareRasterizer\\HardwareRasterizer\\Heightmaps\\TestFloor.bmp");
+		Gdiplus::Status s = bitmap.GetLastStatus();
+		
+
+
+		//clear render target
+		pD3D10Device->ClearRenderTargetView(pD3D10RenderTargetView, D3DXCOLOR(0.0f, 0.0f, 1.0f, 1.0f));
+
+		//Lock the texture and draw
+		D3D10_MAPPED_TEXTURE2D mappedTex;
+		texture->Map(D3D10CalcSubresource(0, 0, 1), D3D10_MAP_WRITE_DISCARD, 0, &mappedTex);
+
+		//clear texture and assign to temporary variable
+		UINT lpitch32 = mappedTex.RowPitch >> 2; //in bytes, div by 4 to get num dwords
+		DWORD* texture_buffer = (DWORD*)mappedTex.pData;
+		int pitch = mappedTex.RowPitch;
+		RECT clientR;
+		GetClientRect(mainWindow, &clientR);
+		ZeroMemory(texture_buffer, (clientR.bottom - clientR.top)*mappedTex.RowPitch);
+
+		
+		
+		Gdiplus::BitmapData bmpData;
+		Gdiplus::Rect  lockRct(0, 0, bitmap.GetWidth(), bitmap.GetHeight());
+		bitmap.LockBits(&lockRct, Gdiplus::ImageLockModeRead, bitmap.GetPixelFormat() , &bmpData);
+
+		
+		UCHAR* source_mem = (UCHAR*)bmpData.Scan0;
+		DWORD* dest_mem = texture_buffer;
+		for (int y = 0; y < bitmap.GetHeight(); y++)
+		{
+			for (int x = 0; x < bitmap.GetWidth(); x++)
+			{
+				int value = source_mem[x + y*bmpData.Stride];
+				dest_mem[x + y*lpitch32] = _RGBA32BIT(value, value, value, 255);
+			}
+			//source_mem += bmpData.Stride;
+			//dest_mem += lpitch32;
+		}
+
+		bitmap.UnlockBits(&bmpData);
+
+		//Release the texture
+		texture->Unmap(D3D10CalcSubresource(0, 0, 1));
+
+
+		//apply pass and draw the main texture
+		pD3D10EffectTechnique->GetPassByIndex(0)->Apply(0);
+		pD3D10Device->DrawIndexed(numIndices, 0, 0);
+
+
+		//end of frame
+		pD3D10SwapChain->Present(0, 0);
+
+
+	}
+
+	void SRasterizer::DrawBitmapWithClipping(SoftwareBitmap::Bitmap* source, int destPosX, int destPosY, RECT& clientRect, RECT* sourceRegion)
 	{
 
 		//clear render target
@@ -441,17 +510,15 @@ namespace SoftwareRasterizer
 			offsetX = sourceRegion->left;
 			offsetY = sourceRegion->top;
 		}
-/*
+
 		//reject off screen bitmap
-		if (destPosX + image_width < 0)
+		if ((destPosX + image_width < 0) || (destPosY + image_height < 0) || (destPosX > clientRect.right) || (destPosY > clientRect.bottom))
+		{
+			//Release the texture
+			texture->Unmap(D3D10CalcSubresource(0, 0, 1));
 			return;
-		if (destPosY + image_height < 0)
-			return;
-		if (destPosX > clientRect.right)
-			return;
-		if (destPosY > clientRect.bottom)
-			return;
-*/
+		}
+
 
 		//destination region
 		int x1 = destPosX;
@@ -509,19 +576,22 @@ namespace SoftwareRasterizer
 			{
 				for (int column = 0; column < numColumns; column++)
 				{
+					int r = sourceStartMem[column];
+					int g = sourceStartMem[column]; 
+					int b = sourceStartMem[column];
+					destStartMem[column] = _RGBA32BIT(r, g, b, 255);
 
-					if (sourceStartMem[column] != 0)
-						destStartMem[column] = _RGBA32BIT(int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), int(sourceStartMem[column] + 0.5f), 255);
-
+			
 				}
 
 				destStartMem += lpitch32;
-				sourceStartMem += image_width;
+				sourceStartMem += source->GetPitch();
 			}
 
 
 
 		}
+
 
 
 
